@@ -1781,6 +1781,12 @@ def render_poc_demo() -> str:
         return poc_path.read_text(encoding="utf-8")
     return "<h1>POC Demo Page Not Found</h1>"
 
+def render_workflow_addon() -> str:
+    addon_path = ROOT_DIR / "workflow_addon.html"
+    if addon_path.exists():
+        return addon_path.read_text(encoding="utf-8")
+    return "<h1>Workflow Addon Page Not Found</h1>"
+
 def render_portal() -> str:
     portal_path = ROOT_DIR / "portal.html"
     if portal_path.exists():
@@ -2019,6 +2025,12 @@ class AppHandler(BaseHTTPRequestHandler):
         # Serve Product Intro Page (open to all)
         if path == "/product-intro":
             html = render_product_intro()
+            self.send_html(200, html)
+            return
+
+        # Serve Workflow Addon Page (open to all)
+        if path == "/workflow-addon":
+            html = render_workflow_addon()
             self.send_html(200, html)
             return
 
