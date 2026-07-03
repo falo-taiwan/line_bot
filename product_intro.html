@@ -248,13 +248,13 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="#">首頁</a></li>
         <li class="breadcrumb-item"><a href="#">智慧轉型方案</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Attn LINE AI 資訊管理系統 企業進階版</li>
+        <li class="breadcrumb-item active" aria-current="page" id="crumbTitle">Attn LINE AI 資訊管理系統 企業標準版</li>
       </ol>
     </nav>
 
     <!-- Title Block -->
     <div class="solution-title-block">
-      <h2 class="solution-title">Attn LINE AI 資訊管理系統 企業進階版</h2>
+      <h2 class="solution-title" id="pageTitle">Attn LINE AI 資訊管理系統 企業標準版</h2>
       <div class="stitle-group">
         <span class="badge-category">AI對話分析與專案智慧</span>
         <span class="badge-industry">G 批發及零售業</span>
@@ -271,10 +271,10 @@
       <div class="col-lg-3 col-md-12 order-lg-1 order-2">
         <div class="price-side-card">
           <div class="price-label">115年方案價格</div>
-          <div class="price-value">$200,000</div>
-          <div class="price-term">(方案期程為 12 個月)</div>
+          <div class="price-value" id="sidePriceValue">$100,000</div>
+          <div class="price-term" id="sidePriceTerm">(方案期程為 6 個月)</div>
           
-          <a class="btn-contact" href="mailto:service@tianxun.com.tw?subject=【韌性計畫-單店導入】洽詢AI解決方案(Attn LINE AI資訊管理系統)導入事宜">
+          <a class="btn-contact" id="contactBtn" href="mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(Attn LINE AI資訊管理系統)導入事宜">
             <i class="bi bi-envelope-fill"></i> 聯絡服務提供者
           </a>
         </div>
@@ -399,6 +399,39 @@
 
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    function updateTierContent() {
+      const hash = window.location.hash;
+      const isAdvanced = (hash === '#advanced');
+      
+      const crumbTitle = document.getElementById('crumbTitle');
+      const pageTitle = document.getElementById('pageTitle');
+      const sidePriceValue = document.getElementById('sidePriceValue');
+      const sidePriceTerm = document.getElementById('sidePriceTerm');
+      const contactBtn = document.getElementById('contactBtn');
+      
+      if (isAdvanced) {
+        if (crumbTitle) crumbTitle.innerText = "Attn LINE AI 資訊管理系統 企業進階版";
+        if (pageTitle) pageTitle.innerText = "Attn LINE AI 資訊管理系統 企業進階版";
+        if (sidePriceValue) sidePriceValue.innerText = "$200,000";
+        if (sidePriceTerm) sidePriceTerm.innerText = "(方案期程為 6 個月)";
+        if (contactBtn) contactBtn.href = "mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(Attn LINE AI資訊管理系統 企業進階版)導入事宜";
+      } else {
+        // Default to Standard
+        if (crumbTitle) crumbTitle.innerText = "Attn LINE AI 資訊管理系統 企業標準版";
+        if (pageTitle) pageTitle.innerText = "Attn LINE AI 資訊管理系統 企業標準版";
+        if (sidePriceValue) sidePriceValue.innerText = "$100,000";
+        if (sidePriceTerm) sidePriceTerm.innerText = "(方案期程為 6 個月)";
+        if (contactBtn) contactBtn.href = "mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(Attn LINE AI資訊管理系統 企業標準版)導入事宜";
+      }
+    }
+    
+    // Listen for hash changes and page load
+    window.addEventListener('hashchange', updateTierContent);
+    window.addEventListener('DOMContentLoaded', updateTierContent);
+  </script>
+
   <!-- 天勳 x Force Cheng 2026/7/3 -->
   <div class="no-print" style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: rgba(15, 23, 42, 0.04); pointer-events: none; z-index: 9999; font-weight: bold; font-family: monospace;">天勳 x Force Cheng 2026/7/3</div>
 </body>
