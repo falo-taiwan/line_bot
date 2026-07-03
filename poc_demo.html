@@ -440,6 +440,7 @@
     <div class="d-flex gap-2">
       <button class="tour-btn" id="startTourBtn" onclick="startTour()">開始自動展示</button>
       <button class="tour-btn d-none" id="prevTourBtn" onclick="prevStep()">上一步</button>
+      <button class="tour-btn d-none" id="autoTourBtn" onclick="toggleAutoPlay()">自動播放</button>
       <button class="tour-btn d-none" id="nextTourBtn" onclick="nextStep()">下一步</button>
       <button class="tour-btn d-none" id="restartTourBtn" onclick="restartTour()">重新播放</button>
     </div>
@@ -1387,10 +1388,71 @@
       `;
     }
 
+    let isAutoPlaying = false;
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      const btn = document.getElementById('autoTourBtn');
+      if (btn) {
+        btn.innerText = "自動播放";
+        btn.classList.remove('btn-danger');
+      }
+    }
+
+    function toggleAutoPlay() {
+      const btn = document.getElementById('autoTourBtn');
+      if (isAutoPlaying) {
+        stopAutoPlay();
+      } else {
+        isAutoPlaying = true;
+        btn.innerText = "停止播放";
+        btn.classList.add('btn-danger');
+        runAutoPlayLoop();
+      }
+    }
+
+    async function runAutoPlayLoop() {
+      if (!isAutoPlaying) return;
+      if (currentStep >= tourSteps.length) {
+        stopAutoPlay();
+        document.getElementById('autoTourBtn').classList.add('d-none');
+        // Let playStep handle completion rendering
+        playStep();
+        return;
+      }
+
+      const step = tourSteps[currentStep];
+      document.getElementById('tourStepTitle').innerText = step.title;
+      document.getElementById('tourStepDesc').innerText = step.desc;
+
+      document.getElementById('nextTourBtn').disabled = true;
+      document.getElementById('prevTourBtn').disabled = true;
+
+      const res = step.action();
+      if (res instanceof Promise) {
+        await res;
+      }
+
+      // Add a 2.5 second pause between steps for visual convenience
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      if (isAutoPlaying) {
+        currentStep++;
+        document.getElementById('nextTourBtn').disabled = false;
+        document.getElementById('prevTourBtn').disabled = false;
+        runAutoPlayLoop();
+      } else {
+        document.getElementById('nextTourBtn').disabled = false;
+        document.getElementById('prevTourBtn').disabled = false;
+      }
+    }
+
     async function startTour() {
       document.getElementById('startTourBtn').classList.add('d-none');
       document.getElementById('nextTourBtn').classList.remove('d-none');
       document.getElementById('prevTourBtn').classList.remove('d-none');
+      document.getElementById('autoTourBtn').classList.remove('d-none');
+      stopAutoPlay();
       currentStep = 0;
       playStep();
     }
@@ -1408,6 +1470,7 @@
       if (currentStep >= tourSteps.length) {
         document.getElementById('nextTourBtn').classList.add('d-none');
         document.getElementById('prevTourBtn').classList.add('d-none');
+        document.getElementById('autoTourBtn').classList.add('d-none');
         document.getElementById('restartTourBtn').classList.remove('d-none');
         document.getElementById('tourStepTitle').innerText = "🎉 全系統 POC 導覽演示完成！";
         document.getElementById('tourStepDesc').innerText = "天勳 LINE AI 系統成功展示了：方案規格、資料源複選、歷史時程事件軸、一鍵 Prompt 分析、PDF列印以及 NotebookLM 分割檔預覽等豐富功能。";
@@ -1432,11 +1495,13 @@
     }
 
     function nextStep() {
+      stopAutoPlay();
       currentStep++;
       playStep();
     }
 
     async function prevStep() {
+      stopAutoPlay();
       if (currentStep > 0) {
         currentStep--;
         resetTourStateOnly();
@@ -1454,7 +1519,9 @@
       document.getElementById('restartTourBtn').classList.add('d-none');
       document.getElementById('nextTourBtn').classList.remove('d-none');
       document.getElementById('prevTourBtn').classList.remove('d-none');
+      document.getElementById('autoTourBtn').classList.remove('d-none');
       resetTourStateOnly();
+      stopAutoPlay();
       currentStep = 0;
       playStep();
     }
