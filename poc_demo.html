@@ -486,20 +486,25 @@
         <p><strong>本服務針對企業轉型提供以下兩款版本配置，可依專案規模彈性選用：</strong></p>
         <h5 class="fw-bold mt-2" style="color: #0f766e; font-size: 14px;">💎 企業標準版 ($100,000 / 6個月)</h5>
         <ul style="font-size: 13px;">
-          <li><strong>AI 運作點數</strong>：方案預設提供 **50,000 點 AI 運作點數**。採「輸入 + 輸出雙軌字數計量扣點」，折合可分析高達 **1 億字** 的對話輸入，或產生約 **2,500 萬字** 的生成式 AI 戰情報告（預設選用 Gemini 輕量高效模型）。每次標準 analysis 扣除 10~25 點。</li>
+          <li><strong>AI 運作點數</strong>：方案預設提供 **20,000 點 AI 運作點數**。採「輸入 + 輸出雙軌字數計量扣點」，折合可分析高達 **4,000 萬字** 的對話輸入，或產生約 **1,000 萬字** 的生成式 AI 戰情報告（預設選用 Gemini 輕量高效模型）。每次標準 analysis 扣除 10~25 點。</li>
           <li><strong>續用加值機制</strong>：點數扣減完畢後，客戶可向天勳資訊加購點數包繼續使用（不支援自備 API 金鑰或地端離線模型）。</li>
           <li><strong>對話資料存檔</strong>：支援即時 LINE 官方助手對話紀錄、多模態圖片檔案與附件自動儲存。</li>
         </ul>
         <h5 class="fw-bold mt-2" style="color: #0d9488; font-size: 14px;">💎 企業進階版 ($200,000 / 6個月) —— 🌟 推薦自控與高資安首選</h5>
         <ul style="font-size: 13px;">
-          <li><strong>AI 運作點數</strong>：方案預設提供 **100,000 點 AI 運作點數**。折合可分析高達 **2 億字** 的對話輸入，或產生約 **5,000 萬字** 的生成式 AI 戰情報告。</li>
+          <li><strong>AI 運作點數</strong>：方案預設提供 **50,000 點 AI 運作點數**。折合可分析高達 **1 億字** 的對話輸入，或產生約 **2,500 萬字** 的生成式 AI 戰情報告。</li>
           <li><strong>「三大進階解鎖」自主控管機制</strong>：
             <ol>
-              <li><strong>自備金鑰 (Own API Key) 續用</strong>：預設點數扣減完畢後，客戶可無縫於前台面板填入自己申請之 Gemini API Key 進行無限次分析，系統不中斷，免加購點數。</li>
+              <li><strong>自備金鑰 (Own API Key) 續用</strong>：預設點數扣減完畢後，客戶可無縫於前台面板填入自己申請之 Gemini API Key 進行無限次 analysis，系統不中斷，免加購點數。</li>
               <li><strong>地端開源大模型 (Ollama) 對接</strong>：支援地端離線部署之開源大模型（如 Meta Llama 3、Google Gemma 等），資料 100% 留在企業內網，符合最高規格資安。</li>
               <li><strong>Agent 協作與專用 MD / Prompt 導出</strong>：解鎖「匯出 MD 給 Agent 分析」功能，一鍵打包去敏感化的結構化對話與 KM 知識日誌 (.md)，可完美導入並對接 **NotebookLM** 及 **主流通用 AI Agent (如 ChatGPT, Gemini, Claude, Perplexity 等)** 進行深度二次分析、智慧問答與資料探勘（扣減 0 點）。</li>
             </ol>
           </li>
+        </ul>
+        <h5 class="fw-bold mt-2" style="color: #0f766e; font-size: 14px;">➕ 系統工作流整合加值包 (選購, +$100,000 / 6個月)</h5>
+        <ul style="font-size: 13px;">
+          <li><strong>加碼運作點數</strong>：加購即額外贈送 **50,000 點 AI 額度 (合購後標準版達 70,000 點，進階版達 100,000 點額度！)**。</li>
+          <li><strong>自動化與橋接功能</strong>：解鎖 Telegram 訊息橋接、群組內 AI 即時指令（如 `/summary` 與 `/todo`）以及智慧 KM 企業知識庫自動問答開關。</li>
         </ul>
 
         <!-- Provider details -->
@@ -721,7 +726,7 @@
         document.getElementById('tabConsoleStandard').classList.add('active');
         if (ptsDisplay) {
           ptsDisplay.style.display = 'inline-block';
-          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>50,000 點 / 50,000 點</strong>';
+          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>20,000 點 / 20,000 點</strong>';
         }
         if (optOllama) optOllama.style.display = 'none';
         if (apiKeyWrapper) apiKeyWrapper.style.display = 'none';
@@ -731,7 +736,7 @@
         document.getElementById('tabConsoleAdvanced').classList.add('active');
         if (ptsDisplay) {
           ptsDisplay.style.display = 'inline-block';
-          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>100,000 點 / 100,000 點</strong>';
+          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>50,000 點 / 50,000 點</strong>';
         }
         if (optOllama) optOllama.style.display = 'block';
         if (apiKeyWrapper) apiKeyWrapper.style.display = 'block';
@@ -919,7 +924,7 @@
       },
       {
         title: "步驟 2：展示『10 萬企業標準版』操作 Console",
-        desc: "點選頂部切換。此版本專為基礎導入設計，預設贈送 50,000 點額度，無 API Key 輸入區，亦鎖定 Ollama 地端模型與 Agent 導出按鈕（強綁天勳充值機制）。",
+        desc: "點選頂部切換。此版本專為基礎導入設計，預設贈送 20,000 點額度，無 API Key 輸入區，亦鎖定 Ollama 地端模型與 Agent 導出按鈕（強綁天勳充值機制）。",
         action: () => {
           document.getElementById('pageProduct').classList.remove('highlight-ring');
           switchPage('standard');
@@ -1023,7 +1028,7 @@
             <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
               <span>模型: <strong>Gemini 預設大模型 (高性價比)</strong></span>
               <span>點數消耗: <strong>16 點</strong> (輸入 13 點 + 輸出 3 點)</span>
-              <span>點數餘額: <strong>49,984 點 / 50,000 點</strong></span>
+              <span>點數餘額: <strong>19,984 點 / 20,000 點</strong></span>
             </div>
             <div class="no-print d-flex gap-2 justify-content-end mt-2 pt-2 border-top" id="tourActionsBlock">
               <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已複製 HTML')">📄 複製 HTML</button>
@@ -1155,7 +1160,7 @@
       },
       {
         title: "步驟 2：切換至『20 萬企業進階版』工作台",
-        desc: "點選頂部切換。此版提供 100,000 點，並解鎖三大權限：顯示自備 API Key 欄位、開啟 Ollama 地端模型選項、以及加載綠色的『匯出 MD 給 Agent 分析』按鈕！",
+        desc: "點選頂部切換。此版提供 50,000 點，並解鎖三大權限：顯示自備 API Key 欄位、開啟 Ollama 地端模型選項、以及加載綠色的『匯出 MD 給 Agent 分析』按鈕！",
         action: () => {
           document.getElementById('pageProduct').classList.remove('highlight-ring');
           switchPage('advanced');
@@ -1259,7 +1264,7 @@
             <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
               <span>模型: <strong>Gemini 預設大模型 (高性價比)</strong></span>
               <span>點數消耗: <strong>16 點</strong> (輸入 13 點 + 輸出 3 點)</span>
-              <span>點數餘額: <strong>99,984 點 / 100,000 點</strong></span>
+              <span>點數餘額: <strong>49,984 點 / 50,000 點</strong></span>
             </div>
             <div class="no-print d-flex gap-2 justify-content-end mt-2 pt-2 border-top" id="tourActionsBlock">
               <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已複製 HTML')">📄 複製 HTML</button>
