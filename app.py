@@ -1770,25 +1770,25 @@ def render_console_dashboard(
 </html>"""
 
 def render_product_intro() -> str:
-    intro_path = ROOT_DIR / "product_intro.html"
+    intro_path = ROOT_DIR / "product-intro.html"
     if intro_path.exists():
         return intro_path.read_text(encoding="utf-8")
     return "<h1>Product Intro Page Not Found</h1>"
 
 def render_poc_demo() -> str:
-    poc_path = ROOT_DIR / "poc_demo.html"
+    poc_path = ROOT_DIR / "poc-demo.html"
     if poc_path.exists():
         return poc_path.read_text(encoding="utf-8")
     return "<h1>POC Demo Page Not Found</h1>"
 
 def render_workflow_addon() -> str:
-    addon_path = ROOT_DIR / "workflow_addon.html"
+    addon_path = ROOT_DIR / "workflow-addon.html"
     if addon_path.exists():
         return addon_path.read_text(encoding="utf-8")
     return "<h1>Workflow Addon Page Not Found</h1>"
 
 def render_portal() -> str:
-    portal_path = ROOT_DIR / "portal.html"
+    portal_path = ROOT_DIR / "index.html"
     if portal_path.exists():
         return portal_path.read_text(encoding="utf-8")
     return "<h1>Portal Hub Page Not Found</h1>"
@@ -2023,25 +2023,25 @@ class AppHandler(BaseHTTPRequestHandler):
             return
 
         # Serve Product Intro Page (open to all)
-        if path == "/product-intro":
+        if path in {"/product-intro", "/product-intro.html"}:
             html = render_product_intro()
             self.send_html(200, html)
             return
 
         # Serve Workflow Addon Page (open to all)
-        if path == "/workflow-addon":
+        if path in {"/workflow-addon", "/workflow-addon.html"}:
             html = render_workflow_addon()
             self.send_html(200, html)
             return
 
         # Serve POC Demo Page (open to all)
-        if path == "/poc-demo":
+        if path in {"/poc-demo", "/poc-demo.html"}:
             html = render_poc_demo()
             self.send_html(200, html)
             return
 
         # Serve Portal Hub Page (open to all)
-        if path == "/portal":
+        if path in {"/portal", "/index.html"}:
             html = render_portal()
             self.send_html(200, html)
             return
