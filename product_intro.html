@@ -303,9 +303,11 @@
 
           <!-- Solution Specs -->
           <div class="section-title">方案規格說明</div>
-          <p><strong>本服務針對企業轉型提供以下兩款版本配置，可依專案規模彈性選用：</strong></p>
+          <p id="specIntro"><strong>本服務針對企業轉型提供專業配置，方案規格詳情如下：</strong></p>
           
-          <h5 id="standard" class="fw-bold mt-3" style="color: var(--primary-color);">💎 企業標準版 ($100,000 / 6個月) —— 「專案與客服團隊的 AI 智慧助理」</h5>
+          <!-- Standard Solution Container -->
+          <div id="standardSpecsSection">
+            <h5 id="standard" class="fw-bold mt-3" style="color: var(--primary-color);">💎 企業標準版 ($100,000 / 6個月) —— 「專案與客服團隊的 AI 智慧助理」</h5>
           <ul>
             <li><strong>超大分析容量，六個月無憂使用</strong>：預設提供 **20,000 點 AI 運算額度** (方案限時翻倍贈送)，足夠幫團隊整理分析高達 **4,000 萬字** 的聊天對話！能輕鬆處理數千個專案群組的討論紀錄，幫您把龐雜的聊天訊息一鍵整理成清晰的工作日誌。</li>
             <li><strong>對話與圖片自動存檔，資料永不過期</strong>：即時且自動地將 LINE 群組中的重要對話、客戶回傳的照片與檔案進行安全儲存，徹底解決 LINE 檔案因逾期而無法下載的痛點。</li>
@@ -346,8 +348,11 @@
               <li class="mb-0"><strong>📖 智慧 KM 知識庫與 AI 即時回覆建議開關</strong>：開啟後，當群組成員在對話中提問時，<strong>系統會自動比對並檢索後台勾選的 KM 企業知識庫（如產品規格、SOP 流程），並由 AI 即時參與分析、提供精準的回覆建議與處置方向。</strong></li>
             </ul>
           </div>
+          </div>
 
-          <h5 id="advanced" class="fw-bold mt-3" style="color: #0d9488;">💎 企業進階版 ($200,000 / 6個月) —— 🌟 推薦自控與高資安首選</h5>
+          <!-- Advanced Solution Container -->
+          <div id="advancedSpecsSection">
+            <h5 id="advanced" class="fw-bold mt-3" style="color: #0d9488;">💎 企業進階版 ($200,000 / 6個月) —— 🌟 推薦自控與高資安首選</h5>
           <ul>
             <li><strong>AI 運作點數</strong>：方案預設提供 **40,000 點 AI 運作點數** (翻倍配置)。折合可分析高達 **8,000 萬字** 的對話輸入，或產生約 **2,000 萬字** 的生成式 AI 戰情報告。</li>
             <li><strong>「三大進階解鎖」自主控管機制</strong>：
@@ -360,6 +365,7 @@
             <li><strong>資料來源與工作台全配版</strong>：包含標準版所有功能，並享有專業技術團隊對接地端安裝與網絡諮詢服務。</li>
             <li><strong>彈性部署與多帳號規模化支援</strong>：可彈性選擇「雲端專屬託管版」或「地端獨立安全部署版（採用二進位機器碼編譯與混淆技術，防範代碼與 API 密鑰逆向洩漏，確保核心智慧財產權）」。<strong>本版本支援同時對接「多個 LINE 官方帳號」，並能流暢整合跨帳號的多個聊天視窗與海量對話紀錄，進行統一的 AI 戰情分析</strong>。</li>
           </ul>
+          </div>
 
           <!-- Success Scenarios -->
           <div class="section-title">情境導入與應用案例</div>
@@ -435,12 +441,20 @@
       const sidePriceTerm = document.getElementById('sidePriceTerm');
       const contactBtn = document.getElementById('contactBtn');
       
+      const standardSection = document.getElementById('standardSpecsSection');
+      const advancedSection = document.getElementById('advancedSpecsSection');
+      const specIntro = document.getElementById('specIntro');
+      
       if (isAdvanced) {
         if (crumbTitle) crumbTitle.innerText = "Attn LINE AI 資訊管理系統 企業進階版";
         if (pageTitle) pageTitle.innerText = "Attn LINE AI 資訊管理系統 企業進階版";
         if (sidePriceValue) sidePriceValue.innerText = "$200,000";
         if (sidePriceTerm) sidePriceTerm.innerText = "(方案期程為 6 個月)";
         if (contactBtn) contactBtn.href = "mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(Attn LINE AI資訊管理系統 企業進階版)導入事宜";
+        
+        if (standardSection) standardSection.style.display = 'none';
+        if (advancedSection) advancedSection.style.display = 'block';
+        if (specIntro) specIntro.style.display = 'none'; // Hide general intro line for advanced
       } else {
         // Default to Standard
         if (crumbTitle) crumbTitle.innerText = "Attn LINE AI 資訊管理系統 企業標準版";
@@ -448,6 +462,10 @@
         if (sidePriceValue) sidePriceValue.innerText = "$100,000";
         if (sidePriceTerm) sidePriceTerm.innerText = "(方案期程為 6 個月)";
         if (contactBtn) contactBtn.href = "mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(Attn LINE AI資訊管理系統 企業標準版)導入事宜";
+        
+        if (standardSection) standardSection.style.display = 'block';
+        if (advancedSection) advancedSection.style.display = 'none';
+        if (specIntro) specIntro.style.display = 'block';
       }
     }
     
