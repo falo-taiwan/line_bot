@@ -24,6 +24,7 @@
       --text-dark: #0f172a;
       --text-muted: #475569;
       --border-color: #e2e8f0;
+      --ink: #334155;
     }
 
     body {
@@ -33,7 +34,7 @@
       line-height: 1.6;
     }
 
-    /* Top Bar */
+    /* Top Bar & Navbar Styles */
     .top-header {
       background-color: #ffffff;
       border-bottom: 1px solid var(--border-color);
@@ -67,7 +68,7 @@
       text-decoration: underline;
     }
 
-    /* Page Title */
+    /* Title Block */
     .solution-title-block {
       background-color: #ffffff;
       border: 1px solid var(--border-color);
@@ -96,12 +97,11 @@
       border-radius: 6px;
       font-size: 13px;
     }
-    .badge-addon {
-      background-color: #f2fbf9;
-      color: #0f766e;
-      border: 1px solid #0d9488;
-      font-weight: 700;
-      padding: 5px 12px;
+    .badge-industry {
+      background-color: #e2e8f0;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 6px 12px;
       border-radius: 6px;
       font-size: 13px;
     }
@@ -112,57 +112,60 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       position: sticky;
       top: 90px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-      margin-bottom: 24px;
     }
     .price-label {
-      font-size: 14px;
       color: var(--text-muted);
+      font-size: 14px;
       font-weight: 600;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .price-value {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--primary-color);
       margin-bottom: 4px;
     }
+    .price-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
     .price-term {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
       margin-bottom: 20px;
     }
     .btn-contact {
-      display: block;
-      width: 100%;
       background-color: var(--primary-color);
-      color: #ffffff;
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
+      color: white;
+      border: none;
+      padding: 12px 20px;
       font-weight: 700;
+      border-radius: 8px;
+      width: 100%;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: background-color 0.2s ease;
       margin-bottom: 12px;
     }
     .btn-contact:hover {
       background-color: var(--primary-hover);
-      color: #ffffff;
+      color: white;
     }
     .btn-back {
-      display: block;
-      width: 100%;
       background-color: transparent;
       color: var(--primary-color);
       border: 1px solid var(--primary-color);
-      text-align: center;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 10px 20px;
       font-weight: 600;
+      border-radius: 8px;
+      width: 100%;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: all 0.2s ease;
     }
     .btn-back:hover {
@@ -170,57 +173,54 @@
       color: var(--primary-color);
     }
 
-    /* Content Cards */
-    .content-card {
+    /* Content Box */
+    .content-box {
       background-color: #ffffff;
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+      padding: 30px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+      margin-bottom: 30px;
     }
     .section-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--text-dark);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
       border-left: 4px solid var(--primary-color);
-      padding-left: 12px;
-      margin-bottom: 20px;
-      margin-top: 10px;
+      padding-left: 10px;
+      margin-top: 30px;
+      margin-bottom: 16px;
     }
-    
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+
     .feature-box {
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 16px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      background-color: #ffffff;
-    }
-    .feature-box:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-      border-color: #cbd5e1;
+      background-color: var(--bg-light);
     }
     .feature-icon {
-      font-size: 24px;
+      font-size: 20px;
       color: var(--primary-color);
-      margin-right: 12px;
+      margin-right: 8px;
     }
     .feature-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--text-dark);
       display: flex;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    /* Option Toggles Simulation */
+    /* Option Toggles */
     .toggle-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
+      margin: 16px 0;
     }
     .toggle-table th {
       background-color: var(--bg-light);
@@ -228,13 +228,14 @@
       font-weight: 700;
       border-bottom: 2px solid var(--border-color);
       text-align: left;
+      font-size: 14px;
     }
     .toggle-table td {
       padding: 12px;
       border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
     }
     
-    /* Custom Toggle Switch Style */
     .switch-demo {
       position: relative;
       display: inline-block;
@@ -253,7 +254,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #ccc;
+      background-color: #cbd5e1;
       transition: .4s;
       border-radius: 24px;
     }
@@ -275,36 +276,46 @@
       transform: translateX(20px);
     }
 
-    /* Footer */
+    /* Footer styling */
     footer {
-      background-color: #0f172a;
+      background-color: #1e293b;
       color: #94a3b8;
-      padding: 40px 0;
+      padding: 40px 0 20px;
+      font-size: 14px;
+      border-top: 1px solid #334155;
       margin-top: 60px;
     }
-    footer .footer-note {
-      border-top: 1px solid #1e293b;
-      padding-top: 20px;
-      margin-top: 20px;
-      font-size: 12px;
+    footer a {
+      color: #cbd5e1;
+      text-decoration: none;
     }
-
-    @media (max-width: 991px) {
-      .solution-title {
-        font-size: 24px;
-      }
+    footer a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+    .footer-note {
+      border-top: 1px solid #334155;
+      padding-top: 20px;
+      margin-top: 30px;
+      text-align: center;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Header -->
   <header class="top-header">
     <div class="container d-flex justify-content-between align-items-center">
-      <a href="/portal" class="brand-logo">
-        <i class="bi bi-robot text-teal"></i> Attn LINE AI
+      <a class="brand-logo" href="/portal">
+        <i class="bi bi-robot"></i> 商業服務業數位轉型專區
       </a>
-      <span class="text-secondary small fw-bold">天勳資訊 x 專案管理與協作自動化</span>
+      <div class="d-none d-md-flex gap-3">
+        <span class="text-secondary fw-semibold">首頁</span>
+        <span class="text-secondary fw-semibold">計畫說明</span>
+        <span class="text-secondary fw-semibold">智慧轉型方案</span>
+        <span class="text-secondary fw-semibold">轉型全攻略</span>
+      </div>
     </div>
   </header>
 
@@ -316,7 +327,7 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/portal">首頁</a></li>
         <li class="breadcrumb-item"><a href="/product-intro#standard">智慧轉型方案</a></li>
-        <li class="breadcrumb-item active" aria-current="page">系統工作流整合加值包</li>
+        <li class="breadcrumb-item active" aria-current="page">Attn LINE AI 系統工作流整合加值包</li>
       </ol>
     </nav>
 
@@ -324,43 +335,47 @@
     <div class="solution-title-block">
       <h2 class="solution-title">Attn LINE AI 系統工作流整合加值包</h2>
       <div class="stitle-group">
-        <span class="badge-category">跨平台協同與 AI 即時指令</span>
-        <span class="badge-addon">選購加值模組 (配搭全系列方案)</span>
+        <span class="badge-category">AI對話分析與專案智慧</span>
+        <span class="badge-industry">G 批發及零售業</span>
+        <span class="badge-industry">I 住宿及餐飲業</span>
+        <span class="badge-industry">M 專業、科學及技術服務業</span>
+        <span class="badge-industry">S 其他服務業</span>
       </div>
     </div>
 
-    <!-- Main Grid -->
+    <!-- Main Grid Layout -->
     <div class="row g-4">
       
-      <!-- Left sidebar card (Pricing & CTA) -->
+      <!-- Left sidebar card -->
       <div class="col-lg-3 col-md-12 order-lg-1 order-2">
         <div class="price-side-card">
-          <div class="price-label">加值擴充定價</div>
+          <div class="price-label">115年方案價格</div>
           <div class="price-value">$100,000</div>
           <div class="price-term">(方案期程為 6 個月)</div>
           
           <a class="btn-contact" href="mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(工作流整合加值包)導入事宜">
             <i class="bi bi-envelope-fill"></i> 聯絡服務提供者
           </a>
+          
           <a class="btn-back" href="/portal">
             <i class="bi bi-arrow-left-circle"></i> 返回方案總覽
           </a>
         </div>
       </div>
 
-      <!-- Right Main Content -->
+      <!-- Right main columns -->
       <div class="col-lg-9 col-md-12 order-lg-2 order-1">
-        <div class="content-card">
+        <div class="content-box">
           
           <div class="section-title">方案定位</div>
-          <p>
-            本加值包是<strong>專為追求「即時回覆、免登入後台、跨平台同步」的專案團隊所設計</strong>。此模組能與 **企業標準版 ($100,000)** 或 **企業進階版 ($200,000)** 完美結合。<strong>加購本整合加值包，即享有加碼額外贈送 50,000 點 AI 運算點數！</strong>核心目的在於將 AI 提煉出來的「日誌報告」與「待辦任務」，以最快、最直覺的方式<strong>直接送入團隊每天溝通的工作群組中，實現極簡的工作流自動化。</strong>
+          <p style="font-size: 14px; color: var(--ink);">
+            本加值包是<strong>專為追求「即時回覆、免登入後台、跨平台同步」的專案團隊所設計</strong>。此模組能與 **企業標準版 ($100,000)** 或 **企業進階版 ($200,000)** 方案完美結合。<strong>加購本整合加值包，即享有加碼額外贈送 50,000 點 AI 運算點數！</strong>核心目的在於將 AI 提煉出來的「日誌報告」與「待辦任務」，以最快、最直覺的方式<strong>直接送入團隊每天溝通的工作群組中，實現極簡的工作流自動化。</strong>
           </p>
-          <p class="fw-bold" style="color: var(--primary-color);">
+          <p class="fw-bold" style="color: var(--primary-color); font-size: 14px;">
             經銷商夥伴可在客戶開通系統後，於管理後台點選「一鍵開啟」這三大模組的控制開關，配置設定不超過 5 分鐘，無任何客製編寫程式之負擔。
           </p>
 
-          <div class="section-title mt-4">三大核心功能模組</div>
+          <div class="section-title">三大核心功能模組</div>
           
           <!-- Feature 1 -->
           <div class="feature-box">
@@ -386,7 +401,7 @@
           <div class="feature-box">
             <div class="feature-title">
               <span class="feature-icon"><i class="bi bi-lightning-charge-fill"></i></span>
-              2. AI 群組即時 analysis 指令開關 (Slash Commands)
+              2. AI 群組即時分析指令開關 (Slash Commands)
             </div>
             <p class="mb-0" style="font-size: 14px; color: var(--text-muted);">
               開啟後，團隊成員<strong>完全不需要登入網頁後台</strong>。只要直接在 LINE 官方群組或 Telegram 工作群組中輸入特定斜線指令：
@@ -415,7 +430,7 @@
           </div>
 
           <!-- Table of Controls -->
-          <div class="section-title mt-4">⚙️ 後台控制面板展示 (點選即開通)</div>
+          <div class="section-title">⚙️ 後台控制面板展示 (點選即開通)</div>
           <p class="small text-muted">客戶或經銷商只需登入 Attn LINE AI 管理後台，即可透過控制開關控制以下功能：</p>
           
           <div class="table-responsive">
@@ -468,6 +483,19 @@
             <p class="mb-0 text-danger" style="font-size: 13px; font-weight: bold;">
               ⚠️ 聲明：工作流加值包在進行 LINE 訊息傳送與 Telegram 機器人橋接時，僅使用加密的官方正式 API 接口，所有數據絕不會經過非受信任之第三方雲端中轉平台。此外，地端部署版亦完全相容此加值包，確保您所有的訊息橋接完全在企業內網的獨立架構中完成，符合國家資安合規規範。
             </p>
+          </div>
+
+          <!-- Divider -->
+          <hr class="my-4" style="color: var(--border-color);">
+
+          <!-- Company info -->
+          <div class="service-content-box-data text-secondary" style="font-size: 13px;">
+            <p class="mb-1">公司名稱：天勳資訊有限公司</p>
+            <p class="mb-1">統一編號：12781944</p>
+            <p class="mb-1">聯絡電話：06-2980272</p>
+            <p class="mb-1">聯絡地址：臺南市官田區二鎮里工業路21號1樓</p>
+            <p class="mb-1">電子郵件：<a href="mailto:service@tianxun.com.tw" style="color: var(--primary-color);">service@tianxun.com.tw</a></p>
+            <p class="mb-0">公司網站：<a href="http://www.tianxun.com.tw" target="_blank" style="color: var(--primary-color);">連結</a></p>
           </div>
 
         </div>
