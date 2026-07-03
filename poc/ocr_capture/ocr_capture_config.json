@@ -1,0 +1,10 @@
+{
+  "region": "1046,265,456,634",
+  "source_label": "LINE Desktop",
+  "output_dir": "out/ocr-window-recorder",
+  "conversation_file": "conversation.txt",
+  "interval_seconds": 3.0,
+  "duration_seconds": 0.0,
+  "ocr_languages": "eng+chi_tra",
+  "tesseract_psm": "6"
+}

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Private internal handoff for FALO IM Watch / LINE Lab: GAS webhook, local AI node, LINE export import, Cloudflare gateway, and KM integration.">
+  <meta name="keywords" content="FALO IM Watch, LINE Bot, Google Apps Script, Cloudflare Workers, LINE export parser, AI cowork, KM, Force Cheng">
+  <meta name="author" content="Falo x Force Cheng">
+  <title>(Private) FALO IM Watch / LINE Lab - aaa Antigravity 交接說明</title>
+  <!-- Digital watermark: FALO_IM_WATCH_PRIVATE_AAA_HANDOFF_20260702_FORCE_CHENG -->
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2933;
+      --muted: #5f6f80;
+      --line: #d9e2ec;
+      --soft: #f5f8fb;
+      --green: #20bf55;
+      --dark: #0f172a;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+      color: var(--ink);
+      background: #ffffff;
+      line-height: 1.72;
+    }
+    header {
+      padding: 42px 24px 28px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #f7fbf8 0%, #ffffff 100%);
+    }
+    main {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 28px 24px 72px;
+    }
+    .eyebrow {
+      color: var(--green);
+      font-weight: 700;
+      letter-spacing: 0;
+      margin: 0 0 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 40px 0 12px;
+      padding-top: 8px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0 0 14px;
+    }
+    a {
+      color: #1a73e8;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e5eef8;
+    }
+    code {
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      background: #edf2f7;
+    }
+    pre code {
+      padding: 0;
+      background: transparent;
+    }
+    .notice {
+      border: 1px solid #b7ebc7;
+      border-left: 5px solid var(--green);
+      background: #f2fff6;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 22px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 15px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    th {
+      background: var(--soft);
+      text-align: left;
+    }
+    ul, ol {
+      padding-left: 1.4rem;
+    }
+    li {
+      margin: 6px 0;
+    }
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+    .watermark {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="watermark">FALO_IM_WATCH_PRIVATE_AAA_HANDOFF_20260702_FORCE_CHENG</div>
+  <header>
+    <main>
+      <p class="eyebrow">Private Internal Handoff · Falo x Force Cheng · 2026-07-02</p>
+      <h1>FALO IM Watch / LINE Lab - aaa Antigravity 交接說明</h1>
+      <div class="notice">
+        本文件給 Force 與 aaa / Antigravity 參考開發用。此版本保留內部參數、架構判斷與產品思路；對外分享前需另做去機敏版本。
+      </div>
+    </main>
+  </header>
+  <main>
+    <h2>1. 目前專案定位</h2>
+    <p>FALO IM Watch 的核心不是單純做聊天機器人，而是把高頻訊息工作場中的 LINE、Telegram、FALO IM 等輸入來源，整理成可被 AI 協作、任務追蹤、風險偵測與知識管理使用的資料層。</p>
+    <p>LINE 是重要資料來源之一，但不是唯一來源。LINE 更接近不得不接的現場資料搜集器；真正的指揮調度與 AI cowork 可以放到 Telegram、FALO 自建 IM、後台戰情中心或其他更彈性的介面。</p>
+
+    <h2>2. 穩定基礎：GAS 官方帳號接收層</h2>
+    <p>目前 GAS 版已可接第二組 LINE Official Account webhook，將事件標準化後寫入 Google Sheet，並提供 HTML 監看頁與 JSON proxy。aaa 接手時請優先以這條路為基礎。</p>
+    <table>
+      <tr><th>項目</th><th>值</th></tr>
+      <tr><td>Bot basic ID</td><td><code>@415taurm</code></td></tr>
+      <tr><td>Sheet ID</td><td><code>1VWP34oZeUqcYdOfI042SDeHXNNhLKi2vQCYDzAOaDyo</code></td></tr>
+      <tr><td>Drive folder ID</td><td><code>1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC</code></td></tr>
+      <tr><td>GAS Script ID</td><td><code>1NJz55_sp90mYwltbbT0vHVCZAPaT3ueBgTjedx3doLpFrDdIRZx2_WwE</code></td></tr>
+    </table>
+    <pre><code>LINE Official Account webhook
+  -> Google Apps Script Web App /exec
+  -> 立即回 200 OK 給 LINE
+  -> 事件寫入 Google Sheet
+  -> 媒體事件排入處理佇列
+  -> worker / trigger 後續抓 LINE media content
+  -> 存到 Google Drive
+  -> HTML monitor / JSON proxy 提供查詢
+  -> 地端 AI Commander 可同步資料</code></pre>
+
+    <h2>3. 地端版：Local AI Node</h2>
+    <p>地端版是本機 AI node 與戰情中心雛形，可用 Python、Win/Mac、ngrok 與本地儲存先跑出高價值功能。未來 GAS、local webhook、匯入紀錄與 Cloudflare Gateway 都要盡量維持資料格式相容。</p>
+    <pre><code>LINE webhook / ngrok
+  -> local Python server
+  -> events.jsonl
+  -> per-chat folder
+  -> media files
+  -> local admin dashboard
+  -> AI Parser / task extraction / KM</code></pre>
+
+    <h2>4. LINE 對話紀錄匯入 + 官方助手整合 KM</h2>
+    <p>LINE 官方帳號 webhook 只能接到 Bot 在場且 webhook 啟用後的新事件。若要補歷史資料、指定群組過往討論，或沒有 Bot 在場的既有資料，就需要支援 LINE 對話紀錄匯入。</p>
+    <table>
+      <tr><th>入口</th><th>用途</th><th>資料特性</th></tr>
+      <tr><td>LINE Official Account webhook</td><td>收新訊息、正式可維護</td><td>結構化、事件即時、受 LINE 官方限制</td></tr>
+      <tr><td>本機 OCR / Local observation</td><td>看使用者原本正在看的畫面</td><td>適合桌面輔助與特殊情境</td></tr>
+      <tr><td>LINE 對話紀錄匯入</td><td>補歷史資料與指定群組長期知識</td><td>批次匯入、可重跑、適合 KM</td></tr>
+    </table>
+    <p>建議使用 GitHub 上已有的 LINE 訊息解析套件或社群 parser 作為起點，先研究 LINE app 匯出的文字紀錄格式、不同平台與語系差異，以及圖片、貼圖、檔案、語音訊息在匯出檔中的表示方式。</p>
+    <pre><code>source_type = webhook | gas | local | line_export | manual_import</code></pre>
+
+    <h2>5. 共同資料欄位</h2>
+    <p>不管資料來自 GAS、地端 webhook、OCR 或 LINE export，都要轉成同一個事件模型，至少包含 captured_at、line_timestamp、source_type、bot_basic_id、source_key、user_id、group_id、message_id、message_type、text、media_status、media_drive_url 與 raw_json。</p>
+
+    <h2>6. KM 與 AI cowork</h2>
+    <pre><code>原始訊息
+  -> 標準化事件
+  -> 對話片段 / thread
+  -> 任務、決策、風險、客戶需求、待追蹤事項
+  -> 可搜尋 KM
+  -> AI cowork / 戰情中心 / 提醒與分派</code></pre>
+    <p>LINE 官方助手負責接新事件，指定群組對話匯入負責補歷史脈絡，AI Commander 負責把訊息變成任務、風險、決策與知識。</p>
+
+    <h2>7. Cloudflare 後續主軸</h2>
+    <p>後續雲端版可能改以 Cloudflare 作為主軸，GAS 保留為雙版開發。GAS 適合 MVP、Google 生態系與教材；Cloudflare 適合正式 SaaS gateway、高頻、多租戶與多 webhook。</p>
+    <p>Cloudflare 版可考慮 Workers 接 webhook、Queues 排隊、D1 做事件索引、R2 存媒體、Pages / Zero Trust 做管理後台。</p>
+
+    <h2>8. aaa 接手優先順序</h2>
+    <ol>
+      <li>保留並驗證目前 GAS 版 webhook。</li>
+      <li>補強 GAS README、HTML 監看頁與 proxy 狀態顯示。</li>
+      <li>做 LINE export import adapter，先只支援文字。</li>
+      <li>將匯入事件寫入同一套 normalized schema。</li>
+      <li>地端 AI Commander 支援來源切換：local / GAS / import。</li>
+      <li>補 Cloudflare gateway 的最小 PoC，不急著取代 GAS。</li>
+    </ol>
+
+    <h2>9. 不建議做的事</h2>
+    <ul>
+      <li>不要以 LINE 非官方 userbot / 逆向協議作為正式路線。</li>
+      <li>不要把 NotebookLM 當 source-of-truth。</li>
+      <li>不要把 webhook 新資料與匯入歷史資料混在一起而不標示來源。</li>
+      <li>不要在 webhook 主流程中做長時間媒體下載或 AI 分析。</li>
+    </ul>
+
+    <h2>10. 對外版提醒</h2>
+    <p>此文件是 Private 內部版。若要對外分享，需移除 Sheet ID、Drive folder ID、Script ID、ngrok URL、token、secret、內部部署細節、合作夥伴顧慮與任何真實使用者資料。</p>
+  </main>
+  <footer>
+    Copyright (c) 2026 Falo x Force Cheng. Private internal material. Digital watermark: FALO_IM_WATCH_PRIVATE_AAA_HANDOFF_20260702_FORCE_CHENG
+  </footer>
+</body>
+</html>
+

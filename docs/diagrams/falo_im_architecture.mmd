@@ -1,0 +1,23 @@
+flowchart TD
+    A1[LINE Desktop] --> B[Local Capture Layer]
+    A2[LINE Official Account] --> B
+    A3[Exported Chat] --> B
+
+    B --> C[Event Normalization]
+    C --> D[FALO IM Inbox]
+    D --> E[AI Parser]
+
+    E --> F0[AI Note]
+    E --> F1[Task]
+    E --> F2[KM]
+    E --> F3[PM]
+    E --> F4[Audit]
+    E --> F5[CRM]
+
+    G[Governance Layer] -.-> B
+    G -.-> C
+    G -.-> D
+    G -.-> E
+
+    H[Human Review] -.-> D
+    H -.-> E

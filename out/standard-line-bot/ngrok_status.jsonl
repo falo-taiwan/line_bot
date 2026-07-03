@@ -1,0 +1,1 @@
+{"checked_at": "2026-07-02T22:24:55+08:00", "api_url": "http://127.0.0.1:4040/api/tunnels", "ok": false, "http_status": null, "tunnel_count": 0, "https_tunnel_count": 0, "public_urls": [], "tunnels": [], "error": "URLError: <urlopen error [Errno 61] Connection refused>", "latency_ms": 4}

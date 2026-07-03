@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <base target="_top">
+  <title>FALO GAS LINE Bot Monitor</title>
+  <style>
+    :root {
+      --line-green: #06c755;
+      --ink: #25313b;
+      --muted: #687785;
+      --border: #d8e0e7;
+      --bg: #f5f7f9;
+      --panel: #ffffff;
+      --danger: #b3261e;
+      --warn: #946200;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    h1 { margin: 0; font-size: 22px; }
+    main { padding: 24px; }
+    button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--line-green);
+      color: white;
+      padding: 0 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .ghost {
+      background: white;
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .actions a {
+      min-height: 38px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--ink);
+      padding: 8px 14px;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .resource-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 0 0 18px;
+      padding: 16px;
+    }
+    .resource-card h2 {
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+    .resource-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 8px 12px;
+      font-size: 14px;
+    }
+    .resource-grid code {
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+    .resource-grid a {
+      color: #0969da;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .metric strong { display: block; font-size: 20px; margin-bottom: 4px; overflow-wrap: anywhere; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 18px;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th { background: #eef3f6; color: #465663; font-size: 13px; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      background: #e7f7ee;
+      color: #087a36;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .message-text { white-space: pre-wrap; max-width: 360px; }
+    .error { color: var(--danger); font-weight: 800; }
+    .warn { color: var(--warn); font-weight: 800; }
+    .queue-error { max-width: 520px; white-space: pre-wrap; }
+    @media (max-width: 900px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .summary { grid-template-columns: 1fr; }
+      .resource-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>FALO GAS LINE Bot Monitor</h1>
+      <div class="muted">GAS webhook 接收層 + Sheet 儲存 + JSON proxy</div>
+    </div>
+    <div>
+      <button class="ghost" onclick="loadEvents()">手動更新</button>
+    </div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="metric"><strong id="status">讀取中</strong><span class="muted">狀態</span></div>
+      <div class="metric"><strong id="count">0</strong><span class="muted">本頁事件數</span></div>
+      <div class="metric"><strong id="bot">-</strong><span class="muted">Bot</span></div>
+      <div class="metric"><strong id="sheet">-</strong><span class="muted">Sheet</span></div>
+      <div class="metric"><strong id="folder">-</strong><span class="muted">Drive file folder</span></div>
+      <div class="metric"><strong id="media-save">-</strong><span class="muted">媒體上傳開關</span></div>
+      <div class="metric"><strong id="media-trigger">-</strong><span class="muted">5 分鐘 trigger</span></div>
+      <div class="metric"><strong id="media-queue">-</strong><span class="muted">媒體佇列</span></div>
+    </section>
+    <section class="actions">
+      <button class="ghost" onclick="loadControls()">刷新狀態</button>
+      <button id="toggle-media-save" onclick="toggleMediaSave()">啟用媒體上傳</button>
+      <button id="toggle-trigger" onclick="toggleTrigger()">啟用 5 分鐘 trigger</button>
+      <button class="ghost" onclick="runMediaWorker()">手動處理媒體佇列</button>
+      <a id="sheet-link" href="#" target="_blank" rel="noopener">打開 Google Sheet</a>
+      <a id="folder-link" href="#" target="_blank" rel="noopener">打開 Drive Folder</a>
+    </section>
+    <section class="resource-card">
+      <h2>此 exec 對應資源</h2>
+      <div class="resource-grid">
+        <div class="muted">Web App URL</div>
+        <code id="resource-web-app">-</code>
+        <div class="muted">Sheet ID</div>
+        <div><code id="resource-sheet-id">-</code> <a id="resource-sheet-link" href="#" target="_blank" rel="noopener">打開</a></div>
+        <div class="muted">Drive Folder ID</div>
+        <div><code id="resource-folder-id">-</code> <a id="resource-folder-link" href="#" target="_blank" rel="noopener">打開</a></div>
+        <div class="muted">Bot Basic ID</div>
+        <code id="resource-bot-basic-id">-</code>
+      </div>
+      <p class="muted">這個區塊是給使用者確認資料落點用：LINE webhook 打到此 exec 後，事件會進入上方 Sheet；媒體檔案若啟用排程上傳，會進入上方 Drive Folder。</p>
+    </section>
+    <section class="resource-card">
+      <h2>媒體佇列診斷</h2>
+      <p class="muted">圖片、影片、音訊與檔案會先進入 queue。若沒有進 Drive，先看這裡的 status 與 last_error。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>排入時間</th>
+              <th>狀態</th>
+              <th>型態</th>
+              <th>嘗試</th>
+              <th>最後錯誤</th>
+              <th>Drive</th>
+            </tr>
+          </thead>
+          <tbody id="queue-rows">
+            <tr><td colspan="6">讀取中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>捕捉時間</th>
+            <th>LINE 時間</th>
+            <th>Bot</th>
+            <th>來源</th>
+            <th>使用者</th>
+            <th>型態</th>
+            <th>內容</th>
+            <th>媒體</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="8">讀取中...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <script>
+    var initialConfig = <?!= publicConfigJson_() ?>;
+    var controlState = {};
+
+    function htmlEscape(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    var TAIPEI_TIME_OPTIONS = {
+      timeZone: 'Asia/Taipei',
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+
+    function formatTaipeiTime(value) {
+      if (value == null || value === '') return '';
+      var date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString('zh-TW', TAIPEI_TIME_OPTIONS);
+    }
+
+    function formatLineTime(value) {
+      if (!value) return '';
+      var numeric = Number(value);
+      if (!Number.isFinite(numeric)) return htmlEscape(value);
+      return formatTaipeiTime(numeric);
+    }
+
+    async function loadEvents() {
+      var status = document.getElementById('status');
+      var rows = document.getElementById('rows');
+      status.textContent = '更新中';
+      try {
+        var payload = await callServer('getMonitorEvents');
+        if (!payload.ok) throw new Error(payload.error || 'API returned not ok');
+
+        document.getElementById('status').textContent = '正常';
+        document.getElementById('count').textContent = payload.count || 0;
+        document.getElementById('sheet').textContent = payload.spreadsheet_id || '-';
+
+        if (!payload.events || !payload.events.length) {
+          rows.innerHTML = '<tr><td colspan="8">尚未收到事件。</td></tr>';
+          return;
+        }
+
+        var first = payload.events[0] || {};
+        document.getElementById('bot').textContent = first.bot_name || first.bot_alias || '-';
+        rows.innerHTML = payload.events.map(function(item) {
+          var media = item.media_saved ? '<span class="badge">已存</span><br>' + htmlEscape(item.media_file_url) : htmlEscape(item.media_error || '');
+          return [
+            '<tr>',
+            '<td>' + htmlEscape(formatTaipeiTime(item.captured_at)) + '</td>',
+            '<td>' + formatLineTime(item.line_timestamp) + '</td>',
+            '<td>' + htmlEscape(item.bot_name || item.bot_alias) + '<br><span class="muted">' + htmlEscape(item.bot_basic_id || item.destination) + '</span></td>',
+            '<td><span class="badge">' + htmlEscape(item.source_type) + '</span><br><span class="muted">' + htmlEscape(item.source_key) + '</span></td>',
+            '<td>' + htmlEscape(item.user_id) + '</td>',
+            '<td>' + htmlEscape(item.event_type) + '<br><span class="muted">' + htmlEscape(item.message_type) + '</span></td>',
+            '<td class="message-text">' + htmlEscape(item.text) + '</td>',
+            '<td>' + media + '</td>',
+            '</tr>'
+          ].join('');
+        }).join('');
+      } catch (error) {
+        status.textContent = '錯誤';
+        rows.innerHTML = '<tr><td colspan="8" class="error">' + htmlEscape(error.message || error) + '</td></tr>';
+      }
+    }
+
+    function callServer(functionName) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return new Promise(function(resolve, reject) {
+        var runner = google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(function(error) {
+            reject(error && error.message ? new Error(error.message) : error);
+          });
+
+        if (functionName === 'getMonitorEvents') {
+          runner.getMonitorEvents();
+        } else if (functionName === 'getMonitorControls') {
+          runner.getMonitorControls();
+        } else if (functionName === 'getMonitorMediaQueue') {
+          runner.getMonitorMediaQueue();
+        } else if (functionName === 'monitorSetMediaSave') {
+          runner.monitorSetMediaSave(args[0]);
+        } else if (functionName === 'monitorSetMediaTrigger') {
+          runner.monitorSetMediaTrigger(args[0]);
+        } else if (functionName === 'monitorRunMediaWorker') {
+          runner.monitorRunMediaWorker();
+        } else {
+          reject(new Error('unknown server function: ' + functionName));
+        }
+      });
+    }
+
+    function boolText(value) {
+      return value ? '啟用中' : '停用中';
+    }
+
+    function applyResourceInfo(payload) {
+      if (!payload) return;
+      document.getElementById('resource-web-app').textContent = payload.web_app_url || window.location.href.split('?')[0];
+      document.getElementById('resource-sheet-id').textContent = payload.spreadsheet_id || '-';
+      document.getElementById('resource-folder-id').textContent = payload.media_folder_id || '-';
+      document.getElementById('resource-bot-basic-id').textContent = payload.bot && payload.bot.basic_id ? payload.bot.basic_id : '-';
+
+      var sheetUrl = payload.spreadsheet_url || (payload.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + payload.spreadsheet_id + '/edit' : '#');
+      var folderUrl = payload.media_folder_url || (payload.media_folder_id ? 'https://drive.google.com/drive/folders/' + payload.media_folder_id : '#');
+      document.getElementById('resource-sheet-link').href = sheetUrl;
+      document.getElementById('resource-folder-link').href = folderUrl;
+      document.getElementById('sheet-link').href = sheetUrl;
+      document.getElementById('folder-link').href = folderUrl;
+
+      if (payload.spreadsheet_id) document.getElementById('sheet').textContent = payload.spreadsheet_id;
+      if (payload.media_folder_id) document.getElementById('folder').textContent = payload.media_folder_id;
+      if (payload.bot && (payload.bot.name || payload.bot.alias)) {
+        document.getElementById('bot').textContent = payload.bot.name || payload.bot.alias;
+      }
+    }
+
+    async function loadControls() {
+      try {
+        var payload = await callServer('getMonitorControls');
+        if (!payload.ok) throw new Error(payload.error || 'controls failed');
+        controlState = payload;
+        document.getElementById('sheet').textContent = payload.spreadsheet_id || '-';
+        document.getElementById('folder').textContent = payload.media_folder_id || '-';
+        document.getElementById('media-save').textContent = boolText(payload.media_save_enabled);
+        document.getElementById('media-trigger').textContent = payload.media_worker_trigger_error
+          ? '需重新授權'
+          : boolText(payload.media_worker_trigger_enabled);
+        document.getElementById('media-queue').textContent = [
+          'pending ' + (payload.pending_media || 0),
+          'retry ' + (payload.retry_media || 0),
+          'failed ' + (payload.failed_media || 0),
+          'saved ' + (payload.saved_media || 0)
+        ].join(' / ');
+        document.getElementById('toggle-media-save').textContent = payload.media_save_enabled ? '停用媒體上傳' : '啟用媒體上傳';
+        document.getElementById('toggle-trigger').textContent = payload.media_worker_trigger_enabled ? '停用 5 分鐘 trigger' : '啟用 5 分鐘 trigger';
+        var sheetLink = document.getElementById('sheet-link');
+        var folderLink = document.getElementById('folder-link');
+        sheetLink.href = payload.spreadsheet_url || '#';
+        folderLink.href = payload.media_folder_url || '#';
+        applyResourceInfo(payload);
+        await loadMediaQueue();
+      } catch (error) {
+        document.getElementById('media-queue').innerHTML = '<span class="error">' + htmlEscape(error.message || error) + '</span>';
+      }
+    }
+
+    async function loadMediaQueue() {
+      var rows = document.getElementById('queue-rows');
+      try {
+        var payload = await callServer('getMonitorMediaQueue');
+        if (!payload.ok) throw new Error(payload.error || 'media queue failed');
+        if (!payload.media_queue || !payload.media_queue.length) {
+          rows.innerHTML = '<tr><td colspan="6">目前沒有媒體佇列資料。</td></tr>';
+          return;
+        }
+        rows.innerHTML = payload.media_queue.map(function(item) {
+          var drive = item.drive_file_url
+            ? '<a href="' + htmlEscape(item.drive_file_url) + '" target="_blank" rel="noopener">打開</a>'
+            : '-';
+          return [
+            '<tr>',
+            '<td>' + htmlEscape(formatTaipeiTime(item.queued_at)) + '</td>',
+            '<td><span class="badge">' + htmlEscape(item.status) + '</span></td>',
+            '<td>' + htmlEscape(item.message_type) + '<br><span class="muted">' + htmlEscape(item.message_id) + '</span></td>',
+            '<td>' + htmlEscape(item.attempt_count || 0) + '</td>',
+            '<td class="queue-error ' + (item.last_error ? 'error' : '') + '">' + htmlEscape(item.last_error || '') + '</td>',
+            '<td>' + drive + '</td>',
+            '</tr>'
+          ].join('');
+        }).join('');
+      } catch (error) {
+        rows.innerHTML = '<tr><td colspan="6" class="error">' + htmlEscape(error.message || error) + '</td></tr>';
+      }
+    }
+
+    async function toggleMediaSave() {
+      var next = !(controlState && controlState.media_save_enabled);
+      await callServer('monitorSetMediaSave', next);
+      await loadControls();
+    }
+
+    async function toggleTrigger() {
+      var next = !(controlState && controlState.media_worker_trigger_enabled);
+      await callServer('monitorSetMediaTrigger', next);
+      await loadControls();
+    }
+
+    async function runMediaWorker() {
+      document.getElementById('media-queue').textContent = '處理中...';
+      var payload = await callServer('monitorRunMediaWorker');
+      await loadControls();
+      if (!payload.ok) {
+        alert('媒體 worker 失敗：' + (payload.error || 'unknown'));
+        return;
+      }
+      if (payload.errors && payload.errors.length) {
+        alert('媒體 worker 完成但有錯誤：processed=' + payload.processed + ', saved=' + payload.saved + ', errors=' + payload.errors.length + '\\n' + payload.errors[0].error);
+      } else {
+        alert('媒體 worker 完成：processed=' + payload.processed + ', saved=' + payload.saved + ', reason=' + payload.stopped_reason);
+      }
+      await loadMediaQueue();
+    }
+
+    applyResourceInfo(initialConfig);
+    loadEvents();
+    loadControls();
+    setInterval(loadEvents, 15000);
+    setInterval(loadControls, 30000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <!--
+    Digital Watermark:
+    FALO IM Watch v1.01 Private Internal Teaching Note
+    Copyright (c) 2026 Falo x Force Cheng. All rights reserved.
+    Created for internal development, course material drafting, and architecture review.
+  -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="(Private) FALO IM Watch v1.01 by Falo x Force Cheng. LINE Bot webhook, GAS proxy, Google Sheet, Drive media upload, 200 OK diagnostics, and AI Commander teaching note.">
+  <meta name="keywords" content="FALO IM Watch, Falo x Force Cheng, LINE Bot, GAS proxy, Google Apps Script, Google Sheet, Google Drive, webhook, 200 OK, media upload, AI Commander">
+  <meta name="author" content="Falo x Force Cheng">
+  <meta name="copyright" content="Copyright (c) 2026 Falo x Force Cheng. All rights reserved.">
+  <meta name="dc.rights" content="Falo x Force Cheng 2026">
+  <meta name="version" content="v1.01">
+  <meta name="falo-watermark" content="(Private) FALO IM Watch v1.01 | Falo x Force Cheng | 2026/6/20 | internal only | webhook 200 and Drive media upload diagnostics">
+  <meta property="og:title" content="(Private) FALO IM Watch v1.01 - LINE Bot GAS Webhook 教材">
+  <meta property="og:description" content="Falo x Force Cheng internal teaching note for LINE webhook 200 OK, GAS media queue, and Google Drive upload diagnostics.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary">
+  <title>(Private) 標準 LINE Bot PoC 教材稿</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1f2933;
+      background: #f6f8fa;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 36px 20px 72px;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+    h1, h2 {
+      line-height: 1.25;
+      color: #111827;
+    }
+    h1 {
+      font-size: 32px;
+      margin: 0 0 8px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-top: 36px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 24px;
+    }
+    h3 {
+      font-size: 18px;
+      margin-top: 24px;
+      color: #111827;
+    }
+    .meta {
+      color: #667085;
+      margin-bottom: 28px;
+    }
+    .watermark {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0.01;
+      pointer-events: none;
+      user-select: none;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #eef2f7;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      background: #111827;
+      color: #f9fafb;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    a {
+      color: #0f766e;
+    }
+    .callout {
+      border-left: 4px solid #0f766e;
+      background: #ecfdf5;
+      padding: 12px 16px;
+      margin: 18px 0;
+    }
+    ul, ol {
+      padding-left: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+<div class="watermark">(Private) FALO IM Watch v1.01 | Falo x Force Cheng | 2026/6/20 | internal only | webhook 200 and Drive media upload diagnostics</div>
+<main>
+  <h1>(Private) 標準 LINE Bot PoC 教材稿</h1>
+  <p class="meta">日期：2026-06-18<br>版本：v1.01<br>標示：Falo x Force Cheng 2026/6/20<br>版權：Copyright (c) 2026 Falo x Force Cheng. All rights reserved.<br>狀態：(Private) 自用內部版，先不傳 FALO / GitHub</p>
+
+  <div class="callout">
+    <strong>本教材目標：</strong>建立一個標準 LINE Official Account Bot，讓它接收 webhook，保存文字與媒體事件，成為後續 AI 協作入口。
+  </div>
+
+  <div class="callout">
+    <strong>v1.01 新增：</strong>同一個本機開發控制台可切換本機 webhook 與 GAS proxy，並顯示 ngrok 狀態、支援手動刷新與定時更新。
+  </div>
+
+  <div class="callout">
+    <strong>教材備注：</strong>本文件為 Falo x Force Cheng 內部教材與系統設計稿，包含 LINE Bot webhook、GAS proxy、媒體佇列、Drive 上傳與後續 AI Commander 架構規劃。外部分享版需另行去識別化與移除機密參數。
+  </div>
+
+  <h2>架構</h2>
+  <pre><code>使用者 / 群組 / 多人聊天室
+        ↓
+LINE Messaging API webhook
+        ↓
+line_bot_server.py
+        ↓
+events.jsonl + media/
+        ↓
+AI Parser / Task / CRM / Dashboard</code></pre>
+
+  <h2>標準版適合什麼</h2>
+  <ul>
+    <li>官方支援的商用資料入口。</li>
+    <li>接收文字、圖片、影片、音訊、檔案、位置、貼圖。</li>
+    <li>把群組或客戶互動整理成 AI 可處理事件。</li>
+    <li>串接 CRM、PM、KM、客服、AI 摘要與通知。</li>
+  </ul>
+
+  <h2>標準版不能做什麼</h2>
+  <ul>
+    <li>不能讀取個人 LINE 既有聊天。</li>
+    <li>不能讀取 bot 加入前的群組歷史。</li>
+    <li>不能偷看沒有加入 bot 的群組。</li>
+    <li>只能處理 LINE 官方平台送到 webhook 的新事件。</li>
+  </ul>
+
+  <h2>一個聊天室、一個官方助手</h2>
+  <p>LINE 的群組 / 多人聊天室設計，應該理解成一個聊天室只放一個官方帳號助手。這不是單純的技術限制，而比較像 LINE 基於產品體驗、安全、權限與責任歸屬做出的政策設計。</p>
+  <ul>
+    <li>避免一個群組被多個官方 bot 同時監聽，造成成員難以判斷誰在收資料。</li>
+    <li>避免多個 bot 同時回覆，讓群組變成自動訊息互相干擾。</li>
+    <li>讓群組成員比較容易知道：目前這個聊天室的官方助手是誰。</li>
+    <li>讓資料收集、通知、退出與管理責任有明確邊界。</li>
+  </ul>
+  <pre><code>LINE 群組只看到一隻主 Bot
+        ↓
+後台 Commander / AI Node
+        ↓
+任務 AI、風險 AI、摘要 AI、客服 AI、稽核 AI</code></pre>
+  <p>測試時如果邀請第二隻官方帳號，可能會卡在「正在邀請」，也可能短暫加入後又退出。這兩種現象都可以視為 LINE 在維持一個聊天室、一個官方助手的設計邊界。</p>
+
+  <h2>官方文件</h2>
+  <ul>
+    <li><a href="https://developers.line.biz/en/docs/messaging-api/overview/">Messaging API overview</a></li>
+    <li><a href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/">Receive messages webhook</a></li>
+    <li><a href="https://developers.line.biz/en/docs/messaging-api/message-types/">Message types</a></li>
+    <li><a href="https://developers.line.biz/en/docs/messaging-api/group-chats/">Group chats</a></li>
+    <li><a href="https://developers.line.biz/en/reference/messaging-api/">Messaging API reference</a></li>
+  </ul>
+
+  <h2>v1.01 開發控制台：同地端切換本機 webhook / GAS proxy</h2>
+  <p>v1.01 的重點，是把「直接打到本機的 webhook」與「GAS 承接後再由本機讀取」放在同一個開發控制台裡。這樣教學與測試時不用一直切換工具，也能清楚比較兩條路線。</p>
+  <pre><code>LINE 官方帳號 A
+        ↓
+ngrok / 本機 webhook
+        ↓
+本機 events.jsonl
+
+LINE 官方帳號 B
+        ↓
+GAS Web App
+        ↓
+Google Sheet
+        ↓
+本機 GAS proxy / HTML 前端</code></pre>
+  <p>開發控制台：</p>
+  <pre><code>http://127.0.0.1:8765/dev-console</code></pre>
+  <p>登入：</p>
+  <pre><code>admin / 666666</code></pre>
+  <table>
+    <thead>
+      <tr><th>區塊</th><th>用途</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>本機 webhook</td><td>直接讀本機 <code>events.jsonl</code>，確認 ngrok 打進來的 LINE 事件。</td></tr>
+      <tr><td>GAS proxy</td><td>輸入 GAS <code>exec</code> URL，透過本機 proxy 讀取 GAS 儲存在 Google Sheet 裡的資料。</td></tr>
+      <tr><td>ngrok 狀態</td><td>顯示目前 ngrok 是否有 public HTTPS URL，並可手動刷新。</td></tr>
+    </tbody>
+  </table>
+  <p>GAS 設定欄位包含 <code>GAS exec URL</code> 與 <code>Google Sheet URL</code>。按下「套用 / 儲存」後，設定會先存到目前瀏覽器的 <code>localStorage</code>，適合開發時快速切換不同 GAS Web App。登入後也可以直接按「打開 Google Sheet」檢查原始資料。</p>
+  <p>ngrok 狀態機制分成兩層：</p>
+  <ul>
+    <li>後端預設每 30 分鐘檢查一次，寫入 <code>out/standard-line-bot/ngrok_status.jsonl</code>。</li>
+    <li>前端控制台每 15 秒更新畫面，也可按「手動刷新 ngrok」立即檢查。</li>
+  </ul>
+  <p>這個版本刻意加上 <code>(Private)</code>、<code>noindex</code>、隱形浮水印與版本資訊，因為目前是內部自用教材與開發版，先不作公開散布。</p>
+
+  <h2>Step 1：建立 LINE Channel</h2>
+  <ol>
+    <li>進入 LINE Developers Console。</li>
+    <li>建立 Provider。</li>
+    <li>建立 Messaging API Channel。</li>
+    <li>啟用 webhook。</li>
+    <li>發行 Channel access token。</li>
+    <li>複製 Channel secret。</li>
+    <li>需要群組時，開啟 <code>Allow bot to join group chats</code>。</li>
+  </ol>
+
+  <h2>Step 2：準備本機設定</h2>
+  <pre><code>cd falo-im-line-lab/poc/standard_line_bot
+cp .env.example .env</code></pre>
+  <pre><code>LINE_CHANNEL_SECRET=你的 Channel secret
+LINE_CHANNEL_ACCESS_TOKEN=你的 Channel access token
+LINE_BOT_HOST=127.0.0.1
+LINE_BOT_PORT=8765
+LINE_BOT_OUTPUT_DIR=out/standard-line-bot
+LINE_BOT_AUTO_REPLY=false
+LINE_BOT_DOWNLOAD_MEDIA=true
+NGROK_MONITOR_ENABLED=true
+NGROK_API_URL=http://127.0.0.1:4040/api/tunnels
+NGROK_MONITOR_INTERVAL_SECONDS=1800
+LINE_BOT_SKIP_SIGNATURE=false
+LINE_ADMIN_USER=admin
+LINE_ADMIN_PASSWORD=666666
+LINE_ADMIN_SESSION_SECRET=請換成自己的本地管理密鑰</code></pre>
+
+  <h2>Step 3：啟動 webhook server</h2>
+  <p>建議使用一鍵啟動檔：</p>
+  <pre><code>open poc/standard_line_bot/Start_STANDARD_LINE_BOT.command</code></pre>
+  <p>這個啟動檔會自動做四件事：</p>
+  <ol>
+    <li>讀取 <code>.env</code> 裡的 <code>LINE_BOT_PORT</code>，若沒有設定就使用 <code>8765</code>。</li>
+    <li>檢查該 port 是否已被舊 server 佔用。</li>
+    <li>若該 port 已被佔用，先停止舊 listener，再啟動新的 <code>line_bot_server.py</code>。</li>
+    <li>啟動後自動打開本地控制介面：<code>http://127.0.0.1:8765/admin/login</code> 與 <code>http://127.0.0.1:8765/dev-console</code>。</li>
+  </ol>
+  <p>也可以手動啟動：</p>
+  <pre><code>python3 line_bot_server.py --port 8765</code></pre>
+  <p>健康檢查：</p>
+  <pre><code>curl http://127.0.0.1:8765/health</code></pre>
+
+  <h2>Step 4：提供公開 HTTPS webhook URL</h2>
+  <p>LINE webhook 需要公開 HTTPS。本機可以用 ngrok、Cloudflare Tunnel、localtunnel 或 VPS reverse proxy。</p>
+  <pre><code>https://你的公開網址/webhook</code></pre>
+  <p>本機 server 預設每 30 分鐘檢查一次 ngrok 本機 API：</p>
+  <pre><code>http://127.0.0.1:4040/api/tunnels</code></pre>
+  <p>檢查結果會寫入：</p>
+  <pre><code>out/standard-line-bot/ngrok_status.jsonl</code></pre>
+  <p>這份 log 用來觀察 ngrok 是否仍有 HTTPS public URL、public URL 是否變動、ngrok API 是否回應、回應速度與錯誤訊息。</p>
+
+  <h3>同一個 ngrok 接兩組 LINE webhook</h3>
+  <p>一個 LINE Official Account 只能設定一個 webhook URL，但多個官方帳號可以指向同一個 webhook URL。</p>
+  <pre><code>https://你的公開網址/webhook</code></pre>
+  <p>本機 server 會用 <code>X-Line-Signature</code> 逐一比對已設定的 Channel secret，判斷事件來自哪一隻 bot。</p>
+  <ul>
+    <li>第一組 <code>FALO IM Bot Test</code> 可以走本機 webhook。</li>
+    <li>第二組 <code>FALO IM Bot GAS Test</code> 也可以先走同一個本機 webhook。</li>
+    <li>等 GAS 版完成後，再把第二組 webhook URL 改成 GAS Web App URL。</li>
+  </ul>
+
+  <h2>Step 5：測文字</h2>
+  <p>加入 bot 好友後傳：</p>
+  <pre><code>任務 owner=Force due=明天下午 確認報價單</code></pre>
+  <p>事件會寫入：</p>
+  <pre><code>out/standard-line-bot/events.jsonl</code></pre>
+  <p>預設採資料收集模式，server 只回 HTTP 200 給 LINE webhook，不主動回覆聊天視窗。</p>
+
+  <h2>Step 6：打開本地管理者後台</h2>
+  <p>啟動 server 後，開啟本地後台登入頁：</p>
+  <pre><code>http://127.0.0.1:8765/admin/login</code></pre>
+  <p>預設登入資訊：</p>
+  <pre><code>帳號：admin
+密碼：666666</code></pre>
+  <p>登入後可以看到目前收集到的 webhook 事件流，包含收到時間、LINE 時間、來源類型、群組或聊天室 key、發訊者、訊息內容與處理狀態。</p>
+  <p>這個頁面是本地 PoC 後台，用來展示監督過程。正式多人版還需要角色權限、audit log、HTTPS 與資料庫。</p>
+
+  <h2>Step 7：測圖片與檔案</h2>
+  <p>圖片、影片、音訊、檔案會先收到 message ID。後端再用 Channel access token 下載內容。</p>
+  <pre><code>out/standard-line-bot/media/</code></pre>
+
+  <h2>Step 8：本機假資料測試</h2>
+  <pre><code>LINE_BOT_SKIP_SIGNATURE=true python3 line_bot_server.py --port 8765</code></pre>
+  <pre><code>curl -X POST http://127.0.0.1:8765/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": [
+      {
+        "type": "message",
+        "mode": "active",
+        "timestamp": 1710000000000,
+        "source": {"type": "user", "userId": "U_TEST"},
+        "message": {
+          "id": "msg-text-001",
+          "type": "text",
+          "text": "任務 owner=Force due=明天下午 確認報價單"
+        }
+      }
+    ]
+  }'</code></pre>
+
+  <h2>GAS 版：先手動跑一次</h2>
+  <p>在把 GAS Web App URL 貼到 LINE Developers 之前，建議先手動跑一次 GAS。這一步不是測 LINE，而是先確認 GAS 程式本身可以建立 Sheet、寫入假事件，並正常回傳結果。</p>
+  <ol>
+    <li>到 Google Apps Script 貼上 <code>poc/gas_line_bot/Code.gs</code>。</li>
+    <li>設定 Script Properties：<code>LINE_CHANNEL_ACCESS_TOKEN</code>、<code>AUTO_REPLY=false</code>、<code>MEDIA_SAVE_MODE=metadata</code>。</li>
+    <li>在函式下拉選單選 <code>manualTestTextEvent</code>。</li>
+    <li>按 <code>Run</code>。</li>
+    <li>第一次執行會要求授權，允許它建立 / 寫入 Google Sheet。</li>
+    <li>成功後 Log 應該看到 <code>{"ok":true,"received":1,"skipped_duplicate":0}</code>。</li>
+    <li>Google Drive 會出現 <code>FALO GAS LINE Bot Events</code>，其中 <code>line_events</code> 工作表會有一筆 <code>manual gas test</code>。</li>
+  </ol>
+  <p>這一步成功後，才進入 LINE webhook URL 設定。這樣如果後面 LINE Verify 失敗，就可以確定問題多半在 webhook URL、部署權限或 LINE 端設定，而不是 GAS 寫入邏輯。</p>
+
+  <h2>GAS 版：用 clasp pull / push 管理程式碼</h2>
+  <p>先求有的版本，可以先手動貼 <code>Code.gs</code>。但只要開始反覆修改，就建議改用 <code>clasp</code> 做 pull / push。</p>
+  <p>直覺理解：</p>
+  <pre><code>本機資料夾
+  Code.gs
+  appsscript.json
+        ↓ push
+Google Apps Script 專案
+        ↓ deploy
+LINE Webhook URL</code></pre>
+  <p><code>clasp push</code> 只負責把本機程式碼同步到 Apps Script 專案；它不等於重新部署 Web App。正式讓 LINE 用到新版程式時，還是要到 Apps Script 裡面重新部署新版本。</p>
+
+  <h3>第一次設定</h3>
+  <p>本專案已準備好：</p>
+  <pre><code>poc/gas_line_bot/Code.gs
+poc/gas_line_bot/appsscript.json
+poc/gas_line_bot/GAS_PUSH.command
+poc/gas_line_bot/GAS_PULL.command
+poc/gas_line_bot/.gas.env.example</code></pre>
+  <p>先確認本機有 <code>clasp</code>：</p>
+  <pre><code>clasp --version</code></pre>
+  <p>如果尚未登入，執行：</p>
+  <pre><code>clasp login</code></pre>
+  <p>接著把範例設定複製成私人設定檔：</p>
+  <pre><code>cd poc/gas_line_bot
+cp .gas.env.example .gas.env</code></pre>
+  <p>在 <code>.gas.env</code> 裡填入 Apps Script 的 Script ID：</p>
+  <pre><code>GAS_SCRIPT_ID=貼上 Apps Script 專案的 Script ID</code></pre>
+  <p>Script ID 可以從 Apps Script 編輯器網址找到：</p>
+  <pre><code>https://script.google.com/home/projects/&lt;SCRIPT_ID&gt;/edit</code></pre>
+  <p>也可以從 Apps Script：</p>
+  <pre><code>Project Settings -&gt; Script ID</code></pre>
+
+  <h3>推送本機程式到 GAS</h3>
+  <pre><code>cd poc/gas_line_bot
+./GAS_PUSH.command</code></pre>
+  <p>用途：</p>
+  <ul>
+    <li>把本機 <code>Code.gs</code> 推到 Google Apps Script。</li>
+    <li>把 <code>appsscript.json</code> 一起推上去。</li>
+    <li>若沒有 <code>.clasp.json</code>，會用 <code>.gas.env</code> 裡的 <code>GAS_SCRIPT_ID</code> 自動建立本機綁定。</li>
+  </ul>
+  <p>推送後，如果要讓 LINE webhook 使用新版，還要到 Apps Script：</p>
+  <pre><code>Deploy -&gt; Manage deployments -&gt; Edit -&gt; New version -&gt; Deploy</code></pre>
+
+  <h3>從 GAS 拉回本機</h3>
+  <pre><code>cd poc/gas_line_bot
+./GAS_PULL.command</code></pre>
+  <p>用途：</p>
+  <ul>
+    <li>從雲端 Apps Script 拉回目前版本。</li>
+    <li>拉回前會先備份本機檔案到 <code>poc/gas_line_bot/backups/gas-YYYYMMDD-HHMMSS/</code>。</li>
+  </ul>
+  <p>教學口徑：</p>
+  <pre><code>push = 我本機寫好了，要送上雲端。
+pull = 雲端可能有人改過，我要拉回來比對。
+deploy = 讓 Web App 對外使用最新版本。</code></pre>
+
+  <h2>教材口徑</h2>
+  <pre><code>OCR 是觀察既有桌面流程。
+LINE Bot 是建立正式工作入口。
+兩者不是互斥，而是服務不同場景。</code></pre>
+
+  <h2>回覆與訊息額度</h2>
+  <ul>
+    <li>接收 webhook 是 LINE 平台把事件送到後端，本身不是官方帳號對外送訊息。</li>
+    <li>reply message 是針對使用者事件立即回覆，依 LINE Developers 文件不列入 Messaging API 方案訊息數。</li>
+    <li>push、multicast、broadcast、narrowcast 屬於官方帳號送出訊息，會列入方案訊息數。</li>
+    <li>本 PoC 目標是資料收集，因此預設 <code>LINE_BOT_AUTO_REPLY=false</code>，降低群組干擾。</li>
+  </ul>
+
+  <h2>群組安全原則</h2>
+  <ul>
+    <li>成員列表中可以看到 bot，但差異不一定醒目；點進官方帳號頁面後才比較容易辨識。</li>
+    <li>加入群組前應先公告用途、資料範圍、測試期間與退出方式。</li>
+    <li>bot 只處理加入後的新事件，不讀取加入前歷史。</li>
+    <li>正式群組應採 allowlist 或明確指定群組，不讓 bot 被任意拉入不相關群組。</li>
+  </ul>
+
+  <h2>群組事件保存欄位</h2>
+  <ul>
+    <li><code>source.type</code>：user、group 或 room。</li>
+    <li><code>source.group_id</code> / <code>source.room_id</code>：訊息所在群組或聊天室。</li>
+    <li><code>sender.user_id</code>：發訊者 LINE userId。</li>
+    <li><code>sender.display_name</code>：透過 LINE profile API 補上的顯示名稱。</li>
+    <li><code>text</code> / <code>media</code>：文字或媒體資訊。</li>
+    <li><code>line_timestamp</code>：LINE 原始事件時間戳（毫秒），保存原值不改寫。</li>
+    <li><code>captured_at</code>：本機 server 收到 webhook 的時間，統一以台灣/台北時區（Asia/Taipei, UTC+8）記錄。</li>
+  </ul>
+
+  <h2>正式高流量版定位</h2>
+  <p>本地後台是功能驗證與教材實驗場，不是最終承載架構。</p>
+  <p>如果目標是純雲端版，且要承受多群組、多視窗、高頻工作訊息，正式架構應演進為：</p>
+  <pre><code>LINE Webhook
+  ↓
+Cloud Run webhook receiver
+  ↓
+Pub/Sub event queue
+  ↓
+Cloud Run worker
+  ↓
+Firestore / Cloud Storage / BigQuery
+  ↓
+雲端管理後台與本地衛星程式</code></pre>
+  <p>教學版可先用 GAS + Sheet 讓初學者理解事件承接；高級版則應使用 Cloud Run + Pub/Sub + Firestore，避免把 GAS 當成高頻 API server。</p>
+
+  <h2>內部私人版策略：FALO IM Watch / AI Cowork</h2>
+  <p>這份教材目前是內部私人版，可以保留較完整的產品判斷、架構假設與營運策略。等內部版穩定後，再另外產出去機敏對外版，移除 token、實際 webhook URL、群組資訊、客戶名稱與內部部署細節。</p>
+  <pre><code>FALO IM Watch
+高頻訊息工作場的 AI 監督與任務萃取平台</code></pre>
+  <p>核心價值不是聊天機器人會回話，而是多群組、多視窗不漏重要訊息，自動整理任務、風險、客戶需求與待追蹤事項。老闆與主管看戰情中心，員工 LINE 照常使用，AI 在後面幫忙看。</p>
+
+  <h2>為什麼不把 LINE 當 AI 對話主介面</h2>
+  <ul>
+    <li>LINE 群組是人類原本工作的地方，AI 不應該頻繁插話或洗版。</li>
+    <li>官方帳號主動推播、群發、廣播會受到方案訊息數限制。</li>
+    <li>後台 AI cowork 需要任務列表、風險清單、跨群組摘要、權限控管，聊天框不夠好用。</li>
+    <li>機密資料要分層：LINE 是原始工作場，AI 指揮中心應該在 Web 後台、Telegram 或 FALO 客製 IM。</li>
+    <li>未來不只 LINE，Telegram、Email、WhatsApp、WeChat、客製 IM 都可以成為資料來源。</li>
+  </ul>
+  <pre><code>LINE：接收真實工作場事件
+Web 後台：顯示戰情中心
+Telegram / FALO IM：與 AI cowork 對話、下指令、收提醒
+後台專職 AI：負責整理、判斷、派工、摘要與風險提示</code></pre>
+
+  <h2>地端 Sender 的定位：FALO LINE Local Sender</h2>
+  <p>LINE Official Account 的訊息方案限制，主要限制的是官方帳號主動送出的訊息數，例如 broadcast、push、multicast、narrowcast 等。這和 AI token 是兩件不同的事。</p>
+  <p>因此，如果目標是內部群組少量精準提醒，或老闆 / 業務助理場景，可以把地端 Sender 當成另一條路線。</p>
+  <pre><code>FALO 產生建議訊息
+        ↓
+排程 / 任務佇列
+        ↓
+地端 LINE Sender
+        ↓
+貼到指定群組文字框
+        ↓
+HITL 人工確認，或在明確授權下自動發送
+        ↓
+本地 Audit Log</code></pre>
+  <p>這條路線的核心不是 spam bot，而是節省 OA 額度的地端 LINE 助理。第一版建議定位為：代填不代送。</p>
+  <p>也就是系統可以把建議回覆、提醒內容、任務追蹤文字填到 LINE Desktop 指定聊天室的輸入框，但最後送出由人類確認。這樣能把產品風險壓低，也更符合 AI cowork 的精神：輔助人類，而不是取代人類亂發訊息。</p>
+  <table>
+    <thead><tr><th>路線</th><th>限制</th><th>適合用途</th></tr></thead>
+    <tbody>
+      <tr><td>LINE OA / Bot</td><td>受官方帳號方案訊息數限制。</td><td>正式客服、公告、訂閱通知、官方互動。</td></tr>
+      <tr><td>地端 LINE Sender</td><td>不走 OA 配額，但依賴個人帳號、桌面環境與授權操作。</td><td>內部群組、少量精準通知、老闆 / 業務助理場景。</td></tr>
+    </tbody>
+  </table>
+  <pre><code>讀取：OCR / Webhook / Local Observer
+輸入：UI Automation / Local Sender
+判斷：AI cowork / Rule Engine / Task Queue
+紀錄：Local Audit Log / Dashboard / Portable Chat Folder</code></pre>
+  <p>安全防火牆必須一開始就寫進產品規格：</p>
+  <ul>
+    <li>不可群發陌生人。</li>
+    <li>不可爆量洗訊息。</li>
+    <li>不可繞過使用者授權。</li>
+    <li>不可偽裝成使用者做高風險承諾。</li>
+    <li>高風險訊息一定要人工確認。</li>
+    <li>所有代填、送出、取消、修改都要寫入本地 audit log。</li>
+    <li>預設只允許 allowlist 群組與 allowlist 使用者。</li>
+  </ul>
+  <p>這條路線適合當成內部版高價值功能，但對外說法要謹慎。它不是為了規避平台規則，而是為了在授權範圍內，讓 AI 幫忙整理、代填、提醒與保留稽核紀錄。</p>
+
+  <h2>一隻主 Bot，後台多個專職 AI 同事</h2>
+  <p>對使用者與群組來說，最好只看到一隻主要 bot。這也符合 LINE 一個聊天室、一個官方助手的設計邏輯：前台單純、權限清楚、成員容易理解；後台則可以拆成多個專職 AI 同事。</p>
+  <table>
+    <thead><tr><th>後台角色</th><th>工作內容</th></tr></thead>
+    <tbody>
+      <tr><td>Collector</td><td>收 webhook、去重、記錄文字與媒體。</td></tr>
+      <tr><td>Memory</td><td>整理群組、使用者、事件索引。</td></tr>
+      <tr><td>Task Agent</td><td>抽任務、owner、期限、待確認事項。</td></tr>
+      <tr><td>Risk Agent</td><td>偵測客訴、逾期、價格、合約、資安等風險。</td></tr>
+      <tr><td>Summary Agent</td><td>產生每日、每群、每客戶摘要。</td></tr>
+      <tr><td>Workflow Agent</td><td>串 CRM、PM、ERP、Google Sheet、通知系統。</td></tr>
+      <tr><td>Admin Agent</td><td>幫管理者看權限、群組狀態、異常事件。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Win365 版本的定位</h2>
+  <p>Win365 不是為了取代正式雲端，而是先用較低成本做出接近私有部署的高價值能力。</p>
+  <ul>
+    <li>高度模仿地端環境：可跑 Python、Node、瀏覽器、自動化與檔案同步。</li>
+    <li>成本比完整私有雲部署低很多。</li>
+    <li>LINE webhook 本身不需要很強的 server。</li>
+    <li>AI 不一定要跑在 Win365，本機節點可以呼叫 OpenAI、Gemini、Claude 或其他雲端 API。</li>
+    <li>適合先做中心加衛星程式模式：雲 gateway 收事件，Win365 AI node 做整理、分析、展示與人工輔助。</li>
+  </ul>
+  <pre><code>LINE Webhook
+  ↓
+公開安全入口
+  ↓
+本地 / Win365 AI node
+  ↓
+戰情中心 dashboard
+  ↓
+AI cowork 慢慢分析、提醒、整理任務</code></pre>
+
+  <h2>即時層與高價值分析層要分開</h2>
+  <p>不是每一則訊息都需要立刻丟給大型模型。即時監督可以先用低成本技術處理，例如關鍵字偵測、群組 / 使用者 / 時間判斷、任務語句解析、風險詞標記、重複事件去重與簡單優先級分類。</p>
+  <p>高價值分析則可以非同步慢慢跑，例如每小時摘要、客戶需求整理、任務池歸納、風險報告、跨群組脈絡分析與老闆戰情中心。</p>
+  <pre><code>即時層：低成本監聽、記錄、分類、標記
+戰情中心層：整理群組、任務、風險與待追蹤狀態
+AI 同事層：根據戰情中心做延遲型高價值分析</code></pre>
+
+  <h2>公開入口與機密資料：不只比較 ngrok</h2>
+  <p>這個專案涉及客戶與公司內部訊息，所以不能只問 ngrok 免費版夠不夠。真正要評估的是：資料從 LINE 進來後，經過哪些入口、通道、儲存與分析節點。</p>
+  <table>
+    <thead><tr><th>方案</th><th>適合階段</th><th>優點</th><th>風險 / 限制</th></tr></thead>
+    <tbody>
+      <tr><td>ngrok 免費版</td><td>本機 PoC、文字測試</td><td>快速、教學容易、幾分鐘能跑。</td><td>網址不穩、流量與請求有限，不適合正式機密場景。</td></tr>
+      <tr><td>ngrok 付費版</td><td>內部 demo、固定測試</td><td>固定網域、限制較少、設定簡單。</td><td>仍偏開發隧道，不是最終平台治理。</td></tr>
+      <tr><td>Cloudflare Tunnel</td><td>內部版、Win365 節點</td><td>不需開 inbound port，可接自有網域、可搭 Zero Trust。</td><td>需要網域與 Cloudflare 設定，教學門檻較高。</td></tr>
+      <tr><td>Cloudflare Zero Trust</td><td>機密後台、管理介面</td><td>可做身份驗證、存取控管、裝置政策。</td><td>要設計使用者與角色權限。</td></tr>
+      <tr><td>Tailscale / WireGuard</td><td>私有節點互連</td><td>適合中心與衛星節點私網連線。</td><td>LINE webhook 仍需要公開 HTTPS 入口。</td></tr>
+      <tr><td>Cloud Run Gateway</td><td>正式雲端入口</td><td>可擴展、可觀測、可接 Pub/Sub。</td><td>需要雲端部署與 IAM 管理。</td></tr>
+      <tr><td>私有部署 / 專屬雲</td><td>Enterprise</td><td>資料邊界清楚、可客製加密與權限。</td><td>成本高，應列高價方案。</td></tr>
+    </tbody>
+  </table>
+  <pre><code>開發期：ngrok / Cloudflare Tunnel
+內部驗證：Cloudflare Tunnel + 自有網域 + Zero Trust
+正式 SaaS：Cloud Run Gateway + Pub/Sub + Firestore / Cloud Storage
+企業私有：專屬 Cloud Run / Win365 / 私有雲節點 + 客戶自帶 API key</code></pre>
+
+  <h2>地端中控時，ngrok 帳號是否要升級</h2>
+  <p>前提：如果中控先不放 GAS，而是放在本機 / Win365，ngrok 的角色就是外部 webhook 進入本機 AI node 的公開 HTTPS 入口。</p>
+  <pre><code>LINE / Telegram / 外部 webhook
+        ↓
+公開 HTTPS URL
+        ↓
+ngrok tunnel
+        ↓
+本機 / Win365 FALO AI node
+        ↓
+戰情中心 / AI cowork / audit log</code></pre>
+  <p>這時候要評估的不是能不能連，而是 URL 是否穩定、每月 request 夠不夠、圖片影片是否增加傳輸量、是否需要自己的網域、是否有多個 endpoint、後台是否要 OAuth / OIDC / IP allowlist / audit log，以及是否能接受 ngrok 成為機密資料進入地端 node 的入口。</p>
+
+  <h3>ngrok 方案能力比較（官方價格，2026-06-20 查詢）</h3>
+  <table>
+    <thead><tr><th>方案</th><th>月費</th><th>主要限制 / 能力</th><th>適合 FALO 場景</th><th>建議</th></tr></thead>
+    <tbody>
+      <tr><td>Free</td><td>US$0</td><td>3 個 online endpoints、1GB data transfer、20k HTTP/S requests、HTTP/S endpoint 會有 interstitial page、assigned dev domain、1 team member。</td><td>本機 PoC、教材 demo、低量文字測試。</td><td>可用，但不適合長期中控。</td></tr>
+      <tr><td>Hobbyist</td><td>US$8/月（年繳）或 US$10/月（月繳）</td><td>3 個 online endpoints、5GB data transfer、100k HTTP/S requests、無 interstitial page、ngrok-branded domains、1 team member。</td><td>個人開發、長時間 demo、小型內部測試。</td><td>如果只是先玩穩定版，這是最低可買方案。</td></tr>
+      <tr><td>Pay-as-you-go</td><td>US$20/月起 + 超量計費</td><td>unlimited online endpoints、可自帶 custom domain、100k requests / 5GB included，超過後 HTTP/S requests 約 US$1 / 100k、data transfer 約 US$0.10 / GB；含 3 team members，可加 SSO/RBAC/SCIM 等。</td><td>地端中控、Win365 node、多 webhook、多 agent 內部版。</td><td>若要認真做內部運作，建議從這級開始。</td></tr>
+      <tr><td>Enterprise / add-ons</td><td>客製</td><td>SLA、BAA、on-call、on-prem、合規、更多安全與支援。</td><td>金融、醫療、政府、大型企業私有部署。</td><td>不是 MVP 階段，但可列入 Enterprise 報價。</td></tr>
+    </tbody>
+  </table>
+  <p>官方參考：<a href="https://ngrok.com/pricing">ngrok Pricing</a>、<a href="https://ngrok.com/docs/pricing-limits/free-plan-limits/">ngrok Free Plan Limits</a>。</p>
+
+  <h3>對 FALO 的實務建議</h3>
+  <p>如果只是文字版 PoC，Free 可以先用。LINE webhook 文字事件很小，20k requests / 月對單人 demo 通常夠用。</p>
+  <h3>文字、圖片、影音、檔案的流量差異</h3>
+  <p>如果只是接收文字 webhook，ngrok 的主要壓力通常是 request 數，而不是 data transfer。</p>
+  <pre><code>文字訊息：
+  LINE → webhook 的 payload 很小。
+  主要看每月 request 數。</code></pre>
+  <p>但如果開始處理圖片、影音、檔案，就要分清楚資料怎麼走。</p>
+  <pre><code>LINE webhook：
+  通常只送事件與 message id。
+
+本機 / Win365 server：
+  再用 Channel access token 從 LINE Content API 下載媒體。
+
+管理後台 / AI 分析 / 外部預覽：
+  如果透過 ngrok 對外提供媒體預覽或檔案下載，才會明顯吃 ngrok data transfer。</code></pre>
+  <table>
+    <thead><tr><th>升級理由</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>入口數 / endpoint / port 不夠</td><td>LINE webhook、Telegram webhook、admin、media preview、internal API 應分開，不適合全部擠在同一入口。</td></tr>
+      <tr><td>傳輸量不夠</td><td>開始透過 tunnel 看圖片、下載檔案、展示影音、讓外部 agent 讀媒體時，data transfer 才會變成問題。</td></tr>
+    </tbody>
+  </table>
+  <pre><code>文字版：
+  request quota 比 data transfer 重要。
+
+圖文版：
+  endpoint 分流 + media 儲存策略開始重要。
+
+影音 / 檔案版：
+  data transfer、storage、signed URL、權限控管都要一起設計。</code></pre>
+  <p>也就是說，若只是文字監聽，ngrok 免費或低階方案多半足夠；若要做圖文影音、media preview、多 agent、多入口，才需要往 Pay-as-you-go、Cloudflare Tunnel 或正式 cloud gateway 演進。</p>
+  <p>如果要做穩定內部 demo，建議 Hobbyist。它移除 HTTP/S interstitial page，request / transfer 額度也比較寬。雖然 LINE webhook 通常不被 browser interstitial 影響，但 demo 給人看、重複驗證、串多工具時，少一層不確定性比較好。</p>
+  <p>如果要把 Win365 當地端中控，開始接 LINE + Telegram + 後台 API，建議 Pay-as-you-go。</p>
+  <ul>
+    <li>可以用自己的 custom domain，例如 <code>line-gateway.falo.ai</code>。</li>
+    <li>endpoint 數量不容易被卡住。</li>
+    <li>多 agent / 多 webhook / 多客戶測試比較好拆。</li>
+    <li>team members 與後續 SSO/RBAC/add-on 比較有路可走。</li>
+    <li>超量後是按量計費，而不是用完就停。</li>
+  </ul>
+  <p>但如果要處理正式客戶機密資料，不要把 ngrok 當最終正式 gateway。</p>
+  <pre><code>LINE / Telegram webhook
+        ↓
+FALO Cloud Gateway（Cloud Run / Cloudflare Worker / API Gateway）
+        ↓
+Queue（Pub/Sub / Redis / Firestore trigger）
+        ↓
+Win365 / 私有 AI node 主動拉取或建立 outbound secure tunnel
+        ↓
+戰情中心與 AI cowork</code></pre>
+  <p>這樣地端 / Win365 node 不必直接裸露給外部 webhook，也比較容易做權限、稽核、客戶隔離與多租戶治理。</p>
+
+  <h3>Webhook 與 Admin 要分開保護</h3>
+  <p>地端中控最容易犯的錯，是把 webhook 與 admin dashboard 都掛在同一個公開 tunnel 下。</p>
+  <pre><code>/webhook/line
+  對 LINE 平台公開
+  不加 OAuth，因為 LINE 必須能 POST
+  用 LINE signature 驗證來源
+
+/webhook/telegram
+  對 Telegram 平台公開
+  用 Telegram secret token / webhook secret 驗證來源
+
+/admin
+  不應裸露公開
+  優先只允許 localhost / VPN / Zero Trust / OAuth
+
+/media
+  預設不公開
+  若要公開預覽，必須短效 signed URL 或登入後查看</code></pre>
+  <pre><code>Webhook 是公開入口，但要驗簽。
+Admin 是管理入口，必須驗身份。
+Media 是機密資料，預設不公開。</code></pre>
+
+  <h3>ngrok vs Cloudflare Tunnel：內部建議</h3>
+  <table>
+    <thead><tr><th>階段</th><th>建議</th></tr></thead>
+    <tbody>
+      <tr><td>1 人本機開發</td><td>ngrok Free</td></tr>
+      <tr><td>穩定 demo / 教材錄影</td><td>ngrok Hobbyist</td></tr>
+      <tr><td>Win365 地端中控內部版</td><td>ngrok Pay-as-you-go 或 Cloudflare Tunnel</td></tr>
+      <tr><td>有自有網域與機密後台</td><td>Cloudflare Tunnel + Zero Trust</td></tr>
+      <tr><td>多客戶 SaaS</td><td>FALO Cloud Gateway</td></tr>
+      <tr><td>企業私有部署</td><td>專屬 gateway + private node + 客戶 key</td></tr>
+    </tbody>
+  </table>
+  <p>Cloudflare Tunnel 的優點是可以把服務接到自有網域，並和 Zero Trust / Access policy 搭配，較適合保護 admin dashboard。ngrok 則勝在開發體驗快、debug 方便、Webhook 測試路徑短。</p>
+  <pre><code>短期：ngrok Hobbyist / Pay-as-you-go
+  目的：讓 LINE webhook 穩定打到 Win365 / 本地中控。
+
+中期：Cloudflare Tunnel + 自有網域 + Zero Trust
+  目的：保護後台、降低公開暴露面、建立正式網域感。
+
+長期：FALO Cloud Gateway + Win365 / private AI node
+  目的：客戶只填參數，背後由 FALO gateway 負責事件承接、安全、排隊、分發。</code></pre>
+
+  <h2>多 GAS 彙整到 AI Node 的設計</h2>
+  <p>如果採用一個 webhook 對應一個 GAS，或一個客戶 / workspace 對應一個 GAS 的模式，後面的 AI Node 就不應該只是 webhook receiver，而應該是資料彙整中心、戰情中心與 AI cowork 大腦。</p>
+  <pre><code>GAS A / LINE Bot A
+GAS B / Telegram Bot B
+GAS C / 客戶 C
+GAS D / 高機密群組
+        ↓
+資料彙整層
+        ↓
+AI Node
+        ↓
+戰情中心 / 任務池 / 風險池 / 客戶脈絡
+        ↓
+AI cowork / Dashboard / Telegram / FALO IM</code></pre>
+  <pre><code>GAS 不做重分析。
+GAS 只做接收、驗證、落地、通知或轉發。
+AI Node 負責同步、去重、整理、判斷、分發與稽核。</code></pre>
+
+  <h3>模式一：GAS 主動 Push 到 AI Node</h3>
+  <pre><code>Webhook → GAS → AI Node API</code></pre>
+  <p>GAS 收到 LINE / Telegram event 後，立刻轉成 FALO event schema，POST 到 AI Node。</p>
+  <table>
+    <thead><tr><th>面向</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>優點</td><td>延遲低、流程直覺、容易做即時提醒。</td></tr>
+      <tr><td>缺點</td><td>AI Node 斷線時，GAS 要 retry / buffer；GAS 的 UrlFetch 次數會增加。</td></tr>
+      <tr><td>適合</td><td>重要事件、VIP 客戶、低延遲提醒、內部 demo。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>模式二：GAS 先寫 Sheet / Drive，AI Node 主動 Pull</h3>
+  <pre><code>Webhook → GAS → Google Sheet / Drive
+AI Node 定期讀取 Sheet / Drive</code></pre>
+  <table>
+    <thead><tr><th>面向</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>優點</td><td>GAS 不需要知道 AI Node 是否在線；資料先落地，不容易丟；適合教學與人工檢查。</td></tr>
+      <tr><td>缺點</td><td>延遲較高；Sheet 高頻會變慢；需要 cursor / last_seen / 去重。</td></tr>
+      <tr><td>適合</td><td>教學版、低頻版、備援、客戶可自查資料。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>模式三：GAS 寫入後送 Signal，AI Node 再 Pull</h3>
+  <p>這是內部版最推薦的折衷模式。</p>
+  <pre><code>Webhook → GAS → Sheet / Drive
+              ↓
+          Signal AI Node：有新資料
+              ↓
+          AI Node 主動 Pull 差異資料</code></pre>
+  <p>GAS 不一定把完整資料推給 AI Node，而是送一個很小的 signal。</p>
+  <pre><code>{
+  "gas_id": "gas_line_001",
+  "sheet_id": "sheet_xxx",
+  "cursor": 1288,
+  "event_count": 3,
+  "last_event_at": "2026-06-20T10:30:00+08:00"
+}</code></pre>
+  <table>
+    <thead><tr><th>面向</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>優點</td><td>比純定時快；比全量 push 穩；GAS 負擔較低；AI Node 保有同步主導權。</td></tr>
+      <tr><td>缺點</td><td>要設計 cursor、checkpoint、signal 遺失補救。</td></tr>
+      <tr><td>適合</td><td>Win365 AI Node、多 GAS 彙整、內部版、可靠性高於毫秒即時性的場景。</td></tr>
+    </tbody>
+  </table>
+  <pre><code>有 signal：立刻同步
+沒 signal：每 1-5 分鐘掃一次補漏</code></pre>
+
+  <h3>模式四：GAS / Cloud Gateway → Queue → AI Node</h3>
+  <pre><code>Webhook → GAS / Cloud Run Gateway → Pub/Sub / Queue
+                                  ↓
+                              AI Worker</code></pre>
+  <table>
+    <thead><tr><th>面向</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>優點</td><td>高流量可擴展；有 queue 緩衝；retry、dead-letter、worker scaling 較好設計。</td></tr>
+      <tr><td>缺點</td><td>架構較雲端化；要處理 IAM、topic、subscription、部署與監控。</td></tr>
+      <tr><td>適合</td><td>正式 SaaS、多客戶、高頻群組、影音與檔案事件。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>AI Node 需要的核心模組</h3>
+  <table>
+    <thead><tr><th>模組</th><th>責任</th></tr></thead>
+    <tbody>
+      <tr><td>Connector Registry</td><td>記錄每個 GAS / webhook / customer / sheet / secret / cursor。</td></tr>
+      <tr><td>Ingestion Worker</td><td>接收 push signal 或定期 pull 資料。</td></tr>
+      <tr><td>Normalizer</td><td>把 LINE / Telegram / FALO IM 全部轉成 FALO event schema。</td></tr>
+      <tr><td>Deduplicator</td><td>用 event_id / message_id / source timestamp 去重。</td></tr>
+      <tr><td>Cursor Manager</td><td>記錄每個 GAS 同步到哪一列、哪一個 event。</td></tr>
+      <tr><td>Event Store</td><td>寫入 SQLite / PostgreSQL / Firestore。</td></tr>
+      <tr><td>State Builder</td><td>更新任務池、風險池、客戶脈絡、群組狀態。</td></tr>
+      <tr><td>AI Job Queue</td><td>把需要 AI 分析的事件丟進背景任務。</td></tr>
+      <tr><td>Notification Router</td><td>決定要通知 Telegram、FALO IM、Email、Dashboard 或 Local Sender。</td></tr>
+      <tr><td>Audit Log</td><td>記錄誰同步、誰分析、誰通知、誰確認。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>建議採用路線</h3>
+  <pre><code>Signal + Pull + Fallback Scan</code></pre>
+  <pre><code>1. LINE / Telegram event 進 GAS
+2. GAS 寫入自己的 Sheet / Drive log
+3. GAS 發一個很小的 signal 給 AI Node
+4. AI Node 收到 signal 後，依 gas_id 找 registry
+5. AI Node 用 cursor 讀取新增資料
+6. AI Node normalizes / deduplicates / stores
+7. AI Node 更新戰情中心
+8. AI Node 把高價值任務丟給 AI cowork
+9. 每 1-5 分鐘 fallback scan 一次，補漏 signal</code></pre>
+  <pre><code>GAS 是分散式輕入口。
+AI Node 是跨入口的戰情中心與 AI cowork 大腦。</code></pre>
+  <p>這個架構保留了 GAS 的便宜、好部署、好教學，也保留了 AI Node 的重中心能力。未來高流量客戶可以把某一個 GAS 分片升級成 Cloud Run / Pub/Sub，而不必推翻整個系統。</p>
+
+  <h2>Android 平板本人帳號觀測路線</h2>
+  <p>這條路線排在 GAS 官方帳號版之後。它不是取代官方 Bot，而是補上另一個場景：官方帳號收得到的走官方 webhook；本人帳號本來就看得到的聊天室，才由裝置端協助觀測與提醒。</p>
+  <pre><code>LINE 官方帳號 = 公司放進群組的一位官方助手。
+Android 平板觀測器 = 使用者自己的平板助理，幫本人看自己本來就看得到的畫面。</code></pre>
+  <p>這條路線仍然不碰 LINE 私有 API、不逆向 Thrift、不模擬非官方協議。建議只使用 Android 系統允許的能力。</p>
+  <table>
+    <thead><tr><th>技術層</th><th>可做什麼</th><th>限制</th></tr></thead>
+    <tbody>
+      <tr><td>Notification Listener</td><td>讀取 LINE 通知文字、時間、來源摘要。</td><td>只看得到通知內容；關通知或通知折疊時資訊會不完整。</td></tr>
+      <tr><td>Accessibility Service</td><td>觀察目前畫面文字、輔助點擊、偵測聊天室畫面。</td><td>需要使用者明確開啟無障礙權限；必須清楚告知用途。</td></tr>
+      <tr><td>MediaProjection + OCR</td><td>擷取螢幕畫面後本地 OCR。</td><td>適合畫面型資料；耗電與隱私提示要處理。</td></tr>
+      <tr><td>ADB / 開發模式</td><td>PoC 與測試自動化。</td><td>不適合一般使用者長期使用。</td></tr>
+    </tbody>
+  </table>
+  <pre><code>專用 Android 平板
+        ↓
+開啟 LINE 本人帳號
+        ↓
+Notification Listener 先收通知摘要
+        ↓
+必要時 Accessibility / OCR 補畫面內容
+        ↓
+寫入本地事件檔或送到 AI Node
+        ↓
+AI Node 做任務、風險、提醒與戰情中心</code></pre>
+  <ul>
+    <li>只觀測使用者本人帳號本來就有權限看到的內容。</li>
+    <li>必須由使用者在裝置上明確開啟權限。</li>
+    <li>不應設計成隱形監控工具。</li>
+    <li>高風險自動發送仍然要 HITL 人工確認。</li>
+  </ul>
+  <pre><code>1. 地端官方 Bot webhook：先打通本機 AI Node。
+2. GAS 官方 Bot webhook：先打通雲端輕入口。
+3. Android 平板本人帳號觀測器：補本人帳號視角。
+4. Cloud Gateway / Pub/Sub / Firestore：正式高流量版。</code></pre>
+
+  <h2>機密資料與客戶信任設計</h2>
+  <p>要讓客戶放心把高頻 IM 訊息交給平台，需要明確說清楚我們收哪些資料、資料流經哪些節點、哪些資料會進 AI 分析、是否可選擇不保存圖片 / 影片、是否可自帶 AI API key、是否可使用客戶專屬節點、是否可匯出與刪除資料、是否有 audit log，以及是否能做加密保存與角色權限。</p>
+  <pre><code>FALO-managed mode
+  FALO 管理 AI key、gateway、儲存與分析，適合快速導入。
+
+Customer-key / private-node mode
+  客戶自帶 AI key 或專屬節點，FALO 只負責 gateway、工具與流程。
+  適合高機密、企業、顧問公司、法務、財務與大型客戶。</code></pre>
+  <p>注意：實際的 Channel access token、Channel secret、AI API key 應該保留在 <code>.env</code> 或 secrets manager，不建議複製到教材主檔。內部教材可以記錄架構、欄位與流程，但真正密鑰仍以環境檔或密鑰管理系統為準。</p>
+
+  <h2>產品分層草案</h2>
+  <table>
+    <thead><tr><th>方案</th><th>主要能力</th><th>適合對象</th></tr></thead>
+    <tbody>
+      <tr><td>Collector</td><td>收集、保存、搜尋、匯出。</td><td>個人老闆、小團隊、教材 demo。</td></tr>
+      <tr><td>Watch</td><td>任務萃取、風險提示、每日摘要、戰情中心。</td><td>多群組團隊、業務、客服、PM。</td></tr>
+      <tr><td>Workflow</td><td>任務派工、提醒、CRM / ERP / Google Workspace 串接。</td><td>有流程管理需求的公司。</td></tr>
+      <tr><td>Private</td><td>客戶自帶 AI key、私有節點、客製加密、資料不出域。</td><td>有資安與法遵要求的公司。</td></tr>
+      <tr><td>Source / Partner</td><td>原始碼、私有部署、SI 授權。</td><td>技術夥伴、系統整合商。</td></tr>
+    </tbody>
+  </table>
+  <p>低價入口應該先賣收集與搜尋，真正高價值在 AI cowork：它能看戰情中心、整理任務、提醒主管、協助團隊不漏訊息。</p>
+
+  <h2>第二組官方帳號：GAS webhook 接收器</h2>
+  <p>第二組官方帳號 <code>FALO IM Bot GAS Test</code> 的目標，是先做一個最小可用的雲端入口：LINE webhook 進 Google Apps Script，寫入 Google Sheet，再由 HTML monitor 或 JSON proxy 查看資料，最後讓地端 AI commander pull 新資料。</p>
+  <pre><code>LINE Official Account webhook
+        ↓
+Google Apps Script doPost(e)
+        ↓
+Google Sheet line_events
+        ↓
+GAS HTML monitor / JSON proxy
+        ↓
+地端 AI commander pull 新資料</code></pre>
+  <p>這個版本刻意先做收資料，不主動回覆 LINE 前端。原因是目前目標是資料搜集與相容性測試，不需要消耗官方帳號的推播 / 回覆額度，也避免群組被自動訊息干擾。</p>
+  <pre><code>poc/gas_line_bot/
+  Code.gs
+  Index.html
+  appsscript.json
+  README.md</code></pre>
+  <pre><code>Sheet:
+https://docs.google.com/spreadsheets/d/1VWP34oZeUqcYdOfI042SDeHXNNhLKi2vQCYDzAOaDyo/edit
+
+GAS Script ID:
+1NJz55_sp90mYwltbbT0vHVCZAPaT3ueBgTjedx3doLpFrDdIRZx2_WwE
+
+Bot basic ID:
+@415taurm</code></pre>
+  <pre><code>Web App:
+https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB6I8qB0StweTImMT8ohL3KJmLt_X/exec
+
+Setup:
+https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB6I8qB0StweTImMT8ohL3KJmLt_X/exec?api=setup
+
+Health:
+https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB6I8qB0StweTImMT8ohL3KJmLt_X/exec?api=health
+
+Events:
+https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB6I8qB0StweTImMT8ohL3KJmLt_X/exec?api=events&amp;limit=200</code></pre>
+  <p>LINE Developers 的 <code>Verify</code> 會送一筆測試 webhook 事件。GAS 版已特別處理這種測試事件：如果偵測到 LINE Verify 常見的全 0 <code>replyToken</code>，會立刻回 <code>200 OK</code>，不寫入 Sheet。正式使用者、群組、聊天室事件仍會正常寫入 Sheet。</p>
+  <h3>GAS exec 的資源名片</h3>
+  <p>GAS 版的 <code>/exec</code> 不只是一個 webhook URL，也是一張給使用者看的資源名片。直接用瀏覽器打開 <code>/exec</code> 時，頁面會顯示 Web App URL、對應的 <code>spreadsheet_id</code>、Google Sheet 連結、Drive folder ID、Drive folder 連結，以及此 LINE Bot 的 Basic ID。</p>
+  <p>這樣做的目的是讓使用者後續維運更直覺：看到一支 exec，就知道資料會寫去哪個 Sheet；看到媒體檔案設定，就知道圖片、影片、語音與檔案會搬到哪個 Drive folder。</p>
+  <h3>GAS 媒體檔案處理：先排隊，再搬到 Drive</h3>
+  <p>LINE 的圖片、影片、語音與檔案事件，webhook 內主要會拿到 <code>messageId</code>。真正的檔案內容要再透過 LINE Content API 下載。為了避免 webhook 回應太慢，GAS 版採用兩段式。</p>
+  <pre><code>LINE webhook
+  -&gt; 先寫 line_events
+  -&gt; 媒體事件寫入 media_queue
+  -&gt; 立即回 200 OK
+
+每 5 分鐘 Apps Script trigger
+  -&gt; 一次一個檔案依序下載
+  -&gt; 上傳到指定 Drive folder
+  -&gt; 成功後寫入 media_files</code></pre>
+  <h4>兩種 200 OK 要分開看</h4>
+  <p>處理 LINE 媒體檔案時，最容易混淆的是「webhook 成功」與「檔案下載成功」。兩者都可能看到 <code>200 OK</code>，但代表的事情完全不同。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>階段</th>
+        <th>方向</th>
+        <th>成功條件</th>
+        <th>意義</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Webhook 接收</td>
+        <td>LINE Platform -&gt; GAS <code>/exec</code></td>
+        <td>GAS 快速回 <code>200 OK</code></td>
+        <td>代表 LINE 事件已送到 GAS，事件可先寫入 Sheet 或佇列。</td>
+      </tr>
+      <tr>
+        <td>媒體下載</td>
+        <td>GAS worker -&gt; LINE Content API</td>
+        <td>LINE 回 <code>200</code> binary blob</td>
+        <td>代表圖片、影片、語音或檔案真的被抓到，才能上傳 Drive。</td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>教材重點：200 回應與上傳成功不是同一件事</h4>
+  <p>這是 GAS 版 LINE Bot 最重要的除錯觀念之一：LINE Developers 的 Verify 顯示 Success，只代表 webhook URL 可以接到 LINE 的 POST，且 GAS 有回 <code>200 OK</code>；<code>media_queue</code> 狀態變成 <code>saved</code>，才代表 GAS worker 已經用 <code>messageId</code> 抓到 LINE 媒體內容，並成功寫入 Google Drive。</p>
+  <p>所以測試媒體檔案時，不能只看 LINE Developers 的 <code>Verify</code>。正確的檢查順序是：</p>
+  <ol>
+    <li>LINE Developers <code>Verify</code> 成功：確認 webhook 回應 <code>200 OK</code>。</li>
+    <li>Google Sheet <code>line_events</code> 有資料：確認事件已寫入。</li>
+    <li>Google Sheet <code>media_queue</code> 有資料：確認圖片、影片、語音或檔案已排隊。</li>
+    <li><code>media_queue.status = saved</code>：確認 worker 已下載並上傳到 Drive。</li>
+    <li><code>media_files</code> 有 Drive URL：確認後續 AI / 人工都能取用該檔案。</li>
+  </ol>
+  <p>這個拆法的好處是：LINE webhook 不會因為下載大檔案而 timeout；媒體上傳失敗時，也可以靠 <code>media_queue.last_error</code> 重試與追蹤，不會把原始事件弄丟。</p>
+  <h4>媒體下載常見錯誤</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>狀態</th>
+        <th>直覺意思</th>
+        <th>處理方向</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>302</code></td>
+        <td>拿到 redirect，不是檔案本體</td>
+        <td>確認 worker 是直接打 LINE Content API，不是瀏覽器頁面、proxy 或錯誤 URL。</td>
+      </tr>
+      <tr>
+        <td><code>401 / 403</code></td>
+        <td>授權失敗</td>
+        <td>確認 Channel access token 是否屬於同一隻 Bot，且已放入 Script Properties。</td>
+      </tr>
+      <tr>
+        <td><code>404 / 410</code></td>
+        <td>檔案已不存在或 messageId 不對</td>
+        <td>LINE 媒體不是永久保存，要盡快搬到 Drive；也要確認 messageId 來自同一隻 Bot。</td>
+      </tr>
+      <tr>
+        <td><code>5xx</code></td>
+        <td>LINE 或網路暫時異常</td>
+        <td>保留在 media_queue，稍後重試。</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>預設 Drive folder：<code>1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC</code>。監看頁提供啟用 / 停用媒體上傳、啟用 / 停用 5 分鐘 trigger、手動處理媒體佇列，以及打開對應 Google Sheet / Drive Folder。</p>
+  <h4>第一次 trigger / Drive 權限怎麼打開</h4>
+  <p>GAS 的 trigger 權限不能完全由網頁前端第一次自動打開。第一次必須由 GAS 擁有者進 Apps Script 編輯器手動執行一次授權函式。</p>
+  <p>請在 Apps Script 編輯器手動 Run：<code>authorizeRuntime</code></p>
+  <p>這個函式是授權暖機，不會直接啟動背景排程。它會碰到 <code>SpreadsheetApp</code>、<code>DriveApp</code> 與 <code>ScriptApp</code>，分別確認可以讀寫 Sheet、讀寫 Drive Folder，以及讀取 / 建立 Apps Script triggers。</p>
+  <p>授權完成後，日常才透過監看頁按鈕控制：啟用媒體上傳、啟用 5 分鐘 trigger、手動處理媒體佇列。保留這個分層很重要：第一次授權是 Google 帳號安全流程；後續開關是系統管理流程。</p>
+  <p>官方參考：LINE Messaging API 的「Get content」說明指出，媒體內容會在一段時間後自動刪除，且不保證保存時間。因此實務上不要只存 <code>messageId</code> 後很久才下載，應該盡快搬到自己的儲存空間。參考來源：<a href="https://developers.line.biz/en/reference/messaging-api/#get-content">LINE Messaging API - Get content</a>。</p>
+  <p>如果瀏覽器或 curl 看到 Google 的存取遭拒，通常不是程式碼錯，而是 Web App 部署權限或首次授權尚未完成。處理方式是到 Apps Script 的 Deploy -> Manage deployments，確認 Web App 執行身分是部署者、存取權限是 Anyone，重新部署新版本後，用瀏覽器開 <code>?api=setup</code> 完成授權。</p>
+  <p>實務提醒：Channel secret、Channel access token、Webhook token、Viewer token 不寫入教材主檔，也不寫入 <code>Code.gs</code>。它們應放在 Apps Script 的 Script Properties 或本機 <code>.env</code>。</p>
+
+  <h2>版權與內部使用聲明</h2>
+  <p>Copyright (c) 2026 Falo x Force Cheng. All rights reserved.</p>
+  <p>本文件為 <code>(Private)</code> 內部開發與教學素材，包含 FALO IM Watch、LINE Bot、GAS webhook、Google Sheet / Drive 儲存與 AI Commander 架構設計。可作為內部教材、開發記錄、產品策略討論與後續對外版教材的基礎。對外公開前，需移除或替換所有機密參數、實際 Sheet / Drive / webhook URL、使用者識別資訊與內部策略描述。</p>
+
+  <h2>下一步</h2>
+  <ul>
+    <li>接 AI parser，萃取 owner、due date、risk、customer、project。</li>
+    <li>把事件寫入 SQLite / PostgreSQL。</li>
+    <li>做 dashboard 查看每個 user / group / room 的事件流。</li>
+    <li>用 Flex Message 做確認卡片。</li>
+    <li>接 Gemini / OpenAI 圖片理解。</li>
+  </ul>
+</main>
+<!-- Falo x Force Cheng private watermark: FALO-IM-WATCH-v1.01-20260620-webhook200-drive-media-upload -->
+</body>
+</html>

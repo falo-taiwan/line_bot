@@ -1,0 +1,16 @@
+{
+  "schema_version": "portable-chat-v1",
+  "chat_folder": "imported/lineforce-群備份001",
+  "source_type": "line_export",
+  "source_key": "lineforce-群備份001",
+  "chat_name": "[LINE]@force 群備份001",
+  "folder_created_at": "2026-07-02T22:21:02+08:00",
+  "coverage_start_at": "2026-06-25T15:20:00+08:00",
+  "coverage_start_line_timestamp": "2026-06-25T15:20:00+08:00",
+  "coverage_start_source": "imported_file",
+  "data_files": [
+    "manifest.json",
+    "events.jsonl"
+  ],
+  "note": "Imported LINE chat backup file: [LINE]@force 群備份001.txt"
+}

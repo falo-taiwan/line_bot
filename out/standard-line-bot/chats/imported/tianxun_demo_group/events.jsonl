@@ -1,0 +1,7 @@
+{"line_timestamp": 1782787800000, "captured_at": "2026-06-30T10:00:00+08:00", "sender_name_hint": "Jerry", "text": "各位，我們在進行 ERP API 對接時，遇到第三方支付金流回傳 DB Connection Timeout 錯誤，能幫忙看看資料庫伺服器是否正常嗎？"}
+{"line_timestamp": 1782788100000, "captured_at": "2026-06-30T10:05:00+08:00", "sender_name_hint": "客服窗口", "text": "Jerry 你好，請先確認內部資料庫伺服器 (192.168.1.50) 是否有過載或斷線。另外，匯入 API 的 CSV 時要記得使用 UTF-8 編碼，不然會報編碼錯誤喔。"}
+{"line_timestamp": 1782788400000, "captured_at": "2026-06-30T10:10:00+08:00", "sender_name_hint": "Jerry", "text": "收到！確認是 1.50 伺服器磁碟空間滿了，清出空間後連線已經恢復正常。API 串接目前順利通暢。"}
+{"line_timestamp": 1782792000000, "captured_at": "2026-06-30T11:10:00+08:00", "sender_name_hint": "鄭Force", "text": "好的，太棒了。研發部這週能完成 ERP 第三方支付介接嗎？我們階段二的里程碑是 8/15 前要完成，希望這週可以先做完測試。"}
+{"line_timestamp": 1782792300000, "captured_at": "2026-06-30T11:15:00+08:00", "sender_name_hint": "Jerry", "text": "報告主管，這週五 (7/3) 下午前我可以完成金流模組的初步開發並上測試機。不過週五晚上需要執行人工異地備份，我會順便把測試版備份存一份。"}
+{"line_timestamp": 1782792600000, "captured_at": "2026-06-30T11:20:00+08:00", "sender_name_hint": "鄭Force", "text": "很好，那這週五下午我來確認測試。另外提醒，教育訓練手冊的編撰，天勳的窗口記得要開始啟動，配合 8/16 之後 UAT 訓練。"}
+{"line_timestamp": 1782792900000, "captured_at": "2026-06-30T11:25:00+08:00", "sender_name_hint": "客服窗口", "text": "收到，教育訓練手冊天勳資訊已開始撰寫，預計 7/15 前會先交付初版給主管審閱。"}

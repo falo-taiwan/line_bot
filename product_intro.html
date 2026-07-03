@@ -1,0 +1,394 @@
+<!-- 天勳 x Force Cheng 2026/7/3 -->
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attn LINE AI 資訊管理系統 企業進階版 | 智慧轉型方案</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #0f766e;
+      --primary-hover: #115e59;
+      --accent-soft: #ccfbf1;
+      --bg-light: #f8fafc;
+      --text-dark: #0f172a;
+      --text-muted: #475569;
+      --border-color: #e2e8f0;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Top Bar & Navbar Styles */
+    .top-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .brand-logo {
+      font-weight: 900;
+      font-size: 24px;
+      color: var(--primary-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumb-nav {
+      padding: 16px 0;
+    }
+    .breadcrumb-item a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb-item a:hover {
+      text-decoration: underline;
+    }
+
+    /* Page Titles */
+    .solution-title-block {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+    .solution-title {
+      font-weight: 900;
+      font-size: 28px;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+    }
+    .stitle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .badge-category {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .badge-industry {
+      background-color: #e2e8f0;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    /* Main Grid Layout */
+    .price-side-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 90px;
+    }
+    .price-label {
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .price-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    .price-term {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .btn-contact {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-weight: 700;
+      border-radius: 8px;
+      width: 100%;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s ease;
+    }
+    .btn-contact:hover {
+      background-color: var(--primary-hover);
+      color: white;
+    }
+
+    /* Content Box */
+    .content-box {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 10px;
+      margin-top: 30px;
+      margin-bottom: 16px;
+    }
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+
+    /* Diagram Styling */
+    .diagram-container {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .diagram-img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* Success Case Styles */
+    .case-card {
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid var(--primary-color);
+      margin-top: 12px;
+    }
+
+    /* Footer styling */
+    footer {
+      background-color: #1e293b;
+      color: #94a3b8;
+      padding: 40px 0 20px;
+      font-size: 14px;
+      border-top: 1px solid #334155;
+      margin-top: 60px;
+    }
+    footer a {
+      color: #cbd5e1;
+      text-decoration: none;
+    }
+    footer a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+    .footer-note {
+      border-top: 1px solid #334155;
+      padding-top: 20px;
+      margin-top: 30px;
+      text-align: center;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="top-header">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="brand-logo" href="#">
+        <i class="bi bi-robot"></i> 商業服務業數位轉型專區
+      </a>
+      <div class="d-none d-md-flex gap-3">
+        <span class="text-secondary fw-semibold">首頁</span>
+        <span class="text-secondary fw-semibold">計畫說明</span>
+        <span class="text-secondary fw-semibold">智慧轉型方案</span>
+        <span class="text-secondary fw-semibold">轉型全攻略</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-nav" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">首頁</a></li>
+        <li class="breadcrumb-item"><a href="#">智慧轉型方案</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Attn LINE AI 資訊管理系統 企業進階版</li>
+      </ol>
+    </nav>
+
+    <!-- Title Block -->
+    <div class="solution-title-block">
+      <h2 class="solution-title">Attn LINE AI 資訊管理系統 企業進階版</h2>
+      <div class="stitle-group">
+        <span class="badge-category">AI對話分析與專案智慧</span>
+        <span class="badge-industry">G 批發及零售業</span>
+        <span class="badge-industry">I 住宿及餐飲業</span>
+        <span class="badge-industry">M 專業、科學及技術服務業</span>
+        <span class="badge-industry">S 其他服務業</span>
+      </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="row g-4">
+      
+      <!-- Left sidebar card -->
+      <div class="col-lg-3 col-md-12 order-lg-1 order-2">
+        <div class="price-side-card">
+          <div class="price-label">115年方案價格</div>
+          <div class="price-value">$200,000</div>
+          <div class="price-term">(方案期程為 12 個月)</div>
+          
+          <a class="btn-contact" href="mailto:service@tianxun.com.tw?subject=【韌性計畫-單店導入】洽詢AI解決方案(Attn LINE AI資訊管理系統)導入事宜">
+            <i class="bi bi-envelope-fill"></i> 聯絡服務提供者
+          </a>
+        </div>
+      </div>
+
+      <!-- Right main columns -->
+      <div class="col-lg-9 col-md-12 order-lg-2 order-1">
+        <div class="content-box">
+          
+          <!-- System Model Image -->
+          <div class="section-title">AI 元件模型架構</div>
+          <div class="diagram-container">
+            <img class="diagram-img" src="/ChatGPT_Image.png" alt="LINE AI 資訊管理 元件模型 v1.0 架構圖">
+          </div>
+
+          <!-- Provider details -->
+          <div class="section-title">服務提供者</div>
+          <p class="fw-semibold">天勳資訊有限公司</p>
+
+          <!-- Solution Intro -->
+          <div class="section-title">方案介紹</div>
+          <p class="fw-bold text-success mb-2" style="font-size: 16px;">💡 對知識工程＋繁體中文最友善強大的 AI 服務方案</p>
+          <p>
+            Attn LINE AI 資訊管理系統是一套專為企業打造的智能化對話歸檔與戰情分析方案。本系統無縫整合 LINE 官方帳號 (LINE Bot)、地端同步事件歸檔器與生成式 AI (Gemini) 推理大模型，協助業者將雜亂的客戶諮詢、群組討論及檔案轉化為具備商業洞察的專案智慧。透過彈性時間區間、Prompt 小幫手與知識庫 (KM) 交叉比對，企業可一鍵產出日誌摘要、待辦事項、趨勢分析與風險提醒，大幅降低人工文書整理負擔。
+          </p>
+
+          <!-- Solution Specs -->
+          <div class="section-title">方案規格說明</div>
+          <p><strong>本服務針對企業轉型提供以下兩款版本配置，可依專案規模彈性選用：</strong></p>
+          
+          <h5 id="standard" class="fw-bold mt-3" style="color: var(--primary-color);">💎 企業標準版 ($100,000 / 6個月)</h5>
+          <ul>
+            <li><strong>AI 運作點數</strong>：方案預設提供 **10,000 點 AI 運作點數**。採「輸入 + 輸出雙軌字數計量扣點」，折合可分析高達 **2,000 萬字** 的對話輸入，或產生約 **500 萬字** 的生成式 AI 戰情報告（預設選用 Gemini 輕量高效模型）。每次標準分析扣除 10~25 點。</li>
+            <li><strong>續用加值機制</strong>：點數扣減完畢後，客戶可向天勳資訊加購點數包繼續使用（不支援自備 API 金鑰或地端離線模型）。</li>
+            <li><strong>對話資料存檔</strong>：支援即時 LINE 官方助手對話紀錄、多模態圖片檔案與附件自動儲存。</li>
+            <li><strong>AI 戰情分析工作台</strong>：前台支援自訂時間區間篩選、預置之 Prompt 範本小幫手與個人 KM 知識庫檔案讀取。</li>
+          </ul>
+
+          <h5 id="advanced" class="fw-bold mt-3" style="color: #0d9488;">💎 企業進階版 ($200,000 / 6個月) —— 🌟 推薦自控與高資安首選</h5>
+          <ul>
+            <li><strong>AI 運作點數</strong>：方案預設提供 **20,000 點 AI 運作點數**。折合可分析高達 **4,000 萬字** 的對話輸入，或產生約 **1,000 萬字** 的生成式 AI 戰情報告。</li>
+            <li><strong>「三大進階解鎖」自主控管機制</strong>：
+              <ol>
+                <li><strong>自備金鑰 (Own API Key) 續用</strong>：預設點數扣減完畢後，客戶可無縫於前台面板填入自己申請之 Gemini API Key 進行無限次分析，系統不中斷，免加購點數。</li>
+                <li><strong>地端開源大模型 (Ollama) 對接</strong>：支援地端離線部署之開源大模型（如 Llama 3, Qwen 等），資料 100% 留在企業內網，符合最高規格資安。</li>
+                <li><strong>Agent 協作與專用 MD / Prompt 導出</strong>：解鎖「匯出 MD 給 Agent 分析」功能，一鍵打包去敏感化的結構化對話與 KM 知識日誌 (.md)，可完美導入並對接 **NotebookLM** 及 **主流通用 AI Agent (如 ChatGPT, Gemini, Claude, Perplexity 等)** 進行深度二次分析、智慧問答與資料探勘（扣減 0 點）。</li>
+              </ol>
+            </li>
+            <li><strong>資料來源與工作台全配版</strong>：包含標準版所有功能，並享有專業技術團隊對接地端安裝與網絡諮詢服務。</li>
+          </ul>
+
+          <!-- Success Scenarios -->
+          <div class="section-title">情境導入與應用案例</div>
+          
+          <!-- Scenario 1 -->
+          <div class="case-card mb-3">
+            <h5 class="fw-bold" style="color: var(--primary-color);"><i class="bi bi-briefcase-fill"></i> 情境一：高階管理者 — 每日下班前一鍵掌握各部門重要事情</h5>
+            <p class="mb-2 text-secondary" style="font-size: 13px;"><em>痛點：管理者時間有限，難以追蹤多個部門群組的複雜對話。</em></p>
+            <p class="mb-2"><strong>應用情境</strong>：總經理或專案總監需要隨時掌握「研發、業務、客服」等跨部門今日最新動態與突發事件（如連線超時、故障排除、金流對接故障）。</p>
+            <p class="mb-0"><strong>解決成效</strong>：管理者只需勾選當天的對話群組與各部門工作規範，AI 將於秒級內彙整當日「關鍵決策、問題排除與跨部門協調成果」，並特別標示「潛在風險（如異地備份依賴單一人力）」，讓決策者不用爬文即可精準掌控全盤局勢。</p>
+          </div>
+
+          <!-- Scenario 2 -->
+          <div class="case-card">
+            <h5 class="fw-bold" style="color: #0d9488;"><i class="bi bi-person-check-fill"></i> 情境二：專案執行成員 — 快速整理並聚焦自己該做的作業與待辦</h5>
+            <p class="mb-2 text-secondary" style="font-size: 13px;"><em>痛點：群組討論訊息洗版，成員容易遺漏屬於自己的指派工作。</em></p>
+            <p class="mb-2"><strong>應用情境</strong>：專案成員（如工程師 Jerry、窗口窗口）需要明確知道今天討論中「誰被指派了什麼工作、哪一天要交付、對照哪些 SOP 規章」。</p>
+            <p class="mb-0"><strong>解決成效</strong>：專案成員點選 Prompt 範本中的「待辦整理」，系統即自動從海量對話中萃取出結構化的表格，列明「待辦事項、負責人、預計完成日與關聯文件」，並支援一鍵複製 Markdown 或匯出為乾淨的 PDF，直接作為個人今日的工作指引與追蹤依據。</p>
+          </div>
+
+          <!-- Divider -->
+          <hr class="my-4" style="color: var(--border-color);">
+
+          <!-- Company info -->
+          <div class="service-content-box-data text-secondary" style="font-size: 13px;">
+            <p class="mb-1">公司名稱：天勳資訊有限公司</p>
+            <p class="mb-1">統一編號：12781944</p>
+            <p class="mb-1">聯絡電話：06-2980272</p>
+            <p class="mb-1">聯絡地址：臺南市官田區二鎮里工業路21號1樓</p>
+            <p class="mb-1">電子郵件：<a href="mailto:service@tianxun.com.tw" style="color: var(--primary-color);">service@tianxun.com.tw</a></p>
+            <p class="mb-0">公司網站：<a href="http://www.tianxun.com.tw" target="_blank" style="color: var(--primary-color);">連結</a></p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <div class="row g-3 justify-content-center text-md-start">
+        <div class="col-md-4">
+          <p class="fw-bold text-white mb-2">主辦單位</p>
+          <p class="small mb-1">中華民國資訊軟體服務商業同業公會 (CISA)</p>
+          <p class="small">經濟部商業發展署</p>
+        </div>
+        <div class="col-md-4">
+          <p class="fw-bold text-white mb-2">聯絡諮詢</p>
+          <p class="small mb-1">週一至週五 9:00 - 17:00</p>
+          <p class="small">電話: (02)7702-2252</p>
+        </div>
+      </div>
+      <div class="footer-note">
+        資安聲明：本網站全程無使用任何中國大陸產品或元件，建議以 Chrome 或 Edge 瀏覽器開啟。<br>
+        &copy; 2026 經濟部商業發展署 版權所有。
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- 天勳 x Force Cheng 2026/7/3 -->
+  <div class="no-print" style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: rgba(15, 23, 42, 0.04); pointer-events: none; z-index: 9999; font-weight: bold; font-family: monospace;">天勳 x Force Cheng 2026/7/3</div>
+</body>
+</html>

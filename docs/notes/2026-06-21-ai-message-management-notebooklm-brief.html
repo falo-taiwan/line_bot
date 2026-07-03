@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Message Management x NotebookLM 架構備忘</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --paper: #ffffff;
+      --ink: #1d2527;
+      --muted: #627074;
+      --line: #dce3df;
+      --accent: #116149;
+      --accent-2: #8a4b16;
+      --soft: #eef5f1;
+      --warn: #fff7e8;
+      --code: #17201f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    header {
+      background: #12352d;
+      color: #fff;
+      padding: 40px 20px 34px;
+      border-bottom: 6px solid #d7a44a;
+    }
+
+    .wrap {
+      width: min(1080px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #cfe5dc;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.9rem, 4vw, 3rem);
+      line-height: 1.18;
+    }
+
+    .subtitle {
+      max-width: 850px;
+      margin: 16px 0 0;
+      color: #eef7f3;
+      font-size: 1.08rem;
+    }
+
+    main {
+      padding: 28px 0 56px;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 18px 0;
+      box-shadow: 0 8px 24px rgba(22, 43, 36, 0.06);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 1.35rem;
+      line-height: 1.3;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      color: #263836;
+      font-size: 1.08rem;
+    }
+
+    p {
+      margin: 8px 0 12px;
+    }
+
+    .lead {
+      font-size: 1.08rem;
+      color: #263836;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .mini {
+      background: var(--soft);
+      border: 1px solid #cfe0d8;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .mini strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #153d33;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      background: #fff;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef3f0;
+      color: #213b35;
+      font-weight: 700;
+    }
+
+    code {
+      background: #edf3f0;
+      border: 1px solid #d7e4dd;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      background: var(--code);
+      color: #eaf7ef;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: inherit;
+    }
+
+    .notice {
+      background: var(--warn);
+      border: 1px solid #f0d6a6;
+      border-radius: 8px;
+      padding: 16px;
+      color: #53360e;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      background: #f9fbf9;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 86px;
+    }
+
+    .step span {
+      display: inline-flex;
+      width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.25rem;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">FALO IM / LINE Lab · smf briefing draft · 2026-06-21</p>
+      <h1>AI Message Management × NotebookLM 架構備忘</h1>
+      <p class="subtitle">把 LINE Monitor、官方帳號與匯出檔取得的訊息，整理成本地資料倉庫，再轉成 NotebookLM 可問答的來源文件。</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>一、核心定位</h2>
+      <p class="lead">這不是先做自動客服，而是先做「AI 訊息管理助理」。</p>
+      <p>LINE 資料進來後，不直接丟給 AI 猜答案，而是先經過本地 ETL、中控倉庫與來源檔整理。NotebookLM 只負責讀整理後的 source files，提供摘要、問答、追溯與教材化。</p>
+      <pre><code>LINE 資料來源
+  ↓
+本地中控 ETL
+  ↓
+本地資料倉庫
+  ↓
+NotebookLM source files
+  ↓
+NotebookLM 問答 / 摘要 / 教材化</code></pre>
+      <div class="notice">重要觀念：本地資料倉庫是 source of truth，NotebookLM 是可問答的知識副本。</div>
+    </section>
+
+    <section>
+      <h2>二、資料來源</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>來源</th>
+            <th>說明</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LINE Official Account / Bot</td>
+            <td>官方帳號進駐群組後收到的訊息</td>
+            <td>即時監控、單群 / 多群摘要</td>
+          </tr>
+          <tr>
+            <td>LINE Monitor</td>
+            <td>本地授權觀察或其他合法監控來源</td>
+            <td>本地事件化、PoC、教學展示</td>
+          </tr>
+          <tr>
+            <td>LINE 匯出 txt</td>
+            <td>使用者手動匯出的歷史對話紀錄</td>
+            <td>歷史補資料、parser 測試、案例建立</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>第一階段要守住邊界：接收、保存、分類、摘要可以自動；對外回覆與推播先由人工確認。</p>
+    </section>
+
+    <section>
+      <h2>三、本地中控程式</h2>
+      <p>中控程式的定位是 <strong>ETL + Local Data Warehouse + 操作中控台</strong>。它不是把資料鎖進黑盒，而是把資料整理成人和 AI 都能使用的檔案。</p>
+      <div class="grid">
+        <div class="mini"><strong>Extract</strong>接收 LINE Monitor、官方帳號 webhook、匯出 txt。</div>
+        <div class="mini"><strong>Transform</strong>解析、標準化、依日期拆檔、產生 latest memo。</div>
+        <div class="mini"><strong>Load</strong>輸出到本地倉庫、NotebookLM incoming folder 或 command package。</div>
+        <div class="mini"><strong>Audit</strong>保存原始檔、manifest、hash、upload log。</div>
+        <div class="mini"><strong>Recovery</strong>程式壞掉時，人工仍可打開檔案接手。</div>
+        <div class="mini"><strong>Governance</strong>控制哪些資料能送 AI，哪些要遮蔽或覆核。</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>四、倉庫結構</h2>
+      <p>倉庫要讓非工程使用者也能找得到檔案、看得懂狀態、手動補救。</p>
+      <pre><code>line_data_warehouse/
+  raw/
+    exports/
+    monitor/
+  normalized/
+    Formosa-寶島四公子/
+      messages.jsonl
+      messages.csv
+  notebook_sources/
+    Formosa-寶島四公子/
+      00_LINE_Formosa_instruction.md
+      01_LINE_Formosa_latest_memo.md
+      LINE_Formosa_2026-06-19.md
+      LINE_Formosa_2026-06-20.md
+      LINE_Formosa_2026-06-21.md
+  command_packages/
+  evidence/
+  logs/</code></pre>
+      <p>Google 雲端備份會是下一層備援設計，第一階段先把本地倉庫與 NotebookLM source 邏輯跑通。</p>
+    </section>
+
+    <section>
+      <h2>五、NotebookLM Source 策略</h2>
+      <p>NotebookLM 裡面不只放日期記錄檔，還要放固定指示檔與最新狀態 memo。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>檔案</th>
+            <th>角色</th>
+            <th>替換方式</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>00_*_instruction.md</code></td>
+            <td>告訴 NotebookLM 如何理解資料本</td>
+            <td>少改，必要時替換</td>
+          </tr>
+          <tr>
+            <td><code>01_*_latest_memo.md</code></td>
+            <td>最新狀態、待辦、目前重點、回答原則</td>
+            <td>永遠同名替換</td>
+          </tr>
+          <tr>
+            <td><code>LINE_*_YYYY-MM-DD.md</code></td>
+            <td>每日訊息紀錄與摘要</td>
+            <td>當日可替換，過去逐步凍結</td>
+          </tr>
+        </tbody>
+      </table>
+      <pre><code>00_LINE_Formosa_instruction.md
+01_LINE_Formosa_latest_memo.md
+LINE_Formosa_2026-06-19.md
+LINE_Formosa_2026-06-20.md
+LINE_Formosa_2026-06-21.md</code></pre>
+    </section>
+
+    <section>
+      <h2>六、Latest Memo + Daily Source</h2>
+      <p>這是目前的核心策略：<strong>最新狀態 Memo + 每日來源檔</strong>。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>來源檔</th>
+            <th>回答的問題</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>latest_memo.md</code></td>
+            <td>現在狀態是什麼？哪些事情待處理？AI 回答要遵守什麼？</td>
+          </tr>
+          <tr>
+            <td><code>daily_YYYY-MM-DD.md</code></td>
+            <td>那一天發生了什麼？誰說了什麼？細節在哪裡？</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>回答「目前、最近、今天」時，優先看 latest memo；回答「某一天發生什麼」時，再查對應日期檔案。</p>
+    </section>
+
+    <section>
+      <h2>七、Prepared Prompt</h2>
+      <p>準備好的 prompt 會讓 NotebookLM 更可靠，因為它明確知道指示檔、latest memo 與日期檔案的關係。</p>
+      <pre><code>請你依照本資料本中的檔案邏輯回答問題。
+
+請先閱讀指示檔案，理解：
+1. latest_memo 是最新狀態與目前指令。
+2. 日期檔案是每日歷史紀錄與細節來源。
+3. 回答目前狀態時，請優先參考 latest_memo。
+4. 回答特定日期事件時，請回查對應日期檔案。
+5. 如果 latest_memo 與日期檔案有差異，請明確說明差異。
+
+現在請幫我整理：
+一、最新狀態
+二、主要討論主題
+三、待處理事項
+四、可轉成教材的內容
+五、需要人工判斷或補充的地方
+六、你參考了哪些檔案</code></pre>
+    </section>
+
+    <section>
+      <h2>八、和 AI_NotebookLM 的接法</h2>
+      <p>可參考 <code>/Users/force/Google_Antigravity/AI_NotebookLM/v2</code>，它已有 runtime、command package、incoming watcher、evidence copy 與 NotebookLM CLI 包裝。</p>
+      <div class="flow">
+        <div class="step"><span>1</span><br>LINE 端產生乾淨 source files</div>
+        <div class="step"><span>2</span><br>放進 incoming folder 或 command package</div>
+        <div class="step"><span>3</span><br>runtime queue 上傳到指定 NotebookLM</div>
+        <div class="step"><span>4</span><br>用 prepared prompt 提問</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>九、人工備援</h2>
+      <p>即使程式壞掉，流程也不能停。</p>
+      <ol>
+        <li>打開本地資料倉庫。</li>
+        <li>進入 <code>notebook_sources/群名/</code>。</li>
+        <li>找到 instruction、latest memo、今天的 daily file。</li>
+        <li>手動上傳或替換到 NotebookLM。</li>
+        <li>在 <code>upload_log.csv</code> 或人工紀錄補上操作時間與操作者。</li>
+      </ol>
+      <div class="notice">核心原則：自動化可以停，但資料必須耐用、可讀、可搬移、可人工接手。</div>
+    </section>
+
+    <section>
+      <h2>十、下一步</h2>
+      <ol>
+        <li>建立一組模擬 NotebookLM source files。</li>
+        <li>先寫 <code>00_instruction.md</code>。</li>
+        <li>再寫 <code>01_latest_memo.md</code>。</li>
+        <li>補 2 到 3 天的 <code>LINE_*_YYYY-MM-DD.md</code>。</li>
+        <li>準備固定 prompt。</li>
+        <li>測試 NotebookLM 是否能理解「指示檔 + latest memo + 日期檔」邏輯。</li>
+      </ol>
+      <p class="footer">本頁是人看的 HTML 版；同目錄另有 Markdown 版可作為 AI / NotebookLM ingest source。</p>
+    </section>
+  </main>
+</body>
+</html>
