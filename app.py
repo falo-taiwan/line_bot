@@ -2002,7 +2002,18 @@ class AppHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(content)
                 return
-            self.send_json(404, {"ok": False, "error": "image not found"})
+        # Serve standard_demo.mp4 (open to all)
+        if path == "/standard_demo.mp4":
+            vid_path = ROOT_DIR / "standard_demo.mp4"
+            if vid_path.exists() and vid_path.is_file():
+                content = vid_path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            self.send_json(404, {"ok": False, "error": "video not found"})
             return
 
         # Serve Product Intro Page (open to all)
