@@ -349,7 +349,7 @@
   <section class="container my-4">
     <div class="row g-4 justify-content-center">
       <!-- Standard Tier -->
-      <div class="col-lg-5 col-md-6">
+      <div class="col-lg-4 col-md-6 col-sm-12">
         <div class="pricing-card">
           <div class="tier-name text-success">💎 企業標準版</div>
           <div class="price-tag">$100,000 <span class="price-period">/ 6個月</span></div>
@@ -357,7 +357,8 @@
           
           <ul class="features-list">
             <li><i class="bi bi-check-circle-fill"></i> <strong>20,000 點</strong> AI 運算額度 (限時翻倍)</li>
-            <li><i class="bi bi-check-circle-fill"></i> 支援<strong>單一官方帳號多終端協作</strong>、多視窗對接</li>
+            <li><i class="bi bi-check-circle-fill"></i> 支援<strong>單一官方帳號多終端協作</strong></li>
+            <li><i class="bi bi-check-circle-fill"></i> 支援多個聊天視窗與對話備份</li>
             <li><i class="bi bi-check-circle-fill"></i> LINE 對話與圖片<strong>即時安全備份</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 一鍵 Prompt 範本 (今日摘要/待辦整理)</li>
             <li><i class="bi bi-check-circle-fill"></i> 支援導入個人與企業 KM 知識規章</li>
@@ -366,13 +367,7 @@
             <li class="locked"><i class="bi bi-lock-fill"></i> Agent 專用 MD 匯出按鈕 (NotebookLM)</li>
           </ul>
 
-          <div class="mt-2 p-2 rounded text-start" style="background-color: #f2fbf9; border: 1px dashed #0d9488; font-size: 11px; color: #0f766e; line-height: 1.4;">
-            <strong>➕ 擴充加購：系統工作流整合包 (+$100,000 / 6個月)</strong><br>
-            解鎖 Telegram 跨平台對接、群組 AI 即時指令、及智慧 KM 自動答詢開關。
-            <a href="/workflow-addon" style="font-weight: bold; color: var(--primary-color); text-decoration: underline; display: block; margin-top: 2px;">ℹ️ 查看加值方案詳情</a>
-          </div>
-
-          <div class="row g-2 mt-2">
+          <div class="row g-2 mt-3">
             <div class="col-6">
               <a href="/product-intro#standard" class="btn btn-action btn-outline-custom">
                 <i class="bi bi-file-earmark-text"></i> 提案文案
@@ -388,7 +383,7 @@
       </div>
 
       <!-- Advanced Tier -->
-      <div class="col-lg-5 col-md-6">
+      <div class="col-lg-4 col-md-6 col-sm-12">
         <div class="pricing-card featured">
           <div class="tier-name text-info">🚀 企業進階版</div>
           <div class="price-tag">$200,000 <span class="price-period">/ 6個月</span></div>
@@ -396,21 +391,16 @@
           
           <ul class="features-list">
             <li><i class="bi bi-check-circle-fill"></i> <strong>40,000 點</strong> AI 運算額度 (限時翻倍)</li>
-            <li><i class="bi bi-check-circle-fill"></i> 支援<strong>多個官方帳號</strong>與多聊天視窗整合</li>
+            <li><i class="bi bi-check-circle-fill"></i> 支援<strong>多個官方帳號規模化整合</strong></li>
+            <li><i class="bi bi-check-circle-fill"></i> 跨帳號多視窗安全管理與分析</li>
             <li><i class="bi bi-check-circle-fill"></i> LINE 對話與圖片<strong>即時安全備份</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 一鍵 Prompt 範本 (今日摘要/待辦整理)</li>
-            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖自備金鑰</strong> (用罄後無縫切換自備金鑰)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖自備金鑰</strong> (無縫續用自備金鑰)</li>
             <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖 Ollama 地端模型</strong> (資安無虞)</li>
-            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖 Agent 匯出</strong> (對接 NotebookLM / GPTs)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖 Agent 匯出</strong> (對接 NotebookLM)</li>
           </ul>
 
-          <div class="mt-2 p-2 rounded text-start" style="background-color: #f2fbf9; border: 1px dashed #0d9488; font-size: 11px; color: #0f766e; line-height: 1.4;">
-            <strong>➕ 擴充加購：系統工作流整合包 (+$100,000 / 6個月)</strong><br>
-            解鎖 Telegram 跨平台對接、群組 AI 即時指令、及智慧 KM 自動答詢開關。
-            <a href="/workflow-addon" style="font-weight: bold; color: var(--primary-color); text-decoration: underline; display: block; margin-top: 2px;">ℹ️ 查看加值方案詳情</a>
-          </div>
-
-          <div class="row g-2 mt-2">
+          <div class="row g-2 mt-3">
             <div class="col-6">
               <a href="/product-intro#advanced" class="btn btn-action btn-outline-custom">
                 <i class="bi bi-file-earmark-text"></i> 提案文案
@@ -419,6 +409,39 @@
             <div class="col-6">
               <a href="/poc-demo?tier=advanced" class="btn btn-action btn-solid-custom">
                 <i class="bi bi-play-circle-fill"></i> 互動 POC
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workflow Integration Addon Card -->
+      <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="pricing-card" style="border: 1.5px dashed #0d9488; background-color: #fcfcfc;">
+          <div class="tier-name" style="color: #0d9488;">➕ 工作流整合加值包</div>
+          <div class="price-tag">$100,000 <span class="price-period">/ 6個月</span></div>
+          <p class="text-muted small">配搭標準版/進階版選購。解鎖跨平台 Telegram 訊息橋接、群組內 AI 即時指令及智慧 KM 自動答詢開關。</p>
+          
+          <ul class="features-list">
+            <li><i class="bi bi-check-circle-fill"></i> <strong>Telegram 訊息同步橋接</strong> (LINE ➡️ TG)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>群組 AI 即時分析指令</strong> (群組內打指令秒回)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>智慧 KM 知識與 AI 即時回覆建議</strong></li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>後台開關選項一鍵開啟</strong> (免開發/免代碼)</li>
+            <li><i class="bi bi-check-circle-fill"></i> 支援多終端、多裝置協同登入</li>
+            <li><i class="bi bi-check-circle-fill"></i> 對話歷史與大檔案永久雲端保存</li>
+            <li><i class="bi bi-check-circle-fill"></i> 機器人 API 傳輸速度極快無頻寬限制</li>
+            <li><i class="bi bi-check-circle-fill"></i> 相容地端部署，安全私有化運作</li>
+          </ul>
+
+          <div class="row g-2 mt-3">
+            <div class="col-6">
+              <a href="/workflow-addon" class="btn btn-action btn-outline-custom" style="color: #0f766e; border-color: #0f766e;">
+                <i class="bi bi-file-earmark-text"></i> 詳細方案
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="mailto:service@tianxun.com.tw?subject=【智慧轉型】洽詢AI解決方案(工作流整合加值包)導入事宜" class="btn btn-action btn-solid-custom" style="background: linear-gradient(135deg, #0d9488, #0f766e);">
+                <i class="bi bi-envelope-fill"></i> 聯絡服務
               </a>
             </div>
           </div>
