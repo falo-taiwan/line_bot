@@ -341,18 +341,8 @@
         <i class="bi bi-robot text-success" style="font-size: 24px;"></i>
         <span>天勳 x Force Cheng LINE AI 雙版本主頁</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+      <!-- Actions removed from navbar as requested -->
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <ul class="navbar-nav gap-2">
-          <li class="nav-item">
-            <a class="btn btn-sm btn-outline-custom py-2 px-3" href="/poc-demo?tier=standard">💻 啟動標準版 POC</a>
-          </li>
-          <li class="nav-item">
-            <a class="btn btn-sm btn-solid-custom py-2 px-3" href="/poc-demo?tier=advanced">🚀 啟動進階版 POC</a>
-          </li>
-        </ul>
       </div>
     </div>
   </nav>
@@ -375,17 +365,13 @@
           <div class="tier-name text-success">💎 企業標準版</div>
           <div class="price-tag">$100,000 <span class="price-period">/ 6個月</span></div>
           <p class="text-muted small">專為專案與客服團隊打造的 AI 智慧助理。一鍵將海量 LINE 對話提煉成工作日誌與待辦清單，開箱即用。</p>
-          
           <ul class="features-list">
-            <li><i class="bi bi-check-circle-fill"></i> <strong>50,000 點</strong> AI 運算額度 (大容量配置)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>20,000 點</strong> AI 運算額度 (基礎大容量配置)</li>
             <li><i class="bi bi-check-circle-fill"></i> 支援<strong>單一官方帳號多終端協作</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 支援多個聊天視窗與對話備份</li>
             <li><i class="bi bi-check-circle-fill"></i> LINE 對話與圖片<strong>即時安全備份</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 一鍵 Prompt 範本 (今日摘要/待辦整理)</li>
             <li><i class="bi bi-check-circle-fill"></i> 支援導入個人與企業 KM 知識規章</li>
-            <li class="locked"><i class="bi bi-lock-fill"></i> 自備金鑰 (Own API Key) 面板</li>
-            <li class="locked"><i class="bi bi-lock-fill"></i> 地端開源大模型 (Ollama) 對接</li>
-            <li class="locked"><i class="bi bi-lock-fill"></i> Agent 專用 MD 匯出按鈕 (NotebookLM)</li>
           </ul>
 
           <div class="row g-2 mt-3">
@@ -409,16 +395,15 @@
           <div class="tier-name text-info">🚀 企業進階版</div>
           <div class="price-tag">$200,000 <span class="price-period">/ 6個月</span></div>
           <p class="text-muted small">推薦自控與高資安需求首選。解鎖三大控管權限，支援地端開源大模型與外部 AI Agent 協作。</p>
-          
           <ul class="features-list">
-            <li><i class="bi bi-check-circle-fill"></i> <strong>100,000 點</strong> AI 運算額度 (雙倍大配置)</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>50,000 點</strong> AI 運算額度 (加倍大配置)</li>
             <li><i class="bi bi-check-circle-fill"></i> 支援<strong>多個官方帳號規模化整合</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 跨帳號多視窗安全管理與分析</li>
             <li><i class="bi bi-check-circle-fill"></i> LINE 對話與圖片<strong>即時安全備份</strong></li>
             <li><i class="bi bi-check-circle-fill"></i> 一鍵 Prompt 範本 (今日摘要/待辦整理)</li>
-            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖自備金鑰</strong> (無縫續用自備金鑰)</li>
-            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖 Ollama 地端模型</strong> (資安無虞)</li>
-            <li><i class="bi bi-check-circle-fill"></i> <strong>解鎖 Agent 匯出</strong> (對接 NotebookLM)</li>
+            <li style="color: #facc15;"><i class="bi bi-check-circle-fill" style="color: #facc15;"></i> <strong>解鎖自備金鑰</strong> (無縫續用自備金鑰)</li>
+            <li style="color: #facc15;"><i class="bi bi-check-circle-fill" style="color: #facc15;"></i> <strong>解鎖 Ollama 地端模型</strong> (資安無虞)</li>
+            <li style="color: #facc15;"><i class="bi bi-check-circle-fill" style="color: #facc15;"></i> <strong>解鎖 Agent 匯出</strong> (對接 NotebookLM)</li>
           </ul>
 
           <div class="row g-2 mt-3">
@@ -441,7 +426,7 @@
         <div class="pricing-card" style="border: 1.5px dashed #0284c7; background-color: #f0f9ff; box-shadow: 0 10px 30px rgba(2, 132, 199, 0.1);">
           <div class="tier-name" style="color: #0369a1; font-weight: 800;">➕ 工作流整合加值包</div>
           <div class="price-tag" style="color: #0c4a6e !important;">$100,000 <span class="price-period" style="color: #0369a1;">/ 6個月</span></div>
-          <p class="small" style="color: #334155; font-size: 13px;">配搭標準版/進階版選購。<strong>加購即額外贈送 50,000 點 AI 額度</strong>，並解鎖跨平台 Telegram 訊息橋接、群組內 AI 即時指令及智慧 KM 自動答詢開關。</p>
+          <p class="small" style="color: #334155; font-size: 13px;">配搭標準版/進階版選購。<strong>加購即額外贈送 50,000 點 AI 額度 (合購後標準版達 70,000 點，進階版達 100,000 點額度！)</strong>，並解鎖跨平台 Telegram 訊息橋接、群組內 AI 即時指令及智慧 KM 自動答詢開關。</p>
           
           <ul class="features-list">
             <li style="color: #0f172a;"><i class="bi bi-check-circle-fill" style="color: #0284c7 !important;"></i> <strong>加碼贈送 50,000 點</strong> AI 運算額度</li>
@@ -495,9 +480,9 @@
             </tr>
             <tr>
               <td><strong>預載 AI 點數</strong></td>
-              <td>50,000 點 (超大額度)</td>
-              <td>100,000 點 (翻倍大配置)</td>
-              <td>額外加碼贈送 50,000 點</td>
+              <td>20,000 點 (基礎大容量)</td>
+              <td>50,000 點 (加倍大配置)</td>
+              <td>額外加碼贈送 50,000 點 (合購達 7萬 / 10萬點)</td>
             </tr>
             <tr>
               <td><strong>預設模型支援</strong></td>
