@@ -2055,6 +2055,15 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_html(404, "<h1>Product Analysis Page Not Found</h1>")
             return
 
+        # Serve Google Sheets Access Methods Guide (open to all)
+        if path in {"/google-sheets-access-methods", "/google-sheets-access-methods.html"}:
+            methods_path = ROOT_DIR / "google-sheets-access-methods.html"
+            if methods_path.exists():
+                self.send_html(200, methods_path.read_text(encoding="utf-8"))
+                return
+            self.send_html(404, "<h1>Google Sheets Access Methods Page Not Found</h1>")
+            return
+
         if path == "/login":
             if self.is_authenticated():
                 self.redirect("/")
