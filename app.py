@@ -2046,6 +2046,15 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_html(200, html)
             return
 
+        # Serve Product Analysis Page (open to all)
+        if path in {"/product-analysis", "/product-analysis.html"}:
+            analysis_path = ROOT_DIR / "product-analysis.html"
+            if analysis_path.exists():
+                self.send_html(200, analysis_path.read_text(encoding="utf-8"))
+                return
+            self.send_html(404, "<h1>Product Analysis Page Not Found</h1>")
+            return
+
         if path == "/login":
             if self.is_authenticated():
                 self.redirect("/")
