@@ -1,0 +1,500 @@
+<!-- Claude Fable 5 (Anthropic) 第三方分析報告 2026/7/4 -->
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attn LINE AI 三產品文案分析報告 | 第三方 AI 視角</title>
+<style>
+  :root {
+    --teal: #0f766e;
+    --teal-soft: #ccfbf1;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
+    --good: #059669;
+    --star: #b45309;
+    --warn: #dc2626;
+    --warn-bg: #fef2f2;
+    --good-bg: #f0fdf4;
+    --star-bg: #fffbeb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.75;
+    font-size: 15px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  /* Header */
+  .report-header {
+    background: linear-gradient(135deg, #134e4a 0%, #0f766e 60%, #0d9488 100%);
+    color: #fff;
+    padding: 48px 0 40px;
+  }
+  .report-header .tag {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .report-header h1 { margin: 0 0 10px; font-size: 30px; font-weight: 900; letter-spacing: .5px; }
+  .report-header .meta { font-size: 13px; opacity: .85; }
+  .report-header .meta span { margin-right: 18px; }
+  .report-header a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+  .disclaimer {
+    background: rgba(255,255,255,.1);
+    border-left: 3px solid rgba(255,255,255,.5);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 20px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Sections */
+  section { padding: 36px 0 8px; }
+  h2 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--teal);
+    border-left: 5px solid var(--teal);
+    padding-left: 12px;
+    margin: 0 0 20px;
+  }
+  h3 { font-size: 17px; font-weight: 700; margin: 24px 0 10px; }
+  p { margin: 0 0 14px; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 26px 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(15,23,42,.04);
+  }
+
+  /* Verdict cards */
+  .verdict-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+  @media (max-width: 720px) { .verdict-grid { grid-template-columns: 1fr; } }
+  .verdict {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--teal);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .verdict .v-name { font-weight: 900; font-size: 15px; margin-bottom: 6px; }
+  .verdict .v-line { font-size: 13.5px; color: var(--muted); }
+
+  /* Score table */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { background: var(--bg); font-weight: 700; white-space: nowrap; }
+  td.score { font-family: monospace; letter-spacing: 2px; color: var(--teal); white-space: nowrap; }
+  .score-note { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+
+  /* Product analysis blocks */
+  .product-title {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .product-title .p-name { font-size: 19px; font-weight: 900; }
+  .product-title .p-price { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .positioning {
+    font-size: 14px; color: var(--teal); font-weight: 700;
+    background: var(--teal-soft); border-radius: 6px;
+    padding: 8px 14px; display: inline-block; margin-bottom: 18px;
+  }
+  .tri { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .tri-block { border-radius: 8px; padding: 16px 18px; }
+  .tri-block.good { background: var(--good-bg); border-left: 4px solid var(--good); }
+  .tri-block.star { background: var(--star-bg); border-left: 4px solid var(--star); }
+  .tri-block.warn { background: var(--warn-bg); border-left: 4px solid var(--warn); }
+  .tri-block h4 { margin: 0 0 8px; font-size: 14.5px; font-weight: 900; }
+  .tri-block.good h4 { color: var(--good); }
+  .tri-block.star h4 { color: var(--star); }
+  .tri-block.warn h4 { color: var(--warn); }
+  .tri-block ul { margin: 0; padding-left: 20px; }
+  .tri-block li { margin-bottom: 8px; font-size: 14px; }
+  .tri-block li:last-child { margin-bottom: 0; }
+  .tri-block li strong { font-weight: 700; }
+
+  /* Priority badges */
+  .prio {
+    display: inline-block; font-size: 11px; font-weight: 900;
+    border-radius: 4px; padding: 1px 7px; margin-right: 6px;
+    vertical-align: 1px; white-space: nowrap;
+  }
+  .p0 { background: #dc2626; color: #fff; }
+  .p1 { background: #f59e0b; color: #fff; }
+  .p2 { background: #94a3b8; color: #fff; }
+
+  /* Footer */
+  footer {
+    margin-top: 40px;
+    background: #1e293b; color: #94a3b8;
+    padding: 28px 0; font-size: 12.5px; text-align: center;
+  }
+  footer a { color: #cbd5e1; text-decoration: underline; text-underline-offset: 3px; }
+  footer a:hover { color: #ffffff; }
+  @media print {
+    .report-header { background: #0f766e !important; -webkit-print-color-adjust: exact; }
+    .card { box-shadow: none; break-inside: avoid; }
+    .tri-block { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="container">
+    <div class="tag">🤖 第三方 AI 視角 · 產品文案評析</div>
+    <h1>Attn LINE AI 資訊管理系統<br>三產品文案分析報告</h1>
+    <div class="meta">
+      <span>分析者：<strong>Claude Fable 5</strong> — Anthropic 新一代 Mythos 級 AI 模型</span>
+      <span>基準日：2026-07-04</span>
+      <span>分析對象：<a href="https://falo-taiwan.github.io/line_bot/" target="_blank">falo-taiwan.github.io/line_bot</a> 全站四頁（主頁／提案文案／加值包／互動 POC）</span>
+    </div>
+    <div class="disclaimer">
+      本報告為 AI 依據公開頁面文案所做的獨立分析，立場中性：優點據實肯定、不足直接指出。目的是供 <strong>Falo / Force 的團隊夥伴</strong>在正式送件前對齊認知，非行銷文件。
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ===== AI 工作流揭露 ===== -->
+  <section>
+    <h2>一、產出方式揭露：全 AI 工作流</h2>
+    <div class="card">
+      <p>
+        本提案（含程式碼與全部文案）與本報告，均由 AI 深度參與產出，且<strong>開發與檢核由不同陣營的 AI 分別執行</strong>：
+      </p>
+      <table>
+        <thead>
+          <tr><th style="width:140px;">角色</th><th>執行者</th><th>範圍</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>開發</strong></td>
+            <td>ChatGPT Codex（OpenAI）＋ Google Antigravity（Google）</td>
+            <td>提案網站全部程式碼與文案的產出與迭代</td>
+          </tr>
+          <tr>
+            <td><strong>檢核</strong></td>
+            <td>Claude Fable 5（Anthropic）</td>
+            <td>本分析報告——基於公開頁面獨立評審，未接觸開發過程與內部資料</td>
+          </tr>
+          <tr>
+            <td><strong>決策與最終判斷</strong></td>
+            <td>Force（人類）</td>
+            <td>方向設定、需求定義、採納與否的最終裁量</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin: 14px 0 0;">
+        這個分工不是巧合，而是刻意設計：<strong>評審 AI 與開發 AI 分屬三家互不隸屬的公司（Anthropic ／ OpenAI ／ Google），彼此沒有利益重疊</strong>，因此本報告的批評不需要留情面，肯定也不涉及自我背書。分析全程僅依據任何人都能開啟的公開頁面進行——你可以把同樣四個網址交給任何一個 AI 或人類專家，重現並檢驗這份分析的結論。這也是 Falo / Force 團隊日常工作流的實際樣貌：AI 負責產出與互相稽核，人類保留判斷權。
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== 總評 ===== -->
+  <section>
+    <h2>二、總評</h2>
+    <div class="card">
+      <p>
+        這是一套<strong>完成度明顯高於一般補助案送件水準</strong>的提案：三個產品的價格階梯（10萬 → 20萬 → +10萬）形成清楚的升級路徑，版本差異化走「控制權與資安治理」而非「功能數量」，這是成熟的 SaaS 定價思路。互動 POC 具備自動導覽播放，等於把「送審展示」這件事產品化了——這在同類提案中極少見，是最強的一張牌。
+      </p>
+      <p style="margin-bottom:0;">
+        主要的改善空間不在架構、而在<strong>細節一致性與信任證據</strong>：品牌名稱尚未統一、案例是情境推演而非實績、少數文案存在會被嚴格審查者挑戰的絕對化表述。這些都屬於送件前可在短時間內修完的項目。
+      </p>
+    </div>
+    <div class="verdict-grid">
+      <div class="verdict">
+        <div class="v-name">💎 企業標準版</div>
+        <div class="v-line">一句話評語：<strong>痛點切得準、門檻夠低</strong>的入門款，「LINE 檔案過期救星」的敘事有效，但點數制對非技術買家仍偏抽象。</div>
+      </div>
+      <div class="verdict">
+        <div class="v-name">🚀 企業進階版</div>
+        <div class="v-line">一句話評語：<strong>差異化敘事最強</strong>的主力產品，「三大解鎖」賣的是控制權，方向正確；但價格翻倍的價值論述需要更明確的錨點。</div>
+      </div>
+      <div class="verdict">
+        <div class="v-name">➕ 工作流整合加值包</div>
+        <div class="v-line">一句話評語：<strong>誘因設計最聰明</strong>（贈點超過標準版本體），但 Telegram 在台灣市場需要教育成本，且有一句文案自相矛盾。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 評分表 ===== -->
+  <section>
+    <h2>三、五維快速評分</h2>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>評估維度</th>
+            <th>💎 標準版</th>
+            <th>🚀 進階版</th>
+            <th>➕ 加值包</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>文案完成度</strong></td>
+            <td class="score">●●●●○</td>
+            <td class="score">●●●●○</td>
+            <td class="score">●●●●●</td>
+            <td>加值包頁最完整（含後台開關展示）；前兩者受品牌名不一致拖累。</td>
+          </tr>
+          <tr>
+            <td><strong>差異化強度</strong></td>
+            <td class="score">●●●○○</td>
+            <td class="score">●●●●●</td>
+            <td class="score">●●●●○</td>
+            <td>進階版「三大解鎖」與「Agent 匯出接 NotebookLM」在台灣市場罕見。</td>
+          </tr>
+          <tr>
+            <td><strong>信任證據力</strong></td>
+            <td class="score">●●○○○</td>
+            <td class="score">●●●○○</td>
+            <td class="score">●●○○○</td>
+            <td>共同弱項：案例為情境模擬、無實績數據、進階版影片仍為標準版檔案。</td>
+          </tr>
+          <tr>
+            <td><strong>資訊透明度</strong></td>
+            <td class="score">●●●○○</td>
+            <td class="score">●●●○○</td>
+            <td class="score">●●●○○</td>
+            <td>點數換算有具體字數（好），但地端硬體需求、續約機制、資料退場未揭露。</td>
+          </tr>
+          <tr>
+            <td><strong>轉換設計</strong></td>
+            <td class="score">●●●●○</td>
+            <td class="score">●●●●○</td>
+            <td class="score">●●●●●</td>
+            <td>雙 CTA（提案文案＋互動 POC）配置佳；加值包的贈點誘因是全站最強轉換鉤子。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="score-note">※ 評分為分析者基於文案本身的相對評價（滿分 5），用於凸顯相對強弱，非絕對優劣。</div>
+    </div>
+  </section>
+
+  <!-- ===== 標準版 ===== -->
+  <section>
+    <h2>四、逐產品分析</h2>
+
+    <div class="card">
+      <div class="product-title">
+        <span class="p-name">💎 企業標準版</span>
+        <span class="p-price">$100,000 / 6個月 · 20,000 點 · 單一官方帳號</span>
+      </div>
+      <div class="positioning">定位：專案與客服團隊的開箱即用 AI 助理 —— 補助案的「甜蜜點」產品</div>
+      <div class="tri">
+        <div class="tri-block good">
+          <h4>✅ 優點</h4>
+          <ul>
+            <li><strong>痛點選得精準</strong>：「LINE 檔案逾期無法下載」是台灣中小企業每天都在痛的真實問題，「資料永不過期與多模態備份」直接對症，一句話就能讓買方點頭。</li>
+            <li><strong>導入門檻敘事到位</strong>：「最快 5 分鐘完成設定」「免寫 Prompt、一鍵範本」都在降低非技術決策者的心理門檻。</li>
+            <li><strong>定價貼合補助級距</strong>：10 萬元恰好落在數位轉型補助方案常見的申請區間，買方自付額壓力小，天然適合作為進門磚。</li>
+            <li><strong>額度講得具體</strong>：「20,000 點 ≈ 4,000 萬字輸入」給了可感知的量級，比只寫點數負責任。</li>
+          </ul>
+        </div>
+        <div class="tri-block star">
+          <h4>⭐ 特點（市場區隔）</h4>
+          <ul>
+            <li><strong>單一帳號、多終端協作</strong>：一個官方帳號可多視窗、多裝置同時登入使用，對小團隊夠用且好理解。</li>
+            <li><strong>對話＋圖片即時備份</strong>：多模態歸檔在同價位帶的 LINE 工具中並不常見。</li>
+          </ul>
+        </div>
+        <div class="tri-block warn">
+          <h4>⚠️ 不足與風險</h4>
+          <ul>
+            <li><strong>「強綁天勳預設 Key」的用詞觀感</strong>：對照表直接寫「強綁」，這是內部視角的詞；買方讀到的是「被鎖定」。建議改為「內建天勳託管金鑰，免申請免設定」——同一件事，敘事從限制變成服務。</li>
+            <li><strong>點數耗盡後只有單一出路</strong>（加購點數包），可能引發「額度焦慮」。可考慮在文案中給出典型用量參考（例如「一般 20 人團隊約可使用 N 個月」）來消解。</li>
+            <li><strong>點數制對非技術買家仍抽象</strong>：「每次分析扣 10~25 點」需要買方自行心算，建議補一張「常見操作 × 扣點 × 每月估算」的簡表。</li>
+            <li><strong>缺少歷史訊息限制的預期管理</strong>：機器人只能收錄加入之後的訊息，過往紀錄需手動匯出——這個限制未在文案揭露，交付時容易變成客訴點，建議以 FAQ 形式提前說明。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 進階版 ===== -->
+    <div class="card">
+      <div class="product-title">
+        <span class="p-name">🚀 企業進階版</span>
+        <span class="p-price">$200,000 / 6個月 · 50,000 點 · 多官方帳號</span>
+      </div>
+      <div class="positioning">定位：自控與高資安需求首選 —— 賣的是「控制權」而非「更多功能」</div>
+      <div class="tri">
+        <div class="tri-block good">
+          <h4>✅ 優點</h4>
+          <ul>
+            <li><strong>差異化邏輯正確</strong>：三大解鎖（自備金鑰／Ollama 地端模型／Agent 匯出）全是治理與控制層面的差異，與標準版不形成功能競食，是教科書等級的版本切分。</li>
+            <li><strong>資安承諾具體可查證</strong>：點名「Google Gemini 官方企業級管道」「Ollama＋Llama 3／Gemma」，比空泛的「銀行級加密」有說服力得多。</li>
+            <li><strong>「點數用罄可切自備金鑰免扣點」</strong>：直接化解標準版的額度焦慮，本身就是升級的最強理由，文案有把這點講出來。</li>
+            <li><strong>IP 保護有著墨</strong>：「二進位機器碼編譯與混淆」同時回應了客戶資安與自家智財兩層需求。</li>
+          </ul>
+        </div>
+        <div class="tri-block star">
+          <h4>⭐ 特點（市場區隔）</h4>
+          <ul>
+            <li><strong>Agent MD 匯出對接 NotebookLM／ChatGPT／Claude</strong>：「去敏感化打包、扣 0 點、餵給任何 AI 二次分析」——這是全站最具前瞻性的功能，台灣市場目前幾乎沒有同類產品這樣做，建議在銷售時放大。</li>
+            <li><strong>跨官方帳號統一戰情分析</strong>：對連鎖品牌、多品牌經營者是剛需，也是未來規模化推廣的接口。</li>
+            <li><strong>100% 地端內網部署選項</strong>：直接打開政府機關與資安敏感產業的門。</li>
+          </ul>
+        </div>
+        <div class="tri-block warn">
+          <h4>⚠️ 不足與風險</h4>
+          <ul>
+            <li><strong>價格翻倍的價值錨點不夠直白</strong>：買方會心算「價格 ×2 但點數只 ×2.5」，若他用點數單價理解這個產品就會覺得不划算。文案需要一句定錨：「進階版買的不是更多點數，是資料主權」。</li>
+            <li><strong>展示影片仍是標準版檔案</strong>（product-intro.html 進階版區塊引用 standard_demo.mp4）：送件前必須換成進階版實錄，否則「三大解鎖」只有文字沒有畫面。</li>
+            <li><strong>地端部署的責任邊界未揭露</strong>：Ollama 跑 Llama 3 需要什麼等級的硬體（GPU？RAM？）、由誰維運、故障 SLA 為何——高資安買方一定會問，文案完全沒有著墨。</li>
+            <li><strong>「去敏感化」缺乏定義</strong>：匯出 MD 給外部 Agent 時，去敏感化的規則（去識別化範圍、可否自訂）沒有說明，恰好是最在意資安的這群買方會追問的細節。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 加值包 ===== -->
+    <div class="card">
+      <div class="product-title">
+        <span class="p-name">➕ 工作流整合加值包</span>
+        <span class="p-price">+$100,000 / 6個月 · 加贈 50,000 點 · 需搭配主方案</span>
+      </div>
+      <div class="positioning">定位：把 AI 產出直接送進工作群組 —— 全站轉換誘因最強的產品</div>
+      <div class="tri">
+        <div class="tri-block good">
+          <h4>✅ 優點</h4>
+          <ul>
+            <li><strong>贈點設計極聰明</strong>：加購 10 萬送 50,000 點——贈點量是標準版本體（20,000 點）的 2.5 倍，讓「合購」在數學上幾乎無法拒絕，同時墊高整單金額至 20~30 萬。</li>
+            <li><strong>經銷商視角完整</strong>：「當場輸入 /summary 秒回、銷售成功率大增」「5 分鐘開通、免代碼」——這頁不只寫給終端客戶，也把經銷夥伴的演示劇本寫好了，是通路化布局的正確起手式。</li>
+            <li><strong>三開關的產品化程度高</strong>：後台一鍵開關的呈現（含模擬 toggle UI）讓「免開發」這個承諾看得見。</li>
+          </ul>
+        </div>
+        <div class="tri-block star">
+          <h4>⭐ 特點（市場區隔）</h4>
+          <ul>
+            <li><strong>LINE → Telegram 橋接</strong>：市場上極少見的組合，對已有跨國團隊或受不了 LINE 檔案過期的團隊有真實吸引力。</li>
+            <li><strong>群組內斜線指令（/summary、/todo）</strong>：免登入後台、在對話現場即時取得 AI 分析，是「最短路徑交付價值」的體現。</li>
+            <li><strong>KM 自動答詢</strong>：讓知識庫從「被動查詢」變成「主動參與對話」，是三模組中天花板最高的一個。</li>
+          </ul>
+        </div>
+        <div class="tri-block warn">
+          <h4>⚠️ 不足與風險</h4>
+          <ul>
+            <li><strong>文案自相矛盾（建議優先修正）</strong>：「數據絕不會經過非受信任之第三方雲端中轉」與 Telegram 橋接並存——Telegram 本身就是第三方雲端。嚴格的資安審查者或懂技術的買方會抓這一句。建議收斂為「僅透過 LINE 與 Telegram 官方加密 API 傳輸，不經任何非官方中轉服務」。</li>
+            <li><strong>Telegram 的市場教育成本</strong>：台灣企業主流通訊仍是 LINE，Telegram 滲透率有限。「為什麼 TG 更強大」的說服區塊寫得不錯，但建議補一個真實使用情境（例如「工程團隊戰情頻道」）讓買方能代入。</li>
+            <li><strong>獨立價值敘事弱</strong>：作為選購包，它的價值完全依附主方案。若買方只買標準版＋加值包（總價 20 萬），與直接買進階版（20 萬）如何取捨？文案沒有給出指引，第一線銷售會被問倒。</li>
+            <li><strong>KM 自動答詢的邊界未說明</strong>：AI 主動在客戶群組中提供建議，答錯的責任與「僅建議、不自動發送」的機制設計需要講清楚，否則資安與商譽風險敏感的買方會卻步。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 跨產品觀察 ===== -->
+  <section>
+    <h2>五、跨產品整體觀察</h2>
+
+    <div class="card">
+      <h3 style="margin-top:0;">共同優勢（值得在提案時放大）</h3>
+      <ul>
+        <li><strong>互動 POC 是全案最強資產</strong>：三分頁工作台＋自動導覽播放，把抽象的「AI 資訊管理」變成看得到、點得動的東西。送審與銷售場景都應該以 POC 為主角。</li>
+        <li><strong>頁面形態直接模擬補助方案目錄</strong>（115年方案價格、行業別標籤、CISA 版式），讓審查方與買方「預先看見上架後的樣子」，是聰明的心理設計。</li>
+        <li><strong>價格階梯完整</strong>：10 萬（進門）→ 20 萬（主力）→ 合購 30 萬（完整方案），每一階都有明確的升級理由，銷售路徑清晰。</li>
+        <li><strong>「雲端 SaaS ＋ 地端私有化」雙部署貫穿全線</strong>，一套產品同時覆蓋預算敏感型與資安敏感型兩類客群。</li>
+      </ul>
+
+      <h3>共同待補強（送件前檢查清單）</h3>
+      <table>
+        <thead>
+          <tr><th style="width:90px;">優先級</th><th>項目</th><th>說明</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="prio p0">P0 送件前必修</span></td>
+            <td><strong>品牌名稱統一</strong></td>
+            <td>目前並存三種稱呼：「天勳 x Force Cheng LINE AI」（主頁）、「Attn LINE AI」（提案頁）、「Attn IM AI」（POC 歡迎語）。送審文件中名稱不一致會直接扣分。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p0">P0 送件前必修</span></td>
+            <td><strong>進階版展示影片</strong></td>
+            <td>進階版區塊目前引用標準版影片（standard_demo.mp4），「三大解鎖」缺乏對應畫面佐證。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p0">P0 送件前必修</span></td>
+            <td><strong>「不經第三方中轉」表述</strong></td>
+            <td>與 Telegram 橋接功能矛盾（見加值包分析），一句話修正即可，但不修會成為審查與資安盡調的攻擊點。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p1">P1 強烈建議</span></td>
+            <td><strong>信任證據升級</strong></td>
+            <td>兩個應用情境目前是推演式的（虛構人物 Jerry），建議至少放入一個真實試用者的量化成效（「每日整理時間從 40 分鐘降至 3 分鐘」這類數字），沒有也可標明「試點進行中」。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p1">P1 強烈建議</span></td>
+            <td><strong>揭露事項補齊</strong></td>
+            <td>歷史訊息無法回溯收錄、地端部署硬體需求、合約到期後的資料匯出與退場機制。主動揭露反而是信任加分項——尤其「資料可攜、隨時可走」對 SME 是強賣點。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p1">P1 強烈建議</span></td>
+            <td><strong>競品攻擊性文案的語氣</strong></td>
+            <td>「坊間部分服務廠商……造成不可挽回的資安漏洞」的警示區塊有效但語氣偏重，放在政府審查語境可能顯得攻擊性強，建議改為中性比較表（本方案 vs 一般做法）。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p2">P2 可排程處理</span></td>
+            <td><strong>官方版式的誤認風險</strong></td>
+            <td>提案頁 footer 標示「© 經濟部商業發展署」且公開於 GitHub Pages，建議加註「提案示意頁面」浮水印，避免被誤認為官方頁面。</td>
+          </tr>
+          <tr>
+            <td><span class="prio p2">P2 可排程處理</span></td>
+            <td><strong>續約與長期定價路徑</strong></td>
+            <td>全線只有「6 個月」單一期程，期滿後的續約價、年約優惠、點數結轉規則皆未提及，影響買方的長期採用決策。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 結論 ===== -->
+  <section>
+    <h2>六、給夥伴的結論</h2>
+    <div class="card">
+      <p>
+        <strong>這套提案的骨架是對的，火力也夠。</strong>版本切分邏輯成熟、定價貼合補助情境、POC 的展示力在同類提案中屬於頂規。三個 P0 項目（品牌名統一、進階版影片、一句矛盾文案）都是小時級的修正量，修完即具備送件水準。
+      </p>
+      <p>
+        銷售時建議的主打順序：<strong>先讓客戶看 POC 自動導覽</strong>（30 秒內看懂產品）→ 用「LINE 檔案過期」痛點帶入標準版 → 對有資安意識或多帳號需求的客戶直上進階版（用「資料主權」定錨，不比點數單價）→ 加值包以「合購贈 5 萬點」收尾墊高客單。
+      </p>
+      <p style="margin-bottom:0;">
+        中長期最值得投資的兩個方向：一是把「Agent 匯出對接 NotebookLM／ChatGPT／Claude」從功能清單升格為獨立賣點頁（這是目前市場上最稀缺的能力）；二是盡快累積 1~2 個可具名的試點實績，把情境式案例換成真實數據——這是目前全案唯一買不到、只能用時間換的東西。
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="container">
+    本報告由 <strong>Claude Fable 5</strong>（Anthropic）於 2026-07-04 基於公開頁面文案獨立產出，供 Falo / Force 的團隊夥伴參考。<br>
+    提案開發：ChatGPT Codex（OpenAI）＋ Google Antigravity（Google）｜獨立檢核：Claude Fable 5（Anthropic）｜決策：Force（人類）<br>
+    分析範圍：
+    <a href="https://falo-taiwan.github.io/line_bot/" target="_blank">index</a> ·
+    <a href="https://falo-taiwan.github.io/line_bot/product-intro.html" target="_blank">product-intro</a> ·
+    <a href="https://falo-taiwan.github.io/line_bot/workflow-addon.html" target="_blank">workflow-addon</a> ·
+    <a href="https://falo-taiwan.github.io/line_bot/poc-demo.html" target="_blank">poc-demo</a>
+  </div>
+</footer>
+
+</body>
+</html>
