@@ -988,6 +988,30 @@ https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB
   <p>如果瀏覽器或 curl 看到 Google 的存取遭拒，通常不是程式碼錯，而是 Web App 部署權限或首次授權尚未完成。處理方式是到 Apps Script 的 Deploy -> Manage deployments，確認 Web App 執行身分是部署者、存取權限是 Anyone，重新部署新版本後，用瀏覽器開 <code>?api=setup</code> 完成授權。</p>
   <p>實務提醒：Channel secret、Channel access token、Webhook token、Viewer token 不寫入教材主檔，也不寫入 <code>Code.gs</code>。它們應放在 Apps Script 的 Script Properties 或本機 <code>.env</code>。</p>
 
+  <h2>v2.0 雲地架構與 Falo 核心產品線演進 (Claude Fable 評審意見)</h2>
+  <p>在進行 v2.x 版本架構重構時，我們將產品的主軸定位從單純的「LINE 輔助備份工具」提升為 <strong>Falo 公司旗艦級的對話工作流產品線</strong>。</p>
+  <p>基於此定位，以下是 Claude Fable 針對本系統提出的核心優化建議與發展路線：</p>
+  
+  <h3>1. 核心觀點：長春的是「管線」，不是「LINE」</h3>
+  <p>本系統真正具備長遠商業價值的，是以下對話處理管線：</p>
+  <pre><code>對話流接入 → 歸檔（永不過期）→ 時間切片 → KM 交叉 → AI 提煉 → 結構化輸出</code></pre>
+  <p>LINE 只是其中一個接入源。因此，架構上必須將<strong>「通道」「儲存」「提煉」「輸出」四層徹底解耦</strong>，讓每一層均為可插拔元件。</p>
+  
+  <h3>2. 產品功能線延伸與優先級 (Roadmap)</h3>
+  <ul>
+    <li><strong>P0：契約層先行 (Contract-First)</strong>：先定義好 API 與統一訊息 Schema (SQLite/GAS/D1 共用)，後續不論是 GAS 訊息網關還是 Cloudflare D1，均只對接該契約。</li>
+    <li><strong>P1：MCP (Model Context Protocol) Server 化</strong>：把備份對話與 KM 查詢包裝成 MCP tools，讓使用者的 Desktop AI Agent (如 Claude/ChatGPT) 能<strong>即時查詢</strong> Falo 資料庫，提供極致的 AI 記憶庫延伸，這是最關鍵的市場差異化。</li>
+    <li><strong>P1：個人版 (Falo Personal)</strong>：以 Local-first (GAS + SQLite) 提供給個人工作者，作為功能沙盒與漏斗入口。</li>
+    <li><strong>P1~P2：垂直業務包 (插件化)</strong>：將客服客訴、政府補助結案留痕、房仲保險等打包為獨立的業務插件 (manifest + Prompt 組合)，依 Cloudflare 授權開關解鎖，核心管線完全不動。</li>
+  </ul>
+  
+  <h3>3. AI 工作流開發制度</h3>
+  <ul>
+    <li><strong>Spec 先行</strong>：規格是開發 AI (Antigravity) 與檢核 AI (Fable) 共用的唯一事實來源。</li>
+    <li><strong>黃金對話資料集 (Golden Dataset)</strong>：建立對話回歸測試樣本，確保模型升級後提煉品質不退化。</li>
+    <li><strong>核心慢、外圍快</strong>：核心管線改動保守，業務包快速迭代，不准 fork 核心。</li>
+  </ul>
+
   <h2>版權與內部使用聲明</h2>
   <p>Copyright (c) 2026 Falo x Force Cheng. All rights reserved.</p>
   <p>本文件為 <code>(Private)</code> 內部開發與教學素材，包含 FALO IM Watch、LINE Bot、GAS webhook、Google Sheet / Drive 儲存與 AI Commander 架構設計。可作為內部教材、開發記錄、產品策略討論與後續對外版教材的基礎。對外公開前，需移除或替換所有機密參數、實際 Sheet / Drive / webhook URL、使用者識別資訊與內部策略描述。</p>

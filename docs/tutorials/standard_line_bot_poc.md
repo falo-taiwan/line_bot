@@ -1481,7 +1481,28 @@ authorizeRuntime
 5. 重新部署新版本。
 6. 用瀏覽器開 `?api=setup`，讓部署帳號完成授權。
 
-實務提醒：Channel secret、Channel access token、Webhook token、Viewer token 不寫入教材主檔，也不寫入 `Code.gs`。它們應放在 Apps Script 的 Script Properties 或本機 `.env`。
+## v2.0 雲地架構與 Falo 核心產品線演進 (Claude Fable 評審意見)
+
+在進行 v2.x 版本架構重構時，我們將產品的主軸定位從單純的「LINE 輔助備份工具」提升為 **Falo 公司旗艦級的對話工作流產品線**。
+
+基於此定位，以下是 Claude Fable 針對本系統提出的核心優化建議與發展路線：
+
+### 1. 核心觀點：長春的是「管線」，不是「LINE」
+本系統真正具備長遠商業價值的，是以下對話處理管線：
+`對話流接入 → 歸檔（永不過期）→ 時間切片 → KM 交叉 → AI 提煉 → 結構化輸出`
+
+LINE 只是其中一個接入源。因此，架構上必須將**「通道」「儲存」「提煉」「輸出」四層徹底解耦**，每一層均為可替換之插槽。
+
+### 2. 產品功能線延伸與優先級 (Roadmap)
+* **P0：契約層先行 (Contract-First)**：先定義好 API 與統一訊息 Schema (SQLite/GAS/D1 共用)，後續不論是 GAS 訊息網關還是 Cloudflare D1，均只對接該契約。
+* **P1：MCP (Model Context Protocol) Server 化**：把備份對話與 KM 查詢包裝成 MCP tools，讓使用者的 Desktop AI Agent (如 Claude/ChatGPT) 能**即時查詢** Falo 資料庫，提供極致的 AI 記憶庫延伸，這是最關鍵的市場差異化。
+* **P1：個人版 (Falo Personal)**：以 Local-first (GAS + SQLite) 提供給個人工作者，作為功能沙盒與漏斗入口。
+* **P1~P2：垂直業務包 (插件化)**：將客服客訴、政府補助結案留痕、房仲保險等打包為獨立的業務插件 (manifest + Prompt 組合)，依 Cloudflare 授權開關解鎖，核心管線完全不動。
+
+### 3. AI 工作流開發制度
+* **Spec 先行**：每條功能線開工前先撰寫一頁規格 (Spec)，作為開發 AI (Antigravity) 與檢核 AI (Fable) 的唯一事實來源。
+* **黃金對話資料集 (Golden Dataset)**：建立去敏感化的對話測試樣本，防止因 LLM 模型升級導致 AI 提煉品質下降，進行持續回歸測試。
+* **核心慢、外圍快**：核心管線版本控制保守，垂直業務包與通道組件快速迭代，嚴禁垂直包 fork 核心代碼。
 
 ## 版權與內部使用聲明
 
