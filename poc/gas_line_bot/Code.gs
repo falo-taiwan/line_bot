@@ -157,7 +157,11 @@ function doGet(e) {
     if (!isViewerAuthorized_(e)) {
       return jsonOutput_({ok: false, error: 'unauthorized viewer token'});
     }
-    return jsonOutput_(listEvents_(parseLimit_(getParam_(e, 'limit'), 100)));
+    var limit = parseLimit_(getParam_(e, 'limit'), 2000);
+    var sourceKey = getParam_(e, 'source_key') || getParam_(e, 'chat_id');
+    var start = getParam_(e, 'start') || getParam_(e, 'startDate');
+    var end = getParam_(e, 'end') || getParam_(e, 'endDate');
+    return jsonOutput_(listEvents_(limit, sourceKey, start, end));
   }
   if (action === 'config') {
     if (!isViewerAuthorized_(e)) {
@@ -621,7 +625,7 @@ function ensureHeaders_(sheet) {
   return existing;
 }
 
-function listEvents_(limit) {
+function listEvents_(limit, sourceKey, startDateStr, endDateStr) {
   var sheet = getEventSheet_();
   var headers = ensureHeaders_(sheet);
   var lastRow = sheet.getLastRow();
@@ -635,10 +639,41 @@ function listEvents_(limit) {
     };
   }
 
-  var startRow = Math.max(2, lastRow - limit + 1);
-  var numRows = lastRow - startRow + 1;
-  var values = sheet.getRange(startRow, 1, numRows, headers.length).getValues();
+  // Load all values to filter them in memory
+  var values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
   var events = sheetRowsToObjects_(headers, values).reverse();
+
+  // Filter by chat ID (source_key) if provided
+  if (sourceKey) {
+    events = events.filter(function(evt) {
+      return String(evt.source_key) === String(sourceKey);
+    });
+  }
+
+  // Filter by start date if provided
+  if (startDateStr) {
+    var startDate = new Date(startDateStr);
+    events = events.filter(function(evt) {
+      var ts = evt.line_timestamp || evt.captured_at;
+      if (!ts) return false;
+      return new Date(ts) >= startDate;
+    });
+  }
+
+  // Filter by end date if provided
+  if (endDateStr) {
+    var endDate = new Date(endDateStr);
+    events = events.filter(function(evt) {
+      var ts = evt.line_timestamp || evt.captured_at;
+      if (!ts) return false;
+      return new Date(ts) <= endDate;
+    });
+  }
+
+  // Apply limit
+  if (limit && events.length > limit) {
+    events = events.slice(0, limit);
+  }
 
   return {
     ok: true,
