@@ -96,3 +96,99 @@ graph TD
    * 後台時間區間篩選改查地端 SQLite，流暢度大幅提昇。
 3. **第三階段 (大規模商業化 - 雲地聯防)**：
    * 全面引進 Cloudflare Workers + D1 取代 GAS 作為雲端核心，邁向高規格資安、多租戶 SaaS 訂閱制。
+
+---
+
+## 5. SQL 導向之資料庫 Schema 與 API 規劃
+
+為了確保 Google Sheets (目前的主儲存)、地端 SQLite (快取儲存) 與未來雲端 Cloudflare D1 (分散式儲存) 在架構上可以 **「無縫轉移、無痛對接」**，我們將所有的 Google Sheets 欄位規劃與 API 回傳格式，一律採取 **「SQL 關聯式資料庫 (Relational DB) 導向」** 設計。
+
+### 5.1 兩大類核心資料庫 Schema
+
+#### A. 對話事件記錄表 (`chat_events`)
+* **用途**：儲存 LINE Bot Webhook 即時事件，以及使用者手動上傳解析後的歷史對話紀錄。
+* **試算表頁籤 / SQL 欄位定義**：
+  | 欄位名稱 (Column) | 資料型態 (Type) | 說明 (Description) |
+  |---|---|---|
+  | `id` | `INTEGER` | 主鍵，自增序列 (PRIMARY KEY AUTOINCREMENT) |
+  | `bot_alias` | `TEXT` | 識別此對話來自哪一個官方帳號 (e.g. `support`, `qa`) |
+  | `chat_id` | `TEXT` | 對話群組/個人識別 ID (LINE 的 `groupId`, `roomId`, 或 `userId`) |
+  | `message_id` | `TEXT` | LINE 官方訊息 ID (去重與更新實體媒體檔用) |
+  | `captured_at` | `TIMESTAMP`| 系統捕獲該訊息的 ISO 8601 時間戳記 |
+  | `sender_name` | `TEXT` | 發言者名稱 (e.g. `Force`, `Jerry`) |
+  | `sender_role` | `TEXT` | **關鍵主從角色**：`host` (服務方/主) 或 `client` (需求方/從) |
+  | `message_type` | `TEXT` | 訊息型態：`text`, `image`, `file`, `system_event` |
+  | `text_content` | `TEXT` | 對話純文字內容 |
+  | `metadata_json` | `TEXT` | 存放圖片 URL、貼圖 ID 等非結構化中繼資料的 JSON 欄位 |
+
+#### B. AI 戰情與任務表 (`ai_insights`)
+* **用途**：儲存大模型分析後的對話摘要、行動待辦事項、風險警告以及 KM 新增備忘。
+* **試算表頁籤 / SQL 欄位定義**：
+  | 欄位名稱 (Column) | 資料型態 (Type) | 說明 (Description) |
+  |---|---|---|
+  | `id` | `INTEGER` | 主鍵，自增序列 |
+  | `chat_id` | `TEXT` | 此分析所屬之群組或對話識別 ID |
+  | `analysis_type` | `TEXT` | 分析類型：`summary`, `task_list`, `risk_alert`, `km_memo` |
+  | `time_range_start`| `TIMESTAMP`| 被分析對話的起點時間 |
+  | `time_range_end`  | `TIMESTAMP`| 被分析對話的終點時間 |
+  | `summary_markdown`| `TEXT` | AI 生成的 Markdown 格式分析報告主體 |
+  | `tasks_json` | `TEXT` | **結構化任務欄位**：包含 `[{"assignee": "Force", "task": "補報價單", "due": "2026-07-05"}]` 的 JSON 陣列 |
+  | `created_at` | `TIMESTAMP`| 分析生成時間 |
+
+---
+
+### 5.2 外部呼叫 API 之「SQL 化協定」
+
+當外部 (地端 Python 或 Cloudflare Worker) 向 GAS 請求數據時，**預設不使用 Google Sheets 特有的 Cell 範圍物件**，而是全面模擬標準的 SQL 查詢接口：
+
+#### A. 查詢 API 請求 (GET 參數化規格)
+```
+GET https://script.google.com/macros/s/{GAS_ID}/exec
+  ?action=query
+  &table=chat_events
+  &chat_id=group_test
+  &start_date=2026-06-25T00:00:00Z
+  &end_date=2026-06-30T23:59:59Z
+  &limit=100
+  &token={VIEWER_TOKEN}
+```
+* 參數映射：
+  * `table` ➡️ SQL `FROM`
+  * `chat_id`, `start_date`, `end_date` ➡️ SQL `WHERE` 條件過濾
+  * `limit` ➡️ SQL `LIMIT` 限制
+
+#### B. API 回傳格式 (標準 JSON 物件陣列)
+GAS 回傳的資料結構必須轉換為標準的 **「Relation rows JSON 陣列」**，以便地端 Python / Cloudflare 可直接執行 `INSERT INTO local_db` 或映射至 Python ORM。
+```json
+{
+  "ok": true,
+  "count": 2,
+  "data": [
+    {
+      "id": 128,
+      "bot_alias": "support",
+      "chat_id": "group_test",
+      "message_id": "msg_987654",
+      "captured_at": "2026-06-25T10:30:00+08:00",
+      "sender_name": "Jerry",
+      "sender_role": "client",
+      "message_type": "text",
+      "text_content": "那個報價單記得補上喔",
+      "metadata_json": "{}"
+    },
+    {
+      "id": 129,
+      "bot_alias": "support",
+      "chat_id": "group_test",
+      "message_id": "msg_987655",
+      "captured_at": "2026-06-25T10:31:00+08:00",
+      "sender_name": "Force",
+      "sender_role": "host",
+      "message_type": "text",
+      "text_content": "好的，下午提供",
+      "metadata_json": "{}"
+    }
+  ]
+}
+```
+
