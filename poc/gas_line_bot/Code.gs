@@ -52,6 +52,7 @@ function doGet(e) {
     try {
       var tableName = e.parameter.table || 'chat_events';
       var chatId = e.parameter.chat_id;
+      var botAlias = e.parameter.bot_alias;
       var startDate = e.parameter.start_date; // ISO string
       var endDate = e.parameter.end_date;     // ISO string
       var limit = parseInt(e.parameter.limit || '1000', 10);
@@ -77,6 +78,7 @@ function doGet(e) {
         }
 
         // Apply filters
+        if (botAlias && rowObj.bot_alias !== botAlias) continue;
         if (chatId && rowObj.chat_id !== chatId) continue;
         
         var capTime = new Date(rowObj.captured_at).getTime();
