@@ -65,6 +65,12 @@ function doGet(e) {
     return jsonResponse({ ok: true, message: 'Setup completed. Spreadsheet bot_configs initialized with single bot.' });
   }
 
+  // Secure endpoint to run media worker directly from URL
+  if (action === 'run_media_worker') {
+    processMediaQueue();
+    return jsonResponse({ ok: true, message: 'Media worker run completed.' });
+  }
+
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
   ensureSetup(ss);
 
