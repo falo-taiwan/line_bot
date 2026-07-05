@@ -686,8 +686,24 @@
     <div class="row mt-4">
       <div class="col-12">
         <div class="glass-card" style="border-color: rgba(52, 211, 153, 0.2) !important;">
-          <div class="card-title-custom" style="color: #34d399;">
-            <i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心
+          <div class="card-title-custom d-flex justify-content-between align-items-center flex-wrap gap-2" style="color: #34d399; min-height: 40px; padding-bottom: 8px;">
+            <div><i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心</div>
+            <div class="d-flex align-items-center gap-3">
+              <!-- Font Size Control -->
+              <div class="d-flex align-items-center gap-1" style="font-size: 12px; font-weight: normal; color: var(--text-light);">
+                <span>字體:</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasFontSize(-1)" style="font-size: 11px; height: 22px; line-height: 1;">A-</button>
+                <span id="promptTextareaFontSizeLabel" style="min-width: 32px; text-align: center; display: inline-block;">13px</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasFontSize(1)" style="font-size: 11px; height: 22px; line-height: 1;">A+</button>
+              </div>
+              <!-- Height Control -->
+              <div class="d-flex align-items-center gap-1" style="font-size: 12px; font-weight: normal; color: var(--text-light);">
+                <span>高度:</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasHeight(-30)" style="font-size: 11px; height: 22px; line-height: 1;">H-</button>
+                <span id="promptTextareasHeightLabel" style="min-width: 42px; text-align: center; display: inline-block;">300px</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasHeight(30)" style="font-size: 11px; height: 22px; line-height: 1;">H+</button>
+              </div>
+            </div>
           </div>
           
           <div class="row g-4">
@@ -697,7 +713,7 @@
               
               <div class="mb-3">
                 <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
-                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" rows="4" oninput="updateUnifiedCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。
+                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" oninput="updateUnifiedCompiledContext()" style="height: 300px; font-size: 13px; resize: vertical;">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。
 （提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）</textarea>
               </div>
 
@@ -799,7 +815,7 @@
                   <label class="form-label small fw-bold text-light mb-0">整合對話內容預覽 (Markdown):</label>
                   <span id="unifiedPreviewStats" class="small text-muted" style="font-size: 11px;">LINE: 0天 | 官方助手: 0天 | 總字數: 0</span>
                 </div>
-                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" rows="8" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選的對話內容..."></textarea>
+                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選的對話內容..." style="height: 300px; font-size: 13px; resize: vertical;"></textarea>
               </div>
 
               <div class="d-flex gap-2 mb-3">
@@ -3211,6 +3227,84 @@
       };
       reader.readAsText(file, 'utf-8');
     }
+
+    // ==========================================
+    // FALO Prompt Textareas Font-Size and Height Controllers
+    // ==========================================
+    let currentPromptFontSize = 13;
+    let currentPromptHeight = 300;
+    let isSyncingHeight = false;
+
+    function adjustPromptTextareasFontSize(delta) {
+      currentPromptFontSize = Math.max(10, Math.min(24, currentPromptFontSize + delta));
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      if (textareaPrompt) textareaPrompt.style.fontSize = currentPromptFontSize + 'px';
+      if (textareaPreview) textareaPreview.style.fontSize = currentPromptFontSize + 'px';
+      
+      const label = document.getElementById('promptTextareaFontSizeLabel');
+      if (label) label.innerText = currentPromptFontSize + 'px';
+      localStorage.setItem('faloPromptFontSize', currentPromptFontSize);
+    }
+
+    function adjustPromptTextareasHeight(delta) {
+      currentPromptHeight = Math.max(150, Math.min(1200, currentPromptHeight + delta));
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      isSyncingHeight = true;
+      if (textareaPrompt) textareaPrompt.style.height = currentPromptHeight + 'px';
+      if (textareaPreview) textareaPreview.style.height = currentPromptHeight + 'px';
+      isSyncingHeight = false;
+      
+      const label = document.getElementById('promptTextareasHeightLabel');
+      if (label) label.innerText = currentPromptHeight + 'px';
+      localStorage.setItem('faloPromptHeight', currentPromptHeight);
+    }
+
+    // Initialize ResizeObserver to synchronize native resize drags
+    window.addEventListener('DOMContentLoaded', () => {
+      // Load saved font size and height
+      const savedFontSize = localStorage.getItem('faloPromptFontSize');
+      if (savedFontSize) {
+        currentPromptFontSize = parseInt(savedFontSize, 10);
+        adjustPromptTextareasFontSize(0);
+      }
+      
+      const savedHeight = localStorage.getItem('faloPromptHeight');
+      if (savedHeight) {
+        currentPromptHeight = parseInt(savedHeight, 10);
+        adjustPromptTextareasHeight(0);
+      } else {
+        adjustPromptTextareasHeight(0); // Default 300px
+      }
+
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      if (textareaPrompt && textareaPreview && typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(entries => {
+          if (isSyncingHeight) return;
+          isSyncingHeight = true;
+          for (let entry of entries) {
+            const targetHeight = entry.contentRect.height + 'px';
+            if (entry.target === textareaPrompt) {
+              textareaPreview.style.height = targetHeight;
+              const label = document.getElementById('promptTextareasHeightLabel');
+              if (label) label.innerText = parseInt(targetHeight) + 'px';
+            } else if (entry.target === textareaPreview) {
+              textareaPrompt.style.height = targetHeight;
+              const label = document.getElementById('promptTextareasHeightLabel');
+              if (label) label.innerText = parseInt(targetHeight) + 'px';
+            }
+          }
+          isSyncingHeight = false;
+        });
+        observer.observe(textareaPrompt);
+        observer.observe(textareaPreview);
+      }
+    });
 
     // Global event listener to add btn-clicked class for click visual feedback
     document.addEventListener('click', (e) => {
