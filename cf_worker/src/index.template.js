@@ -204,24 +204,12 @@ export default {
             "X-Line-Signature": signature
           },
           body: bodyText,
-          redirect: "manual" // Handle redirects manually to retain POST method and body!
+          redirect: "follow" // Let fetch follow the 302 redirect automatically!
         };
 
-        let gasResponse = await fetch(gasUrl.toString(), fetchOptions);
-        
-        // Follow redirects manually if Google throws a 302 Found
-        let redirectCount = 0;
-        while ((gasResponse.status === 302 || gasResponse.status === 301 || gasResponse.status === 307 || gasResponse.status === 308) && redirectCount < 5) {
-          const redirectUrl = gasResponse.headers.get("Location");
-          if (!redirectUrl) break;
-          gasResponse = await fetch(redirectUrl, {
-            ...fetchOptions,
-            redirect: "manual"
-          });
-          redirectCount++;
-        }
-
+        const gasResponse = await fetch(gasUrl.toString(), fetchOptions);
         const data = await gasResponse.text();
+        
         return new Response(data, {
           status: 200, // Return a clean 200 OK back to LINE!
           headers: {
