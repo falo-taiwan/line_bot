@@ -255,8 +255,8 @@ function handleLineWebhook(webhookPayload) {
   try {
     var eventData = JSON.parse(webhookPayload);
     var events = eventData.events || [];
-    if (events.length === 0) {
-      return jsonResponse({ ok: true });
+    if (events.length === 0 || isLineVerifyPayload_(eventData)) {
+      return htmlPostAck_({ ok: true, verify_only: true });
     }
 
     var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
@@ -350,9 +350,9 @@ function handleLineWebhook(webhookPayload) {
       });
     }
 
-    return jsonResponse({ ok: true, logged_count: valuesToAppend.length });
+    return htmlPostAck_({ ok: true, logged_count: valuesToAppend.length });
   } catch (err) {
-    return jsonResponse({ ok: false, error: err.message }, 500);
+    return htmlPostAck_({ ok: false, error: err.message });
   }
 }
 
@@ -993,4 +993,34 @@ function setupMediaWorkerTrigger() {
     .everyMinutes(5)
     .create();
   Logger.log('Media worker time-driven trigger setup successfully (every 5 minutes).');
+}
+
+function htmlPostAck_(payload) {
+  var safePayload = JSON.stringify(payload || {ok: true})
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  return HtmlService
+    .createHtmlOutput(
+      '<!doctype html><html><head><meta charset="utf-8"></head>' +
+      '<body>OK<script type="application/json" id="falo-result">' +
+      safePayload +
+      '</script></body></html>'
+    )
+    .setTitle('FALO GAS LINE Bot Webhook OK')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function isLineVerifyPayload_(payload) {
+  var events = payload && Array.isArray(payload.events) ? payload.events : [];
+  if (events.length !== 1) {
+    return false;
+  }
+  var event = events[0] || {};
+  var replyToken = String(event.replyToken || '');
+  if (/^0{16,}$/.test(replyToken)) {
+    return true;
+  }
+  return false;
 }
