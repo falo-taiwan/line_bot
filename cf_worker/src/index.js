@@ -2398,6 +2398,96 @@ const MVP_HTML = `<!doctype html>
             </div>
           </div>
         </div>
+    </div>
+    
+    <!-- Guided Setup Tutorial Row -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card">
+          <div class="card-title-custom" style="color: #34d399;">
+            <i class="bi bi-journal-bookmark-fill"></i> 📚 LINE Bot & Webhook 連線對接教學 (系統指引)
+          </div>
+          
+          <div class="accordion accordion-flush" id="setupAccordion" style="--bs-accordion-bg: transparent; --bs-accordion-color: var(--text-light); --bs-accordion-btn-color: var(--text-light); --bs-accordion-active-color: #34d399;">
+            
+            <!-- Step 1 -->
+            <div class="accordion-item border-bottom" style="border-color: rgba(255,255,255,0.05) !important; background: transparent;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed px-0 py-3" style="background: transparent; box-shadow: none;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                  <span class="badge bg-secondary me-2">步驟 1</span> 登入 LINE Developers 後台
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#setupAccordion">
+                <div class="accordion-body px-0 text-muted" style="font-size: 14px; line-height: 1.6;">
+                  請使用您的 Google / LINE 帳號登入 <a href="https://developers.line.biz/console/" target="_blank" class="text-info">LINE Developers Console</a>。
+                  在您的 Provider 列表中，選取已經建立好的 Channel：<strong>\`FALO IM Bot Test\`</strong>。
+                  <div class="mt-3 text-center p-4 border rounded bg-dark-subtle text-muted" style="border-style: dashed !important;">
+                    <i class="bi bi-image me-1"></i> [請在此處貼上 LINE Developers 登入與頻道選取頁面截圖]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="accordion-item border-bottom" style="border-color: rgba(255,255,255,0.05) !important; background: transparent;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed px-0 py-3" style="background: transparent; box-shadow: none;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                  <span class="badge bg-secondary me-2">步驟 2</span> 設定 Webhook URL 網址
+                </button>
+              </h2>
+              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#setupAccordion">
+                <div class="accordion-body px-0 text-muted" style="font-size: 14px; line-height: 1.6;">
+                  1. 點擊頻道分頁中的 <strong>\`Messaging API\`</strong>。<br>
+                  2. 往下滾動找到 <strong>\`Webhook settings\`</strong>，點選 <strong>\`Edit\`</strong>。<br>
+                  3. 將右上方大腦環境狀態回報的<strong>「大腦 API 服務端點」</strong>完整複製，並貼入欄位中。<br>
+                  4. 點擊 <strong>\`Update\`</strong> 存檔。
+                  <div class="mt-3 text-center p-4 border rounded bg-dark-subtle text-muted" style="border-style: dashed !important;">
+                    <i class="bi bi-image me-1"></i> [請在此處貼上 Webhook URL 貼入與存檔設定截圖]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="accordion-item border-bottom" style="border-color: rgba(255,255,255,0.05) !important; background: transparent;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed px-0 py-3" style="background: transparent; box-shadow: none;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                  <span class="badge bg-secondary me-2">步驟 3</span> 啟用 Webhook 並點擊驗證
+                </button>
+              </h2>
+              <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#setupAccordion">
+                <div class="accordion-body px-0 text-muted" style="font-size: 14px; line-height: 1.6;">
+                  1. 在 Webhook URL 欄位下方，將 <strong>\`Use webhook\`</strong> 切換至<strong>開啟 (Enabled)</strong>。<br>
+                  2. 點擊 Webhook URL 旁的 <strong>\`Verify\`</strong> (驗證) 按鈕。<br>
+                  3. 看到綠色 <strong>\`Success\`</strong> 彈窗表示大腦與 LINE 已成功串接！
+                  <div class="mt-3 text-center p-4 border rounded bg-dark-subtle text-muted" style="border-style: dashed !important;">
+                    <i class="bi bi-image me-1"></i> [請在此處貼上 Use Webhook 啟用與 Verify Success 驗證通過截圖]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="accordion-item border-bottom-0" style="background: transparent;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed px-0 py-3" style="background: transparent; box-shadow: none;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                  <span class="badge bg-secondary me-2">步驟 4</span> 掃碼加好友並傳送對話測試
+                </button>
+              </h2>
+              <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#setupAccordion">
+                <div class="accordion-body px-0 text-muted" style="font-size: 14px; line-height: 1.6;">
+                  1. 掃描 \`Messaging API\` 頁面最上方的 **Bot QR Code** 加入好友。<br>
+                  2. 在您的手機 LINE 中隨意傳送一句文字訊息給官方 Bot。<br>
+                  3. 開啟您的 Google 試算表 \`chat_events\` 工作表，確認該筆對話資料已即時寫入資料庫！
+                  <div class="mt-3 text-center p-4 border rounded bg-dark-subtle text-muted" style="border-style: dashed !important;">
+                    <i class="bi bi-image me-1"></i> [請在此處貼上 手機 LINE 聊天畫面與 Google 試算表寫入成功截圖]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
     
@@ -2524,6 +2614,8 @@ const MVP_HTML = `<!doctype html>
     }
   </script>
 
+  <!-- JS: Bootstrap 5 Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 `;
