@@ -77,6 +77,19 @@ function doGet(e) {
     return jsonResponse({ ok: true, message: 'testEnqueue run completed.' });
   }
 
+  // Secure endpoint to get Google Drive file contents directly from URL
+  if (action === 'get_file_content') {
+    var fileId = e.parameter.file_id;
+    if (!fileId) return jsonResponse({ ok: false, error: 'Missing file_id' }, 400);
+    try {
+      var file = DriveApp.getFileById(fileId);
+      var content = file.getBlob().getDataAsString();
+      return ContentService.createTextOutput(content).setMimeType(ContentService.MimeType.TEXT);
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
   ensureSetup(ss);
 
