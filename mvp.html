@@ -523,6 +523,52 @@
       </div>
     </div>
 
+    <!-- KM Knowledge Base Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(99, 102, 241, 0.2) !important;">
+          <div class="card-title-custom" style="color: #818cf8;">
+            <i class="bi bi-journal-bookmark-fill"></i> 📚 知識庫文字導入器 (KM)
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Input and Control -->
+            <div class="col-lg-6">
+              <p class="small text-muted mb-3">您可以直接貼入純文字、貼入 HTML 代碼，或是上傳 `.txt` 或 `.html` 格式的知識庫文件。系統支援自動/手動將 HTML 清洗並轉換為乾淨的 Markdown 格式。</p>
+              
+              <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <input type="file" id="kmFileInput" accept=".txt,.html" class="d-none" onchange="handleKmFileSelect(event)">
+                <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('kmFileInput').click()">
+                  <i class="bi bi-file-earmark-arrow-up"></i> 上傳本機檔案 (.txt/.html)
+                </button>
+                <button class="btn btn-outline-info btn-sm" id="btnKmConvert" onclick="triggerKmHtmlConversion()">
+                  <i class="bi bi-code-slash"></i> HTML 轉 Markdown
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearKmData()">
+                  <i class="bi bi-trash"></i> 清除內容
+                </button>
+              </div>
+
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="kmIncludeCheck" onchange="handleKmCheckboxChange(this)">
+                <label class="form-check-label small fw-bold text-light" for="kmIncludeCheck">
+                  ☑️ 將此知識庫資料併入 AI 綜合分析
+                </label>
+              </div>
+            </div>
+            
+            <!-- Right Column: Text Input / Editor -->
+            <div class="col-lg-6">
+              <div class="mb-0">
+                <label class="form-label small fw-bold text-light mb-2">知識庫內文 (純文字 / Markdown):</label>
+                <textarea id="kmTextInput" class="form-control form-control-custom" rows="6" placeholder="請在此貼上或匯入內容..." oninput="handleKmTextInput()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- UNIFIED AI Analysis Center Card -->
     <div class="row mt-4">
       <div class="col-12">
@@ -1734,16 +1780,35 @@
         });
         markdownParts.push('---\n');
       }
+
+      // 3. Process KM segment
+      const kmInclude = document.getElementById('kmIncludeCheck').checked;
+      const kmText = document.getElementById('kmTextInput').value.trim();
+      let hasKm = false;
+      if (kmInclude && kmText) {
+        markdownParts.push(`## 📚 知識庫參考資料 (KM)`);
+        markdownParts.push(`* **資料來源**: 知識庫文字導入器 (KM)`);
+        markdownParts.push('\n');
+        markdownParts.push(kmText);
+        markdownParts.push('\n---\n');
+        hasKm = true;
+      }
       
       const dialogueText = markdownParts.join('\n');
       
       let finalContent = promptText;
       if (dialogueText.trim() !== '') {
-        finalContent = `${promptText}\n\n以下是合併組裝的實際對話對談紀錄：\n\n${dialogueText}`;
+        finalContent = `${promptText}\n\n以下是合併組裝的實際對話對談與背景參考紀錄：\n\n${dialogueText}`;
       }
       
       previewEl.value = finalContent;
-      statsEl.innerText = `LINE: ${selectedDates.size}天(${totalLineMsgs}筆) | 官方助手: ${dbSelectedDates.size}天(${totalDbMsgs}筆) | 總字數: ${finalContent.length}`;
+      
+      let statsStr = `LINE: ${selectedDates.size}天(${totalLineMsgs}筆) | 官方助手: ${dbSelectedDates.size}天(${totalDbMsgs}筆)`;
+      if (hasKm) {
+        statsStr += ` | 知識庫: 啟用`;
+      }
+      statsStr += ` | 總字數: ${finalContent.length}`;
+      statsEl.innerText = statsStr;
     }
 
     function copyUnifiedCompiledContext() {
@@ -1773,9 +1838,11 @@
         : document.getElementById('unifiedGeminiModel').value;
         
       const promptText = document.getElementById('unifiedCompiledContextPreview').value;
+      const kmInclude = document.getElementById('kmIncludeCheck').checked;
+      const kmText = document.getElementById('kmTextInput').value.trim();
 
-      if (!promptText || promptText.trim() === '' || (!selectedDates.size && !dbSelectedDates.size)) {
-        alert('請先載入對話資料並勾選日期以產出對話上下文！');
+      if (!promptText || promptText.trim() === '' || (!selectedDates.size && !dbSelectedDates.size && !(kmInclude && kmText))) {
+        alert('請先載入對話資料或知識庫，並勾選/啟用以產出對話上下文！');
         return;
       }
 
@@ -1852,6 +1919,147 @@
         console.error('Failed to copy report:', err);
         alert('複製失敗！');
       });
+    }
+
+    // ==========================================
+    // KM Knowledge Base Logic
+    // ==========================================
+    function handleKmFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const textInput = document.getElementById('kmTextInput');
+        
+        if (file.name.toLowerCase().endsWith('.html')) {
+          textInput.value = convertHtmlToMarkdown(content);
+        } else {
+          textInput.value = content;
+        }
+        
+        document.getElementById('kmIncludeCheck').checked = true;
+        updateUnifiedCompiledContext();
+        alert(`知識庫檔案「${file.name}」匯入成功！已自動勾選併入分析。`);
+      };
+      reader.readAsText(file);
+    }
+
+    function triggerKmHtmlConversion() {
+      const textInput = document.getElementById('kmTextInput');
+      const rawText = textInput.value;
+      if (!rawText.trim()) {
+        alert('請先貼入 HTML 內容再進行轉換！');
+        return;
+      }
+      
+      const md = convertHtmlToMarkdown(rawText);
+      textInput.value = md;
+      updateUnifiedCompiledContext();
+      alert('已成功將貼入之 HTML 轉換為 Markdown！');
+    }
+
+    function convertHtmlToMarkdown(html) {
+      if (!html) return '';
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      function processNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.nodeValue;
+        }
+        
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return '';
+        }
+        
+        const tagName = node.tagName.toLowerCase();
+        let childrenContent = '';
+        
+        for (let i = 0; i < node.childNodes.length; i++) {
+          childrenContent += processNode(node.childNodes[i]);
+        }
+        
+        switch (tagName) {
+          case 'h1':
+            return `\n# ${childrenContent.trim()}\n`;
+          case 'h2':
+            return `\n## ${childrenContent.trim()}\n`;
+          case 'h3':
+            return `\n### ${childrenContent.trim()}\n`;
+          case 'h4':
+            return `\n#### ${childrenContent.trim()}\n`;
+          case 'h5':
+            return `\n##### ${childrenContent.trim()}\n`;
+          case 'h6':
+            return `\n###### ${childrenContent.trim()}\n`;
+          case 'p':
+            return `\n${childrenContent.trim()}\n`;
+          case 'br':
+            return '\n';
+          case 'strong':
+          case 'b':
+            return `**${childrenContent}**`;
+          case 'em':
+          case 'i':
+            return `*${childrenContent}*`;
+          case 'code':
+            return `\`${childrenContent}\``;
+          case 'pre':
+            return `\n\`\`\`\n${childrenContent}\n\`\`\`\n`;
+          case 'a':
+            const href = node.getAttribute('href') || '';
+            return href ? `[${childrenContent}](${href})` : childrenContent;
+          case 'li':
+            return `* ${childrenContent.trim()}\n`;
+          case 'ul':
+            return `\n${childrenContent}\n`;
+          case 'ol':
+            return `\n${childrenContent}\n`;
+          case 'blockquote':
+            return `\n> ${childrenContent.trim().replace(/\n/g, '\n> ')}\n`;
+          case 'hr':
+            return '\n---\n';
+          case 'script':
+          case 'style':
+          case 'head':
+          case 'title':
+            return '';
+          default:
+            return childrenContent;
+        }
+      }
+      
+      const targetElement = doc.body || doc.documentElement;
+      let md = processNode(targetElement);
+      md = md.replace(/\n{3,}/g, '\n\n');
+      return md.trim();
+    }
+
+    function clearKmData() {
+      document.getElementById('kmTextInput').value = '';
+      document.getElementById('kmIncludeCheck').checked = false;
+      document.getElementById('kmFileInput').value = '';
+      updateUnifiedCompiledContext();
+    }
+
+    function handleKmCheckboxChange(cb) {
+      updateUnifiedCompiledContext();
+    }
+
+    // Auto check if user types text
+    function handleKmTextInput() {
+      const textVal = document.getElementById('kmTextInput').value.trim();
+      const includeCheck = document.getElementById('kmIncludeCheck');
+      
+      if (textVal && !includeCheck.checked) {
+        includeCheck.checked = true;
+      } else if (!textVal && includeCheck.checked) {
+        includeCheck.checked = false;
+      }
+      updateUnifiedCompiledContext();
     }
 
     // Global event listener to add btn-clicked class for click visual feedback
