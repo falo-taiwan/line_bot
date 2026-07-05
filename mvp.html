@@ -234,6 +234,33 @@
       margin-right: 4px;
       display: inline-block;
     }
+
+    /* Button Click Feedback */
+    .btn {
+      transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease !important;
+    }
+
+    .btn:active, .btn.btn-clicked {
+      transform: scale(0.95) !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5) !important;
+    }
+
+    .btn-custom:active, .btn-custom.btn-clicked {
+      background: #0d9488 !important; /* solid primary teal */
+      border-color: #14b8a6 !important;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.6) !important;
+    }
+
+    .btn-emerald:active, .btn-emerald.btn-clicked {
+      background: #047857 !important; /* solid deep emerald */
+      border-color: #10b981 !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+    }
+
+    .btn-outline-light:active, .btn-outline-light.btn-clicked {
+      background: rgba(255, 255, 255, 0.2) !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+    }
   </style>
 </head>
 <body>
@@ -265,12 +292,12 @@
           
           <div class="mb-3">
             <label class="form-label small fw-bold text-light">GAS Web App URL:</label>
-            <input type="text" id="gasUrlInput" class="form-control form-control-custom" placeholder="https://script.google.com/macros/s/.../exec">
+            <input type="text" id="gasUrlInput" class="form-control form-control-custom" value="https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
           
           <div class="mb-4">
             <label class="form-label small fw-bold text-light">VIEWER_TOKEN (API 安全金鑰):</label>
-            <input type="password" id="tokenInput" class="form-control form-control-custom" placeholder="請輸入 API 金鑰 (上傳對話時需要)...">
+            <input type="password" id="tokenInput" class="form-control form-control-custom" value="falo_secure_token_12345" placeholder="請輸入 API 金鑰 (上傳對話時需要)...">
           </div>
           
           <button class="btn btn-custom w-100 mt-2" onclick="testConnection()">
@@ -1349,8 +1376,6 @@
       });
     }
 
-    }
-
     // ==========================================
     // Database Official Account Slicer & Parser Logic
     // ==========================================
@@ -1874,6 +1899,17 @@
         alert('複製失敗！');
       });
     }
+
+    // Global event listener to add btn-clicked class for click visual feedback
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn');
+      if (btn) {
+        btn.classList.add('btn-clicked');
+        setTimeout(() => {
+          btn.classList.remove('btn-clicked');
+        }, 150);
+      }
+    });
   </script>
 
   <!-- JS: Marked.js for Markdown parsing -->
