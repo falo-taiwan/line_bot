@@ -701,6 +701,45 @@
 （提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）</textarea>
               </div>
 
+              <!-- Prompt Manager Widget -->
+              <div class="p-3 rounded border border-secondary mb-3" style="background: rgba(30, 41, 59, 0.4);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small fw-bold text-light" style="font-size: 12px;"><i class="bi bi-bookmarks-fill text-info"></i> 💡 提示詞範本庫</span>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-outline-info btn-xs py-0 px-2" onclick="showAddPromptForm()" style="font-size: 11px;">新增</button>
+                    <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="document.getElementById('importPromptCsvInput').click()" style="font-size: 11px;">匯入 CSV</button>
+                    <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="exportPromptsToCsv()" style="font-size: 11px;">匯出 CSV</button>
+                    <input type="file" id="importPromptCsvInput" accept=".csv" class="d-none" onchange="importPromptsFromCsv(event)">
+                  </div>
+                </div>
+                
+                <!-- Presets dropdown/selector -->
+                <div class="mb-2 d-flex gap-2">
+                  <select id="promptTemplateSelector" class="form-select form-control-custom py-1" style="font-size: 12px; height: 32px;" onchange="loadSelectedPromptTemplate()">
+                    <!-- Options populated dynamically -->
+                  </select>
+                  <button class="btn btn-outline-danger btn-sm px-2" id="btnDeleteCustomPrompt" onclick="deleteCurrentCustomPrompt()" style="height: 32px; display: none;" title="刪除此自訂提示詞">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+
+                <!-- Add/Edit Inline Form (Hidden by default) -->
+                <div id="addPromptForm" class="border border-secondary p-3 rounded mb-2 d-none" style="background: rgba(15, 23, 42, 0.75);">
+                  <div class="mb-2">
+                    <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: bold;">提示詞名稱</label>
+                    <input type="text" id="newPromptName" class="form-control form-control-custom text-light py-1" style="font-size: 12px; height: 30px;" placeholder="例如: 客服滿意度檢測">
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: bold;">提示詞內容</label>
+                    <textarea id="newPromptContent" class="form-control form-control-custom text-light" rows="4" style="font-size: 12px;" placeholder="請輸入完整的 AI 提示詞指令..."></textarea>
+                  </div>
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-outline-secondary btn-sm py-1 px-3" onclick="hideAddPromptForm()" style="font-size: 11px;">取消</button>
+                    <button class="btn btn-info btn-sm py-1 px-3" onclick="saveNewPromptTemplate()" style="font-size: 11px; font-weight: bold;">儲存</button>
+                  </div>
+                </div>
+              </div>
+
               <!-- AI Provider & Model Select Row -->
               <div class="p-3 rounded border border-secondary mb-3" style="background: rgba(15, 23, 42, 0.5);">
                 <div class="row g-2 align-items-center">
@@ -917,6 +956,11 @@
       // Calculate and display Cloudflare Webhook Endpoint URL
       updateWebhookDisplay();
       
+      
+      // Initialize prompt templates
+      renderPromptTemplates();
+      loadSelectedPromptTemplate();
+
       if (cachedUrl) {
         // Automatically attempt silent connection on load
         testConnection(true);
@@ -2896,6 +2940,252 @@
         
         downloadFile(textContent.join('\n'), filename);
       }
+    }
+
+    // ==========================================
+    // FALO Prompt Template Manager Logic
+    // ==========================================
+    const defaultPrompts = [
+      {
+        name: "📌 預設: 對話摘要與待辦 (Falo Default)",
+        content: "請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。\n（提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）"
+      },
+      {
+        name: "🔍 客服回覆與滿意度檢測",
+        content: "請分析以下官方助手與使用者的對話紀錄。\n評估：\n1. 客服助手是否解決了使用者的問題？\n2. 客服的回覆口氣與時效性評估。\n3. 使用者是否有顯露不滿或焦慮的情緒？\n4. 推薦的後續改進措施。"
+      },
+      {
+        name: "💡 銷售商機與用戶需求挖掘",
+        content: "請詳細閱讀以下群組聊天對話，挖掘潛在的「銷售商機」與「用戶痛點需求」。\n請列出：\n- 哪些用戶表達了明確的需求或興趣？\n- 他們具體對哪些產品/服務感興趣？\n- 目前的痛點與抗拒點是什麼？\n- 建議銷售人員如何跟進？"
+      },
+      {
+        name: "⚠️ 爭議與客訴風險預警",
+        content: "請掃描以下對話內容，進行「合規性」與「客訴風險」評估。\n- 標記出任何有爭議性、語氣強烈、涉嫌客訴或違反規範 of 對話片段。\n- 提供風險等級（高/中/低）。\n- 提供公關或客服建議的修補回覆方案。"
+      }
+    ];
+
+    let customPrompts = [];
+    try {
+      customPrompts = JSON.parse(localStorage.getItem('faloCustomPrompts') || '[]');
+    } catch(e) {
+      customPrompts = [];
+    }
+
+    function renderPromptTemplates() {
+      const selector = document.getElementById('promptTemplateSelector');
+      if (!selector) return;
+      selector.innerHTML = '';
+      
+      // Add default prompts
+      defaultPrompts.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = `default_${idx}`;
+        opt.innerText = p.name;
+        selector.appendChild(opt);
+      });
+      
+      // Add custom prompts
+      customPrompts.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = `custom_${idx}`;
+        opt.innerText = `⭐ ${p.name}`;
+        selector.appendChild(opt);
+      });
+      
+      // Append placeholder choice to keep prompt editor clean
+      const opt = document.createElement('option');
+      opt.value = "empty";
+      opt.innerText = "➕ 自訂手動輸入...";
+      selector.appendChild(opt);
+    }
+
+    function loadSelectedPromptTemplate() {
+      const selector = document.getElementById('promptTemplateSelector');
+      if (!selector) return;
+      const val = selector.value;
+      const deleteBtn = document.getElementById('btnDeleteCustomPrompt');
+      const promptInput = document.getElementById('unifiedAiPromptInput');
+      
+      if (val.startsWith('default_')) {
+        const idx = parseInt(val.split('_')[1], 10);
+        promptInput.value = defaultPrompts[idx].content;
+        deleteBtn.style.display = 'none';
+      } else if (val.startsWith('custom_')) {
+        const idx = parseInt(val.split('_')[1], 10);
+        promptInput.value = customPrompts[idx].content;
+        deleteBtn.style.display = 'inline-block';
+      } else {
+        // empty option or manual input
+        deleteBtn.style.display = 'none';
+      }
+      updateUnifiedCompiledContext();
+    }
+
+    function deleteCurrentCustomPrompt() {
+      const selector = document.getElementById('promptTemplateSelector');
+      const val = selector.value;
+      if (val.startsWith('custom_')) {
+        const idx = parseInt(val.split('_')[1], 10);
+        if (confirm(`確定要刪除自訂提示詞「${customPrompts[idx].name}」嗎？`)) {
+          customPrompts.splice(idx, 1);
+          localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+          renderPromptTemplates();
+          selector.value = 'default_0';
+          loadSelectedPromptTemplate();
+        }
+      }
+    }
+
+    function showAddPromptForm() {
+      document.getElementById('addPromptForm').classList.remove('d-none');
+      document.getElementById('newPromptName').value = '';
+      document.getElementById('newPromptContent').value = '';
+      document.getElementById('newPromptName').focus();
+    }
+
+    function hideAddPromptForm() {
+      document.getElementById('addPromptForm').classList.add('d-none');
+    }
+
+    function saveNewPromptTemplate() {
+      const name = document.getElementById('newPromptName').value.trim();
+      const content = document.getElementById('newPromptContent').value.trim();
+      
+      if (!name || !content) {
+        alert('請填寫提示詞名稱與完整的提示詞內容！');
+        return;
+      }
+      
+      // Check for duplicates
+      const isDuplicate = customPrompts.some(p => p.name === name) || defaultPrompts.some(p => p.name === name);
+      if (isDuplicate) {
+        alert('已存在同名的提示詞範本，請更換名稱！');
+        return;
+      }
+      
+      customPrompts.push({ name, content });
+      localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+      
+      renderPromptTemplates();
+      
+      // Auto select the newly created prompt
+      const selector = document.getElementById('promptTemplateSelector');
+      selector.value = `custom_${customPrompts.length - 1}`;
+      loadSelectedPromptTemplate();
+      
+      hideAddPromptForm();
+      alert(`已成功儲存提示詞「${name}」！`);
+    }
+
+    function exportPromptsToCsv() {
+      let csvContent = [];
+      csvContent.push("Name,Content");
+      
+      // Export all templates
+      const all = [...defaultPrompts, ...customPrompts];
+      all.forEach(p => {
+        const nameEscaped = '"' + p.name.replace(/"/g, '""') + '"';
+        const contentEscaped = '"' + p.content.replace(/"/g, '""') + '"';
+        csvContent.push(`${nameEscaped},${contentEscaped}`);
+      });
+      
+      const fullCsv = csvContent.join('\n');
+      const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), fullCsv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Falo_Prompts_Backup_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function parseCsvString(csvText) {
+      const lines = [];
+      let row = [""];
+      let inQuotes = false;
+      
+      for (let i = 0; i < csvText.length; i++) {
+        const c = csvText[i];
+        const next = csvText[i + 1];
+        
+        if (c === '"') {
+          if (inQuotes && next === '"') {
+            row[row.length - 1] += '"';
+            i++; // skip next quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          row.push("");
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+          if (c === '\r' && next === '\n') {
+            i++; // skip LF
+          }
+          lines.push(row);
+          row = [""];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== "") {
+        lines.push(row);
+      }
+      return lines;
+    }
+
+    function importPromptsFromCsv(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = parseCsvString(text);
+        
+        if (rows.length < 2) {
+          alert('CSV 格式錯誤或無資料！');
+          return;
+        }
+        
+        const header = rows[0];
+        const nameIdx = header.findIndex(h => h.trim().toLowerCase() === 'name');
+        const contentIdx = header.findIndex(h => h.trim().toLowerCase() === 'content');
+        
+        if (nameIdx === -1 || contentIdx === -1) {
+          alert('CSV 標頭必須包含 "Name" 與 "Content" 兩個欄位名稱！');
+          return;
+        }
+        
+        let importedCount = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length <= Math.max(nameIdx, contentIdx)) continue;
+          
+          const name = row[nameIdx].trim();
+          const content = row[contentIdx].trim();
+          
+          if (name && content) {
+            const isDuplicate = customPrompts.some(p => p.name === name) || defaultPrompts.some(p => p.name === name);
+            if (!isDuplicate) {
+              customPrompts.push({ name, content });
+              importedCount++;
+            }
+          }
+        }
+        
+        if (importedCount > 0) {
+          localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+          renderPromptTemplates();
+          alert(`成功匯入 ${importedCount} 個自訂提示詞！`);
+        } else {
+          alert('未匯入任何新提示詞（可能名稱重複或檔案內容為空）。');
+        }
+        
+        event.target.value = '';
+      };
+      reader.readAsText(file, 'utf-8');
     }
 
     // Global event listener to add btn-clicked class for click visual feedback
