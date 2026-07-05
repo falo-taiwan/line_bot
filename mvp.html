@@ -653,9 +653,9 @@
                   <div class="col-md-6 col-12" id="builtinModelCol">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> 內建 AI 模型</label>
                     <select id="unifiedBuiltinModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
-                      <option value="@cf/mistral/mistral-small-3.1-24b-instruct" selected>Mistral Small 24B (中型長文本 - 預設)</option>
+                      <option value="@cf/mistralai/mistral-small-3.1-24b-instruct" selected>Mistral Small 24B (中型長文本 - 預設)</option>
                       <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Llama 3.3 70B (進階高智能)</option>
-                      <option value="@cf/meta/llama-3.1-8b-instruct">Llama 3.1 8B (高速實用型)</option>
+                      <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (輕量對話極速)</option>
                     </select>
                   </div>
                   
@@ -2138,12 +2138,12 @@
 </head>
 <body>
   <div class="container">
-    \${parsedHtml}
+    ${parsedHtml}
   </div>
 </body>
 </html>`;
         blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8;' });
-        filename = `Falo_AI_Report_\${new Date().toISOString().slice(0,10)}.html`;
+        filename = `Falo_AI_Report_${new Date().toISOString().slice(0,10)}.html`;
       }
       
       const url = URL.createObjectURL(blob);
@@ -2504,17 +2504,17 @@
             <td style="padding: 8px;">
               <input type="checkbox" class="form-check-input" ${isChecked} onchange="toggleBasketItem('${item.id}')" style="cursor: pointer;">
             </td>
-            <td style="padding: 8px;">\${typeBadge}</td>
+            <td style="padding: 8px;">${typeBadge}</td>
             <td style="padding: 8px;">
-              <div class="fw-bold text-light">\${item.title}</div>
-              <div class="text-muted small">\${item.info}</div>
+              <div class="fw-bold text-light">${item.title}</div>
+              <div class="text-muted small">${item.info}</div>
             </td>
-            <td style="padding: 8px;" class="text-muted">\${item.charCount} 字</td>
+            <td style="padding: 8px;" class="text-muted">${item.charCount} 字</td>
             <td style="padding: 8px; text-align: center;">
               <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, -1)" \${index === 0 ? 'disabled' : ''} title="上移">▲</button>
-                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, 1)" \${index === analysisBasket.length - 1 ? 'disabled' : ''} title="下移">▼</button>
-                <button class="btn btn-outline-danger btn-xs py-0 ms-2" onclick="deleteBasketItem('\${item.id}')" title="刪除"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="上移">▲</button>
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(${index}, 1)" ${index === analysisBasket.length - 1 ? 'disabled' : ''} title="下移">▼</button>
+                <button class="btn btn-outline-danger btn-xs py-0 ms-2" onclick="deleteBasketItem('${item.id}')" title="刪除"><i class="bi bi-trash"></i></button>
               </div>
             </td>
           </tr>`;
