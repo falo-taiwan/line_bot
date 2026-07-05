@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Falo LINE 對話解析規格與開發指南</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-light: #0d9488;
+      --primary-bg: #f0fdfa;
+      --dark: #0f172a;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --indigo: #4f46e5;
+      --indigo-bg: #e0e7ff;
+      --glass: rgba(255, 255, 255, 0.85);
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+      --gradient: linear-gradient(135deg, #115e59 0%, #0f766e 50%, #0d9488 100%);
+      --indigo-gradient: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6366f1 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease-in-out;
+    }
+
+    body {
+      margin: 0;
+      background: var(--light);
+      color: var(--dark);
+      font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header Styling */
+    header {
+      background: var(--gradient);
+      color: #ffffff;
+      padding: 64px 0 48px;
+      border-bottom: 5px solid #0f766e;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: -50px;
+      right: -50px;
+      width: 250px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sections */
+    section {
+      padding: 48px 0 16px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      border-left: 5px solid var(--primary);
+      padding-left: 14px;
+      margin: 0 0 28px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 24px 0 12px;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: #334155;
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border);
+      border-radius: 16px 0 0 16px;
+    }
+
+    .card-primary::before { background: var(--primary); }
+    .card-success::before { background: var(--success); }
+    .card-warning::before { background: var(--warning); }
+    .card-indigo::before { background: var(--indigo); }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+      margin: 18px 0;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Callout */
+    .callout {
+      border-left: 4px solid var(--indigo);
+      background: #f5f3ff;
+      padding: 16px 20px;
+      margin: 24px 0;
+      border-radius: 0 10px 10px 0;
+    }
+
+    /* Comparison Table */
+    .table-container {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin: 24px 0 40px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--dark);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* Bullet list */
+    ul {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="badge">開發設計規範 (v2.x)</div>
+      <h1>Falo LINE 對話解析規格與開發指南</h1>
+      <p>結合兩大成熟開源套件的共通解析規格與 Falo SQL Gateway 核心演進策略</p>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Core Strategy -->
+    <section>
+      <h2>一、 Falo 核心策略：SQL 作為資料交換網關</h2>
+      <div class="callout">
+        <h4>💡 SQL 是一種資料交換 Gateway 抽象概念，而非綁定實體 DB</h4>
+        <p>在 v2.x 設計中，解析層與大腦層完全解耦。對話解析器（不管是 JS 在前端執行，還是地端 Python 在背景執行）在讀取 <code>.txt</code> 歷史對話檔後，<strong>一律輸出符合 SQL 欄位的標準 JSON 物件陣列</strong>。</p>
+        <p>這使得 AI 能夠在語意層以 SQL 的形式精準查詢歷史（如篩選特定群組與時間區間的對話），且未來底層儲存從 Google Sheets 升級到 SQLite 或 Cloudflare D1 時，解析與前台程式碼完全不需要改動。</p>
+      </div>
+    </section>
+
+    <!-- Upstream Packages -->
+    <section>
+      <h2>二、 借鏡之上游開源套件說明</h2>
+      <p>為了避免在處理 LINE 匯出檔的多種 Edge Cases（如不同手機作業系統、不同語言語系、多行對話換行等）走冤枉路，我們將以下兩個專案最新代碼備份於本機庫，作為 Falo 解析演算法的上游基石：</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="card card-primary">
+          <h3><i class="bi bi-filetype-js text-teal"></i> 1. line-message-analyzer (JS)</h3>
+          <p><strong>專案連結</strong>：chonyy/line-message-analyzer</p>
+          <p><strong>備份路徑</strong>：<code>backup/parsers/line-message-analyzer.zip</code></p>
+          <p><strong>核心價值</strong>：以 JavaScript/React 撰寫，完美處理瀏覽器端文字檔分行、AM/PM 時間切換、以及繁體中文環境下所有日期變體。適合 Falo 前端上傳解析器參考。</p>
+        </div>
+        <div class="card card-indigo">
+          <h3><i class="bi bi-filetype-py text-indigo"></i> 2. linelog2py (Python)</h3>
+          <p><strong>專案連結</strong>：jyu0414/linelog2py</p>
+          <p><strong>備份路徑</strong>：<code>backup/parsers/linelog2py.zip</code></p>
+          <p><strong>核心價值</strong>：Python 社群中專門將 LINE 文字歷史轉換成結構化物件的封裝庫。定義了乾淨的訊息實體與類別，適合作為地端後台解析參考。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Common Rules -->
+    <section>
+      <h2>三、 共通性解析規則與特徵判定</h2>
+      <p>通過分析兩大套件，我們歸納出以下四大共通性解析原則：</p>
+
+      <h3>1. 日期狀態機 (Date State Tracker)</h3>
+      <p>LINE 導出的文字檔中，日期通常是獨立一行的標頭（如 <code>2026/06/25 (Mon)</code> 或 <code>2026年6月25日 星期一</code>），而每條具體對話只有標記時間（如 <code>10:30</code>）。</p>
+      <p><strong>實作對策</strong>：解析器內部維持一個 <code>date_string</code> 狀態。遇到空行後的下一行若匹配日期格式，則更新該狀態，其餘對話行均結合此 <code>date_string</code> 拼湊出完整 ISO 8601 時間戳記。</p>
+
+      <h3>2. 多行累加緩衝器 (Multi-line Accumulator)</h3>
+      <p>使用者在 LINE 發送訊息常會按 Shift+Enter 換行。文字檔中的這些換行行**不帶有時間與人名標頭**。</p>
+      <p><strong>實作對策</strong>：一行的第一個元素若不符合新對話起點的判定條件，解析器必須將該行文字作為 <code>\n</code> 連接字串，直接追加累加到上一則訊息物件的內容末端。</p>
+
+      <h3>3. 特殊事件分類 (Message Categorization)</h3>
+      <p>對話中的特殊圖片、貼圖與通話事件，兩大套件皆有以下共通的 Regex 與特徵字串檢索轉換機制：</p>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>LINE 原始特徵字串</th>
+              <th>對應類別</th>
+              <th>SQL event_type 映射</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>[圖片]</code> / <code>[Photo]</code> / <code>[写真]</code></td>
+              <td>圖片媒體</td>
+              <td><code>image</code></td>
+            </tr>
+            <tr>
+              <td><code>[貼圖]</code> / <code>[Sticker]</code> / <code>[スタンプ]</code></td>
+              <td>貼圖物件</td>
+              <td><code>sticker</code></td>
+            </tr>
+            <tr>
+              <td><code>[檔案]</code> / <code>[File]</code> / <code>[ファイル]</code></td>
+              <td>文件附件</td>
+              <td><code>file</code></td>
+            </tr>
+            <tr>
+              <td><code>☎ 通話時間</code> / <code>☎ Call time</code> / <code>☎ 通話時間</code></td>
+              <td>語音通話紀錄</td>
+              <td><code>call_event</code></td>
+            </tr>
+            <tr>
+              <td><code>收回訊息</code> / <code>unsent a message</code></td>
+              <td>訊息收回通知</td>
+              <td><code>unsent_event</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Algorithm Blueprint -->
+    <section>
+      <h2>四、 Falo 統一解析演算法藍圖</h2>
+      <p>以下為 Falo 設計之統一對話解析演算法偽代碼，地端 Python 與 CF 前端 JS 均需照此實作：</p>
+      <pre><code>function parseLineLog(rawText) {
+  const lines = rawText.split('\n');
+  let dateString = "2020/01/01";
+  let isNextNewDate = false;
+  const messages = [];
+
+  // 跳過前兩行標頭 (匯出群組名稱與時間)
+  for (let i = 2; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === "") {
+      isNextNewDate = true;
+      continue;
+    }
+    
+    // 偵測日期行
+    if (isNextNewDate && /^\d{4}\/\d{2}\/\d{2}/.test(line)) {
+      dateString = line.substring(0, 10);
+      isNextNewDate = false;
+      continue;
+    }
+
+    const splitted = line.split('\t');
+    // 偵測新對話列 (時間 \t 姓名 \t 內容)
+    if (splitted.length >= 3 && /^\d{2}:\d{2}$/.test(splitted[0])) {
+      const timeStr = `${dateString} ${splitted[0]}`;
+      const username = splitted[1];
+      const text = splitted.slice(2).join('\t');
+      
+      messages.push({
+        captured_at: new Date(timeStr).toISOString(),
+        sender_name: username,
+        text_content: text,
+        message_type: detectType(text) // 貼圖/圖片分類識別
+      });
+    } else if (messages.length > 0) {
+      // 處理換行訊息
+      messages[messages.length - 1].text_content += '\n' + line;
+    }
+  }
+  return messages;
+}</code></pre>
+    </section>
+
+  </main>
+</body>
+</html>

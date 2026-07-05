@@ -2064,6 +2064,16 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_html(404, "<h1>Google Sheets Access Methods Page Not Found</h1>")
             return
 
+        # Serve LINE Parser Specification Guide (open to all)
+        if path in {"/line-parser-spec", "/line-parser-spec.html"}:
+            spec_path = ROOT_DIR / "docs" / "tutorials" / "line_parser_spec.html"
+            if spec_path.exists():
+                self.send_html(200, spec_path.read_text(encoding="utf-8"))
+                return
+            self.send_html(404, "<h1>LINE Parser Specification Page Not Found</h1>")
+            return
+
+
         if path == "/login":
             if self.is_authenticated():
                 self.redirect("/")

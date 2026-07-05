@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Google Sheets 存取技術大解析：各種方法與 SQL 實作評估指南</title>
+  <title>Google Sheets 存取技術大解析：SQL 作為資料交換 Gateway 的抽象思想</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
@@ -18,9 +18,12 @@
       --success: #059669;
       --warning: #d97706;
       --danger: #dc2626;
+      --indigo: #4f46e5;
+      --indigo-bg: #e0e7ff;
       --glass: rgba(255, 255, 255, 0.85);
       --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
       --gradient: linear-gradient(135deg, #115e59 0%, #0f766e 50%, #0d9488 100%);
+      --indigo-gradient: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6366f1 100%);
     }
 
     * {
@@ -92,7 +95,7 @@
 
     /* Sections */
     section {
-      padding: 48px 0;
+      padding: 48px 0 16px;
     }
 
     h2 {
@@ -195,6 +198,7 @@
     .card-success::before { background: var(--success); }
     .card-warning::before { background: var(--warning); }
     .card-danger::before { background: var(--danger); }
+    .card-indigo::before { background: var(--indigo); }
 
     .card h3 {
       margin: 0 0 16px;
@@ -292,6 +296,33 @@
       margin-bottom: 0;
     }
 
+    /* Highlight Banner */
+    .concept-banner {
+      background: var(--indigo-gradient);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+    .concept-banner h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .concept-banner p {
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      margin: 0 0 16px;
+    }
+    .concept-banner code {
+      background: rgba(255,255,255,0.15);
+      color: #ffffff;
+    }
+
   </style>
 </head>
 <body>
@@ -299,17 +330,31 @@
   <!-- Header -->
   <header>
     <div class="container">
-      <div class="badge">技術分享與評估指南</div>
+      <div class="badge">架構師思維與技術分享</div>
       <h1>Google Sheets 存取技術大解析</h1>
-      <p>針對 SME 數位轉型到商用 SaaS，剖析 7 種試算表資料庫化的實作優缺點與 SQL 開發路徑</p>
+      <p>探討 SQL 作為「資料交換 Gateway」的抽象化核心思想，及 7 種試算表資料庫化的實作評估</p>
     </div>
   </header>
 
   <!-- Content Section -->
   <main class="container">
-    <section>
+    
+    <!-- SQL Abstraction Concept Section -->
+    <section style="padding-top: 48px;">
+      <div class="concept-banner">
+        <h3><i class="bi bi-cpu-fill"></i> 核心思想：SQL 只是一種「資料交換 Gateway」的抽象協議</h3>
+        <p>在傳統開發中，我們常把 SQL 窄化地理解為「對實體資料庫檔案（如 MySQL/PostgreSQL）進行的查詢」。但在現代雲地協同與 AI 開發時代，<strong>SQL 代表的是一種高度標準化、宣告式（Declarative）的「資料交換 Gateway 契約」</strong>。</p>
+        <p>不論底層的實體儲存媒體是 Google Sheets、地端 CSV、甚至是雲端 JSON 檔案；只要我們在中間包裝一層 **SQL API Gateway**，讓呼叫端預設使用 <code>SELECT</code>, <code>WHERE</code>, <code>LIMIT</code> 等 SQL 邏輯進行溝通，就能在架構上實現<strong>資料庫技術細節的完全隱藏</strong>：</p>
+        <ul>
+          <li><strong>對 AI Coding 與 Agent 極度友善</strong>：AI Agent 自然懂 SQL，只要介面是 SQL 規格，AI 就能在不需要了解 Google 特有 API 與限制的情況下，進行 100% 正確的檢索與操作。</li>
+          <li><strong>儲存媒介隨時無痛升級</strong>：今天用 Google Sheets (GAS 封裝 SQL API) 作為 $0 成本資料庫；明天想升級到 Cloudflare D1，地端與前端的程式碼 **完全不用改寫任何一行**，因為底層都是說著相同的 SQL Gateway 語言！</li>
+        </ul>
+      </div>
+    </section>
+
+    <section style="padding-top: 16px;">
       <h2>一、 各種存取 Google Sheets 方案總覽</h2>
-      <p>Google Sheets 是一個天然、免費且帶有極佳管理介面的儲存載體。然而，依據呼叫頻率、隱私需求與技術層級，業界有非常多種存取與資料庫化的架構。以下是我們整理的 7 種主流方案對照：</p>
+      <p>基於上述 SQL Gateway 的抽象思想，我們評估了 7 種將 Google Sheets 當作資料庫存取的主流架構：</p>
       
       <div class="table-container">
         <table>
@@ -554,10 +599,10 @@ print(result)</code></pre>
 
     <section>
       <h2>三、 架構師深度建議與選型策略</h2>
-      <p>對於 **Force** 與 **Falo 開發團隊** 而言，我們應該依據產品的演進階段，採取不同的選型組合：</p>
+      <p>對於 **Force** 與 **Falo 開發團隊** 而言，我們將這一套 SQL Gateway 的抽象思想融入架構規劃，並提供以下演進路徑：</p>
       
-      <div class="callout">
-        <h4>💡 給 Falo 產品線的黃金演進組合提案：</h4>
+      <div class="callout" style="border-left-color: var(--indigo); background: #f5f3ff;">
+        <h4 style="color: var(--indigo);"><i class="bi bi-rocket-takeoff-fill"></i> 給 Falo 產品線的黃金演進組合提案：</h4>
         <ul>
           <li><strong>MVP 階段（先求有，SME 轉型補助首選）</strong>：<br>
             採用 **「GAS Web App 封裝 (模擬 SQL API)」**。
