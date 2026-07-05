@@ -456,10 +456,19 @@
                 </div>
               </div>
               <!-- Action buttons for LINE Slicer -->
-              <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
-                <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
-                  <i class="bi bi-cart-plus"></i> 📥 存入分析清單
-                </button>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
+                <div class="input-group input-group-sm" style="max-width: 160px; height: 31px;">
+                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
+                  <input type="text" id="lineFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="LN" style="font-size: 12px;">
+                </div>
+                <div class="d-flex gap-2 flex-grow-1">
+                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                    <i class="bi bi-cart-plus"></i> 存入分析清單
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtLine" onclick="exportSelectedLineToTxt()" style="font-size: 12px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);">
+                    <i class="bi bi-file-earmark-arrow-down"></i> 匯出 .txt
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -527,10 +536,19 @@
               </div>
               
               <!-- Action buttons for Database Slicer -->
-              <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
-                <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
-                  <i class="bi bi-cart-plus"></i> 📥 將已選助手對話存入分析清單
-                </button>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
+                <div class="input-group input-group-sm" style="max-width: 160px; height: 31px;">
+                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
+                  <input type="text" id="dbFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="DB" style="font-size: 12px;">
+                </div>
+                <div class="d-flex gap-2 flex-grow-1">
+                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                    <i class="bi bi-cart-plus"></i> 存入分析清單
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtDb" onclick="exportSelectedDbToTxt()" style="font-size: 12px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);">
+                    <i class="bi bi-file-earmark-arrow-down"></i> 匯出 .txt
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2670,6 +2688,113 @@
       
       renderBasketUI();
       updateUnifiedCompiledContext();
+    }
+
+    function exportSelectedLineToTxt() {
+      if (!parsedChatLog || selectedDates.size === 0) {
+        alert('請先載入 LINE 對話並勾選至少一天的對話紀錄！');
+        return;
+      }
+      
+      const chatName = parsedChatLog.chatName || '未命名對話';
+      const daysCount = selectedDates.size;
+      const sortedSelected = Array.from(selectedDates).sort();
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : `${minSelectedDate}_${maxSelectedDate}`;
+        
+      const prefix = document.getElementById('lineFilePrefix').value.trim() || 'LN';
+      const filename = `${prefix}_${chatName}_${dateRangeStr}.txt`;
+      
+      // Build raw LINE txt format content
+      let textContent = [];
+      textContent.push(`[LINE] ${chatName}的聊天記錄`);
+      textContent.push(`儲存日期：${new Date().toLocaleDateString('zh-TW')}\n`);
+      
+      sortedSelected.forEach(d => {
+        const group = groupedByDate[d];
+        if (!group) return;
+        
+        // Find weekday label
+        const dateObj = new Date(d);
+        const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+        const weekdayStr = weekdays[dateObj.getDay()];
+        
+        textContent.push(`${d.replace(/-/g, '/')}(${weekdayStr})`);
+        
+        group.messages.forEach(msg => {
+          textContent.push(`${msg.time}\t${msg.sender}\t${msg.content}`);
+        });
+        textContent.push(''); // blank line between days
+      });
+      
+      const fullText = textContent.join('\n');
+      const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportSelectedDbToTxt() {
+      if (!dbParsedEvents || dbSelectedDates.size === 0) {
+        alert('請先選取官方助手對話並勾選至少一天的紀錄！');
+        return;
+      }
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+      const daysCount = dbSelectedDates.size;
+      const sortedSelected = Array.from(dbSelectedDates).sort();
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : `${minSelectedDate}_${maxSelectedDate}`;
+        
+      const prefix = document.getElementById('dbFilePrefix').value.trim() || 'DB';
+      const filename = `${prefix}_${chatInfo}_${dateRangeStr}.txt`;
+      
+      // Build raw LINE txt format content for DB events
+      let textContent = [];
+      textContent.push(`[LINE] 官方助手對話 - ${chatInfo}`);
+      textContent.push(`儲存日期：${new Date().toLocaleDateString('zh-TW')}\n`);
+      
+      sortedSelected.forEach(d => {
+        const group = dbGroupedByDate[d];
+        if (!group) return;
+        
+        const dateObj = new Date(d);
+        const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+        const weekdayStr = weekdays[dateObj.getDay()];
+        
+        textContent.push(`${d.replace(/-/g, '/')}(${weekdayStr})`);
+        
+        group.messages.forEach(msg => {
+          const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+          textContent.push(`${msg.time}\t${msg.sender}${roleLabel}\t${msg.content}`);
+        });
+        textContent.push(''); // blank line between days
+      });
+      
+      const fullText = textContent.join('\n');
+      const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     // Global event listener to add btn-clicked class for click visual feedback
