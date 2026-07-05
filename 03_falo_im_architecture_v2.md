@@ -103,10 +103,23 @@ graph TD
 
 為了確保 Google Sheets (目前的主儲存)、地端 SQLite (快取儲存) 與未來雲端 Cloudflare D1 (分散式儲存) 在架構上可以 **「無縫轉移、無痛對接」**，我們將所有的 Google Sheets 欄位規劃與 API 回傳格式，一律採取 **「SQL 關聯式資料庫 (Relational DB) 導向」** 設計。
 
-### 5.1 兩大類核心資料庫 Schema
+### 5.1 單一 Google Sheets 試算表之 Sheets (工作表頁籤) Schema
 
-#### A. 對話事件記錄表 (`chat_events`)
-* **用途**：儲存 LINE Bot Webhook 即時事件，以及使用者手動上傳解析後的歷史對話紀錄。
+全系統預設採用 **「單一 Google Sheets 主試算表檔案」** (例如：`Falo_Database`)，在內部劃分多個工作表頁籤（Sheets/Tabs），以此完整模擬 Relational DB 結構，避開檔案混亂。
+
+#### A. 官方帳號設定工作表 (`bot_configs`)
+* **用途**：儲存全系統的多個官方帳號基本金鑰設定與雲端硬碟綁定，僅在新增或修改帳號時更新。
+* **試算表頁籤 / SQL 欄位定義**：
+  | 欄位名稱 (Column) | 資料型態 (Type) | 說明 (Description) |
+  |---|---|---|
+  | `bot_alias` | `TEXT` | 主鍵，官方帳號唯一識別代稱 (e.g. `support`, `qa`) |
+  | `bot_name` | `TEXT` | 官方帳號顯示名稱 |
+  | `line_channel_token`| `TEXT` | LINE 官方 Channel Access Token |
+  | `associated_drive_folder_id`| `TEXT` | 此帳號專屬的 Google Drive 備份資料夾 ID (Object Storage 目錄) |
+  | `created_at` | `TIMESTAMP`| 建立時間 |
+
+#### B. 對話事件記錄表 (`chat_events`)
+* **用途**：儲存所有官方帳號 LINE Bot Webhook 即時事件，以及使用者手動上傳解析後的歷史對話紀錄。
 * **試算表頁籤 / SQL 欄位定義**：
   | 欄位名稱 (Column) | 資料型態 (Type) | 說明 (Description) |
   |---|---|---|
@@ -121,7 +134,7 @@ graph TD
   | `text_content` | `TEXT` | 對話純文字內容 |
   | `metadata_json` | `TEXT` | 存放圖片 URL、貼圖 ID 等非結構化中繼資料的 JSON 欄位 |
 
-#### B. AI 戰情與任務表 (`ai_insights`)
+#### C. AI 戰情與任務表 (`ai_insights`)
 * **用途**：儲存大模型分析後的對話摘要、行動待辦事項、風險警告以及 KM 新增備忘。
 * **試算表頁籤 / SQL 欄位定義**：
   | 欄位名稱 (Column) | 資料型態 (Type) | 說明 (Description) |
@@ -134,6 +147,7 @@ graph TD
   | `summary_markdown`| `TEXT` | AI 生成的 Markdown 格式分析報告主體 |
   | `tasks_json` | `TEXT` | **結構化任務欄位**：包含 `[{"assignee": "Force", "task": "補報價單", "due": "2026-07-05"}]` 的 JSON 陣列 |
   | `created_at` | `TIMESTAMP`| 分析生成時間 |
+
 
 ---
 

@@ -1,0 +1,10 @@
+name = "falo-im-worker"
+main = "src/index.js"
+compatibility_date = "2024-04-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+# 預設的主 Google Sheets 網關 URL (客戶端部署)
+GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyxxxx/exec"
+VIEWER_TOKEN = "falo_secure_token_12345"
+GEMINI_API_KEY = "AIzaSyxxxx"
