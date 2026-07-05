@@ -458,17 +458,30 @@
               <!-- AI Execution Panel -->
               <div class="mt-4 p-3 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.5);">
                 <div class="row g-2 align-items-center mb-3">
-                  <div class="col-md-5 col-12">
+                  <div class="col-md-4 col-12">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務</label>
                     <select id="lineAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleGeminiKeyVisibility('line')">
                       <option value="builtin">☁️ 內建 AI (Llama 3.1)</option>
                       <option value="gemini">✨ Google Gemini API</option>
                     </select>
                   </div>
-                  <div class="col-md-7 col-12" id="lineGeminiKeyCol" style="display: none;">
+                  
+                  <!-- Gemini Model Selector -->
+                  <div class="col-md-4 col-12" id="lineGeminiModelCol" style="display: none;">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> Gemini 模型</label>
+                    <select id="lineGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                      <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-4 col-12" id="lineGeminiKeyCol" style="display: none;">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key</label>
                     <div class="d-flex gap-1">
-                      <input type="password" id="lineGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 AIzaSy... 金鑰">
+                      <input type="password" id="lineGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
                       <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('line')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
                     </div>
                   </div>
@@ -581,17 +594,30 @@
               <!-- AI Execution Panel -->
               <div class="mt-4 p-3 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.5);">
                 <div class="row g-2 align-items-center mb-3">
-                  <div class="col-md-5 col-12">
+                  <div class="col-md-4 col-12">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務</label>
                     <select id="dbAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleGeminiKeyVisibility('db')">
                       <option value="builtin">☁️ 內建 AI (Llama 3.1)</option>
                       <option value="gemini">✨ Google Gemini API</option>
                     </select>
                   </div>
-                  <div class="col-md-7 col-12" id="dbGeminiKeyCol" style="display: none;">
+                  
+                  <!-- Gemini Model Selector -->
+                  <div class="col-md-4 col-12" id="dbGeminiModelCol" style="display: none;">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> Gemini 模型</label>
+                    <select id="dbGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                      <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-4 col-12" id="dbGeminiKeyCol" style="display: none;">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key</label>
                     <div class="d-flex gap-1">
-                      <input type="password" id="dbGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 AIzaSy... 金鑰">
+                      <input type="password" id="dbGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
                       <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('db')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
                     </div>
                   </div>
@@ -1715,10 +1741,13 @@
     function toggleGeminiKeyVisibility(prefix) {
       const provider = document.getElementById(`${prefix}AiProvider`).value;
       const keyCol = document.getElementById(`${prefix}GeminiKeyCol`);
+      const modelCol = document.getElementById(`${prefix}GeminiModelCol`);
       if (provider === 'gemini') {
         keyCol.style.display = 'block';
+        modelCol.style.display = 'block';
       } else {
         keyCol.style.display = 'none';
+        modelCol.style.display = 'none';
       }
     }
 
@@ -1759,6 +1788,7 @@
     async function runAiAnalysis(prefix) {
       const provider = document.getElementById(`${prefix}AiProvider`).value;
       const key = localStorage.getItem('falo_gemini_key') || '';
+      const model = document.getElementById(`${prefix}GeminiModel`).value;
       const promptText = (prefix === 'line') 
         ? document.getElementById('compiledContextPreview').value 
         : document.getElementById('dbCompiledContextPreview').value;
@@ -1798,7 +1828,8 @@
           body: JSON.stringify({
             provider: provider,
             prompt: promptText,
-            gemini_key: provider === 'gemini' ? key : ''
+            gemini_key: provider === 'gemini' ? key : '',
+            model: provider === 'gemini' ? model : ''
           })
         });
 
