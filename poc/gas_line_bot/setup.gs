@@ -35,13 +35,9 @@ function runSetup() {
   var eventsSheet = ss.getSheetByName('chat_events');
   if (!eventsSheet) {
     eventsSheet = ss.insertSheet('chat_events');
-  } else {
-    // Only write headers if sheet is empty to prevent data wipe
-    if (eventsSheet.getLastRow() === 0) {
-      var eventHeaders = ['id', 'bot_alias', 'chat_id', 'message_id', 'captured_at', 'sender_name', 'sender_role', 'message_type', 'text_content', 'media_file_id', 'media_file_url', 'media_error', 'metadata_json'];
-      eventsSheet.appendRow(eventHeaders);
-    }
   }
+  var eventHeaders = ['id', 'bot_alias', 'chat_id', 'message_id', 'captured_at', 'sender_name', 'sender_role', 'message_type', 'text_content', 'media_file_id', 'media_file_url', 'media_error', 'metadata_json'];
+  eventsSheet.getRange(1, 1, 1, eventHeaders.length).setValues([eventHeaders]);
 
   // 3. Setup ai_insights (AI analysis logs)
   var insightsSheet = ss.getSheetByName('ai_insights');
