@@ -73,7 +73,7 @@ export default {
     if (path === "/product-analysis" || path === "/product-analysis.html") {
       return htmlResponse(PRODUCT_ANALYSIS_HTML);
     }
-    if (path === "/line-parser-spec" || path === "/line-parser-spec.html") {
+    if (path === "/line-parser-spec" || path === "/line-parser-spec.html" || path === "/docs/tutorials/line_parser_spec.html") {
       return htmlResponse(LINE_PARSER_SPEC_HTML);
     }
     if (path === "/google-sheets-access-methods" || path === "/google-sheets-access-methods.html") {
