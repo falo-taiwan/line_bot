@@ -1239,7 +1239,7 @@
       let currentDateStr = "2020-01-01";
       let isNextLineNewDate = false;
       
-      const dateRegex = /^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})/;
+      const dateRegex = /^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})(?:日)?(?:\s*（[^）]+）|\s*\([^)]+\)|\s*星期[一二三四五六日]|\s*[a-zA-Z]+)?\s*$/;
       const msgRegex = /^((?:上午|下午)?\d{2}:\d{2})\t([^\t]+)\t(.*)$/;
       
       for (let i = 1; i < lines.length; i++) {
