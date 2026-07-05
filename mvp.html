@@ -443,6 +443,7 @@
                   <div class="d-flex gap-1" style="height: 32px;">
                     <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(7)" style="font-size: 11px; line-height: 1;">近7天</button>
                     <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(30)" style="font-size: 11px; line-height: 1;">近30天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange('year')" style="font-size: 11px; line-height: 1;">今年</button>
                   </div>
                 </div>
               </div>
@@ -504,6 +505,7 @@
                   <div class="d-flex gap-1" style="height: 32px;">
                     <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange(7)" style="font-size: 11px; line-height: 1;">近7天</button>
                     <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange(30)" style="font-size: 11px; line-height: 1;">近30天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange('year')" style="font-size: 11px; line-height: 1;">今年</button>
                   </div>
                 </div>
               </div>
@@ -1195,23 +1197,28 @@
       const dates = Object.keys(groupedByDate).sort();
       if (dates.length === 0) return;
       
-      const minDate = dates[0];
-      const maxDate = dates[dates.length - 1];
-      
       const startInput = document.getElementById('filterStartDate');
       const endInput = document.getElementById('filterEndDate');
       
-      endInput.value = maxDate;
-      
-      const maxDateObj = new Date(maxDate);
-      const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
-      
-      const y = startDateObj.getFullYear();
-      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
-      const d = String(startDateObj.getDate()).padStart(2, '0');
-      const startDateStr = `${y}-${m}-${d}`;
-      
-      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      if (days === 'year') {
+        const currentYear = new Date().getFullYear();
+        startInput.value = `${currentYear}-01-01`;
+        endInput.value = `${currentYear}-12-31`;
+      } else {
+        const minDate = dates[0];
+        const maxDate = dates[dates.length - 1];
+        endInput.value = maxDate;
+        
+        const maxDateObj = new Date(maxDate);
+        const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+        
+        const y = startDateObj.getFullYear();
+        const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(startDateObj.getDate()).padStart(2, '0');
+        const startDateStr = `${y}-${m}-${d}`;
+        
+        startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      }
       
       applyDateRangeFilter();
     }
@@ -1628,23 +1635,28 @@
       const dates = Object.keys(dbGroupedByDate).sort();
       if (dates.length === 0) return;
       
-      const minDate = dates[0];
-      const maxDate = dates[dates.length - 1];
-      
       const startInput = document.getElementById('dbFilterStartDate');
       const endInput = document.getElementById('dbFilterEndDate');
       
-      endInput.value = maxDate;
-      
-      const maxDateObj = new Date(maxDate);
-      const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
-      
-      const y = startDateObj.getFullYear();
-      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
-      const d = String(startDateObj.getDate()).padStart(2, '0');
-      const startDateStr = `${y}-${m}-${d}`;
-      
-      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      if (days === 'year') {
+        const currentYear = new Date().getFullYear();
+        startInput.value = `${currentYear}-01-01`;
+        endInput.value = `${currentYear}-12-31`;
+      } else {
+        const minDate = dates[0];
+        const maxDate = dates[dates.length - 1];
+        endInput.value = maxDate;
+        
+        const maxDateObj = new Date(maxDate);
+        const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+        
+        const y = startDateObj.getFullYear();
+        const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(startDateObj.getDate()).padStart(2, '0');
+        const startDateStr = `${y}-${m}-${d}`;
+        
+        startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      }
       
       applyDbDateRangeFilter();
     }
@@ -2433,11 +2445,17 @@
       
       const contentString = lineContent.join('\n');
       
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : `${minSelectedDate} ~ ${maxSelectedDate}`;
+      
       analysisBasket.push({
         id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
         type: "line",
         title: `💬 LINE - ${chatName}`,
-        info: `已選 ${daysCount} 天, 共 ${totalLineMsgs} 筆對話`,
+        info: `時間: ${dateRangeStr} (${daysCount} 天, 共 ${totalLineMsgs} 筆對話)`,
         content: contentString,
         charCount: contentString.length,
         enabled: true
@@ -2481,11 +2499,17 @@
       
       const contentString = dbContent.join('\n');
       
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : `${minSelectedDate} ~ ${maxSelectedDate}`;
+      
       analysisBasket.push({
         id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
         type: "db",
         title: `📱 助手 - ${chatInfo}`,
-        info: `已選 ${daysCount} 天, 共 ${totalDbMsgs} 筆對話`,
+        info: `時間: ${dateRangeStr} (${daysCount} 天, 共 ${totalDbMsgs} 筆對話)`,
         content: contentString,
         charCount: contentString.length,
         enabled: true
