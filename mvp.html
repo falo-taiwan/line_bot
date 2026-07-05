@@ -292,7 +292,7 @@
           
           <div class="mb-3">
             <label class="form-label small fw-bold text-light">GAS Web App URL:</label>
-            <input type="text" id="gasUrlInput" class="form-control form-control-custom" value="https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec" placeholder="https://script.google.com/macros/s/.../exec">
+            <input type="text" id="gasUrlInput" class="form-control form-control-custom" value="https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec" placeholder="https://script.google.com/macros/s/.../exec" oninput="updateWebhookDisplay()">
           </div>
           
           <div class="mb-4">
@@ -373,12 +373,12 @@
       <div class="col-12">
         <div class="glass-card">
           <div class="card-title-custom" style="color: #38bdf8;">
-            <i class="bi bi-scissors"></i> LINE 歷史對話紀錄切割器 & AI 上下文組裝
+            <i class="bi bi-scissors"></i> LINE 歷史對話紀錄切割器
           </div>
           
           <div class="row g-4">
             <!-- Left Column: Source & Date Slices -->
-            <div class="col-lg-6">
+            <div class="col-12">
               <h5 class="small fw-bold text-light mb-3">1. 選擇與載入對話資料來源</h5>
               
               <!-- Tab Headers -->
@@ -455,79 +455,6 @@
                 </div>
               </div>
             </div>
-            
-            <!-- Right Column: AI Prompt & Preview -->
-            <div class="col-lg-6">
-              <h5 class="small fw-bold text-light mb-3">3. AI 提示詞與組裝結果預覽</h5>
-              
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
-                <textarea id="aiPromptInput" class="form-control form-control-custom" rows="3" oninput="updateCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。</textarea>
-              </div>
-              
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-light mb-0">雙方對話上下文預覽 (Markdown Context):</label>
-                  <span id="previewStats" class="small text-muted" style="font-size: 11px;">總字數: 0 | 選取天數: 0</span>
-                </div>
-                <textarea id="compiledContextPreview" class="form-control preview-textarea" rows="10" readonly></textarea>
-              </div>
-              
-              <div class="d-flex gap-2">
-                <button class="btn btn-custom flex-grow-1" onclick="copyCompiledContext()">
-                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
-                </button>
-                <button class="btn btn-outline-light px-3" onclick="clearParsedData()" title="重置">
-                  <i class="bi bi-arrow-counterclockwise"></i> 重置
-                </button>
-              </div>
-
-              <!-- AI Execution Panel -->
-              <div class="mt-4 p-3 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.5);">
-                <div class="row g-2 align-items-center mb-3">
-                  <div class="col-md-4 col-12">
-                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務</label>
-                    <select id="lineAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleGeminiKeyVisibility('line')">
-                      <option value="builtin">☁️ 內建 AI (Llama 3.1)</option>
-                      <option value="gemini">✨ Google Gemini API</option>
-                    </select>
-                  </div>
-                  
-                  <!-- Gemini Model Selector -->
-                  <div class="col-md-4 col-12" id="lineGeminiModelCol" style="display: none;">
-                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> Gemini 模型</label>
-                    <select id="lineGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
-                      <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
-                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-                      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
-                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
-                    </select>
-                  </div>
-
-                  <div class="col-md-4 col-12" id="lineGeminiKeyCol" style="display: none;">
-                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key</label>
-                    <div class="d-flex gap-1">
-                      <input type="password" id="lineGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
-                      <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('line')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
-                    </div>
-                  </div>
-                </div>
-                
-                <button class="btn btn-emerald w-100 py-2 fw-bold" onclick="runAiAnalysis('line')" id="btnLineAnalyze">
-                  <i class="bi bi-robot"></i> 🤖 執行 AI 分析選取的對話
-                </button>
-                
-                <!-- AI Output Report Container -->
-                <div id="lineAiReportBox" class="mt-3 p-3 rounded bg-dark border border-secondary text-light d-none" style="max-height: 350px; overflow-y: auto; background: rgba(15, 23, 42, 0.8) !important;">
-                  <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-1">
-                    <span class="small fw-bold text-emerald"><i class="bi bi-journal-text"></i> AI 分析報告</span>
-                    <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="copyAiReport('line')" style="font-size: 10px;">複製報告</button>
-                  </div>
-                  <div id="lineAiReportOutput" class="small lh-base" style="font-size: 12.5px;"></div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -538,12 +465,12 @@
       <div class="col-12">
         <div class="glass-card">
           <div class="card-title-custom" style="color: #a78bfa;">
-            <i class="bi bi-robot"></i> 📱 官方助手對話紀錄切割器 & AI 上下文組裝
+            <i class="bi bi-robot"></i> 📱 官方助手對話紀錄切割器
           </div>
           
           <div class="row g-4">
             <!-- Left Column: Source & Date Slices -->
-            <div class="col-lg-6">
+            <div class="col-12">
               <h5 class="small fw-bold text-light mb-3">1. 選擇官方帳號與對話群組</h5>
               
               <div class="mb-3 d-flex gap-2">
@@ -591,48 +518,54 @@
                 </div>
               </div>
             </div>
-            
-            <!-- Right Column: AI Prompt & Preview -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNIFIED AI Analysis Center Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(52, 211, 153, 0.2) !important;">
+          <div class="card-title-custom" style="color: #34d399;">
+            <i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Prompt Input & Model Config -->
             <div class="col-lg-6">
-              <h5 class="small fw-bold text-light mb-3">3. AI 提示詞與組裝結果預覽</h5>
+              <h5 class="small fw-bold text-light mb-3">1. AI 分析設定與提示詞指令</h5>
               
               <div class="mb-3">
                 <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
-                <textarea id="dbAiPromptInput" class="form-control form-control-custom" rows="3" oninput="updateDbCompiledContext()">請分析以下官方助手的對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。</textarea>
-              </div>
-              
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-light mb-0">雙方對話上下文預覽 (Markdown Context):</label>
-                  <span id="dbPreviewStats" class="small text-muted" style="font-size: 11px;">總字數: 0 | 選取天數: 0</span>
-                </div>
-                <textarea id="dbCompiledContextPreview" class="form-control preview-textarea" rows="10" readonly></textarea>
-              </div>
-              
-              <div class="d-flex gap-2">
-                <button class="btn btn-custom flex-grow-1" onclick="copyDbCompiledContext()" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
-                </button>
-                <button class="btn btn-outline-light px-3" onclick="clearDbParsedData()" title="重置">
-                  <i class="bi bi-arrow-counterclockwise"></i> 重置
-                </button>
+                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" rows="3" oninput="updateUnifiedCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。</textarea>
               </div>
 
-              <!-- AI Execution Panel -->
-              <div class="mt-4 p-3 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.5);">
-                <div class="row g-2 align-items-center mb-3">
-                  <div class="col-md-4 col-12">
-                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務</label>
-                    <select id="dbAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleGeminiKeyVisibility('db')">
-                      <option value="builtin">☁️ 內建 AI (Llama 3.1)</option>
+              <!-- AI Provider & Model Select Row -->
+              <div class="p-3 rounded border border-secondary mb-3" style="background: rgba(15, 23, 42, 0.5);">
+                <div class="row g-2 align-items-center">
+                  <!-- AI Provider -->
+                  <div class="col-md-6 col-12">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務商</label>
+                    <select id="unifiedAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleUnifiedAiProviderVisibility()">
+                      <option value="builtin">☁️ 內建 AI (Cloudflare Workers)</option>
                       <option value="gemini">✨ Google Gemini API</option>
+                    </select>
+                  </div>
+
+                  <!-- Built-in Model Selector -->
+                  <div class="col-md-6 col-12" id="builtinModelCol">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> 內建 AI 模型</label>
+                    <select id="unifiedBuiltinModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                      <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast" selected>Llama 3.3 70B (進階高智能)</option>
+                      <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (輕量極速型)</option>
                     </select>
                   </div>
                   
                   <!-- Gemini Model Selector -->
-                  <div class="col-md-4 col-12" id="dbGeminiModelCol" style="display: none;">
+                  <div class="col-md-6 col-12" id="geminiModelCol" style="display: none;">
                     <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> Gemini 模型</label>
-                    <select id="dbGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                    <select id="unifiedGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
                       <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
                       <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
                       <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
@@ -641,27 +574,47 @@
                     </select>
                   </div>
 
-                  <div class="col-md-4 col-12" id="dbGeminiKeyCol" style="display: none;">
-                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key</label>
+                  <!-- Gemini API Key input -->
+                  <div class="col-12 mt-2" id="geminiKeyCol" style="display: none;">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key (可選，留空則使用系統預設)</label>
                     <div class="d-flex gap-1">
-                      <input type="password" id="dbGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
-                      <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('db')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
+                      <input type="password" id="unifiedGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
+                      <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('unified')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
                     </div>
                   </div>
                 </div>
-                
-                <button class="btn btn-emerald w-100 py-2 fw-bold" onclick="runAiAnalysis('db')" id="btnDbAnalyze" style="background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none;">
-                  <i class="bi bi-robot"></i> 🤖 執行 AI 分析選取的對話
-                </button>
-                
-                <!-- AI Output Report Container -->
-                <div id="dbAiReportBox" class="mt-3 p-3 rounded bg-dark border border-secondary text-light d-none" style="max-height: 350px; overflow-y: auto; background: rgba(15, 23, 42, 0.8) !important;">
-                  <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-1">
-                    <span class="small fw-bold text-violet" style="color: #a78bfa;"><i class="bi bi-journal-text"></i> AI 分析報告</span>
-                    <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="copyAiReport('db')" style="font-size: 10px;">複製報告</button>
-                  </div>
-                  <div id="dbAiReportOutput" class="small lh-base" style="font-size: 12.5px;"></div>
+              </div>
+              
+              <button class="btn btn-emerald w-100 py-2 fw-bold" onclick="runUnifiedAiAnalysis()" id="btnUnifiedAnalyze" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                <i class="bi bi-robot"></i> 🤖 執行 AI 綜合對話分析
+              </button>
+            </div>
+            
+            <!-- Right Column: Unified Markdown Preview & Report -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">2. 雙對話整合預覽與 AI 報告</h5>
+              
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label small fw-bold text-light mb-0">整合對話內容預覽 (Markdown):</label>
+                  <span id="unifiedPreviewStats" class="small text-muted" style="font-size: 11px;">LINE: 0天 | 官方助手: 0天 | 總字數: 0</span>
                 </div>
+                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" rows="8" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選的對話內容..."></textarea>
+              </div>
+
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-custom flex-grow-1" id="btnCopyUnifiedContext" onclick="copyUnifiedCompiledContext()">
+                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
+                </button>
+              </div>
+
+              <!-- AI Output Report Container -->
+              <div id="unifiedAiReportBox" class="mt-3 p-3 rounded bg-dark border border-secondary text-light d-none" style="max-height: 350px; overflow-y: auto; background: rgba(15, 23, 42, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-1">
+                  <span class="small fw-bold text-emerald"><i class="bi bi-journal-text"></i> AI 綜合分析報告</span>
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="copyAiReport('unified')" style="font-size: 10px;">複製報告</button>
+                </div>
+                <div id="unifiedAiReportOutput" class="small lh-base" style="font-size: 12.5px;"></div>
               </div>
             </div>
           </div>
@@ -773,8 +726,7 @@
       document.getElementById('tokenInput').value = cachedToken;
       
       // Calculate and display Cloudflare Webhook Endpoint URL
-      const webhookUrl = window.location.origin + '/webhook';
-      document.getElementById('cfWebhookEndpoint').innerText = webhookUrl;
+      updateWebhookDisplay();
       
       if (cachedUrl) {
         // Automatically attempt silent connection on load
@@ -1055,7 +1007,7 @@
       initDateRangePickerInputs();
       
       renderDateSlices();
-      updateCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     // 4.1 Initialize date range inputs from parsed data
@@ -1088,8 +1040,8 @@
       
       startInput.value = startDateStr >= minDate ? startDateStr : minDate;
       
-      // Initialize selectedDates set based on the range values
-      applyDateRangeFilter();
+      // Default: Unchecked on load
+      selectedDates.clear();
     }
 
     // 4.2 Apply the custom date range filter
@@ -1112,7 +1064,7 @@
         cb.checked = selectedDates.has(cb.value);
       });
       
-      updateCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     // 4.3 Preset selector (Last X days relative to dataset latest date)
@@ -1304,7 +1256,7 @@
       } else {
         selectedDates.delete(dateStr);
       }
-      updateCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     function toggleSelectAllDates(select) {
@@ -1314,66 +1266,32 @@
         if (select) selectedDates.add(cb.value);
         else selectedDates.delete(cb.value);
       });
-      updateCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
-    // 8. Compile Markdown output preview in real-time
-    function updateCompiledContext() {
-      const previewEl = document.getElementById('compiledContextPreview');
-      const statsEl = document.getElementById('previewStats');
-      const promptText = document.getElementById('aiPromptInput').value;
+    function clearParsedData() {
+      parsedChatLog = null;
+      selectedDates.clear();
+      groupedByDate = {};
       
-      if (!parsedChatLog || selectedDates.size === 0) {
-        previewEl.value = promptText;
-        statsEl.innerText = '總字數: ' + promptText.length + ' | 選取天數: 0';
-        return;
-      }
+      document.getElementById('dateSlicesList').innerHTML = `
+        <div class="text-center py-5 text-secondary small">
+          <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+          請先載入對話紀錄以產生日格清單
+        </div>`;
       
-      let markdownParts = [];
-      markdownParts.push(`# LINE 對話紀錄 - ${parsedChatLog.chatName || '未命名對話'}`);
-      markdownParts.push(`* **資料來源**: LINE 歷史匯出對話紀錄切割`);
-      markdownParts.push(`* **選取天數**: ${selectedDates.size} 天`);
-      markdownParts.push(`* **組裝時間**: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
-      markdownParts.push('\n---\n');
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      startInput.value = '';
+      startInput.removeAttribute('min');
+      startInput.removeAttribute('max');
+      endInput.value = '';
+      endInput.removeAttribute('min');
+      endInput.removeAttribute('max');
       
-      // Sort selected dates chronologically (oldest first) for readable chat progression
-      const sortedSelected = Array.from(selectedDates).sort();
-      let totalMsgs = 0;
-      
-      sortedSelected.forEach(d => {
-        const group = groupedByDate[d];
-        if (!group) return;
-        
-        markdownParts.push(`### 📅 ${d}`);
-        group.messages.forEach(msg => {
-          markdownParts.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
-          totalMsgs++;
-        });
-        markdownParts.push(''); // empty line
-      });
-      
-      const dialogueText = markdownParts.join('\n');
-      const finalContent = `${promptText}\n\n以下是雙方的實際對話紀錄，請依據主從角色關係與指引進行分析摘要：\n\n${dialogueText}`;
-      
-      previewEl.value = finalContent;
-      statsEl.innerText = `總字數: ${finalContent.length} | 選取天數: ${selectedDates.size} | 選取訊息: ${totalMsgs} 筆`;
-    }
-
-    function copyCompiledContext() {
-      const previewEl = document.getElementById('compiledContextPreview');
-      if (!previewEl.value.trim()) {
-        alert('無內容可複製！');
-        return;
-      }
-      
-      navigator.clipboard.writeText(previewEl.value).then(() => {
-        alert('完整分析 Context 已成功複製到剪貼簿！可直接貼入 ChatGPT/Gemini/NotebookLM 中進行分析。');
-      }).catch(err => {
-        console.error('Failed to copy: ', err);
-        previewEl.select();
-        document.execCommand('copy');
-        alert('完整分析 Context 已複製到剪貼簿！');
-      });
+      document.getElementById('driveLoadStatus').innerText = '';
+      document.getElementById('localFileInput').value = '';
+      updateUnifiedCompiledContext();
     }
 
     // ==========================================
@@ -1478,7 +1396,7 @@
       initDbDateRangePickerInputs();
       
       renderDbDateSlices();
-      updateDbCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     // 4. Group db events by date
@@ -1558,7 +1476,8 @@
       
       startInput.value = startDateStr >= minDate ? startDateStr : minDate;
       
-      applyDbDateRangeFilter();
+      // Default: Unchecked on load
+      dbSelectedDates.clear();
     }
 
     function applyDbDateRangeFilter() {
@@ -1579,7 +1498,7 @@
         cb.checked = dbSelectedDates.has(cb.value);
       });
       
-      updateDbCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     function applyDbPresetRange(days) {
@@ -1659,9 +1578,10 @@
       } else {
         dbSelectedDates.delete(dateStr);
       }
-      updateDbCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
+    // Toggle Select All Db Dates
     function toggleSelectAllDbDates(select) {
       const checkboxes = document.querySelectorAll('#dbDateSlicesList input[type="checkbox"]');
       checkboxes.forEach(cb => {
@@ -1669,69 +1589,7 @@
         if (select) dbSelectedDates.add(cb.value);
         else dbSelectedDates.delete(cb.value);
       });
-      updateDbCompiledContext();
-    }
-
-    // 7. Compile Database Markdown output preview
-    function updateDbCompiledContext() {
-      const previewEl = document.getElementById('dbCompiledContextPreview');
-      const statsEl = document.getElementById('dbPreviewStats');
-      const promptText = document.getElementById('dbAiPromptInput').value;
-      
-      if (!dbParsedEvents || dbSelectedDates.size === 0) {
-        previewEl.value = promptText;
-        statsEl.innerText = '總字數: ' + promptText.length + ' | 選取天數: 0';
-        return;
-      }
-      
-      let markdownParts = [];
-      const selectEl = document.getElementById('dbChatsSelect');
-      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
-      
-      markdownParts.push(`# 官方助手對話紀錄 - ${chatInfo}`);
-      markdownParts.push(`* **資料來源**: Google Sheets chat_events 交易資料庫`);
-      markdownParts.push(`* **選取天數**: ${dbSelectedDates.size} 天`);
-      markdownParts.push(`* **組裝時間**: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
-      markdownParts.push('\n---\n');
-      
-      const sortedSelected = Array.from(dbSelectedDates).sort();
-      let totalMsgs = 0;
-      
-      sortedSelected.forEach(d => {
-        const group = dbGroupedByDate[d];
-        if (!group) return;
-        
-        markdownParts.push(`### 📅 ${d}`);
-        group.messages.forEach(msg => {
-          const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
-          markdownParts.push(`- **[${msg.time}] ${msg.sender}${roleLabel}**: ${msg.content}`);
-          totalMsgs++;
-        });
-        markdownParts.push('');
-      });
-      
-      const dialogueText = markdownParts.join('\n');
-      const finalContent = `${promptText}\n\n以下是雙方的實際對話紀錄，請依據主從角色關係與指引進行分析摘要：\n\n${dialogueText}`;
-      
-      previewEl.value = finalContent;
-      statsEl.innerText = `總字數: ${finalContent.length} | 選取天數: ${dbSelectedDates.size} | 選取訊息: ${totalMsgs} 筆`;
-    }
-
-    function copyDbCompiledContext() {
-      const previewEl = document.getElementById('dbCompiledContextPreview');
-      if (!previewEl.value.trim()) {
-        alert('無內容可複製！');
-        return;
-      }
-      
-      navigator.clipboard.writeText(previewEl.value).then(() => {
-        alert('官方助手分析 Context 已成功複製到剪貼簿！');
-      }).catch(err => {
-        console.error('Failed to copy: ', err);
-        previewEl.select();
-        document.execCommand('copy');
-        alert('官方助手分析 Context 已複製！');
-      });
+      updateUnifiedCompiledContext();
     }
 
     function clearDbParsedData() {
@@ -1755,30 +1613,47 @@
       endInput.removeAttribute('max');
       
       document.getElementById('dbEventsLoadStatus').innerText = '';
-      updateDbCompiledContext();
+      updateUnifiedCompiledContext();
     }
 
     // ==========================================
-    // DUAL AI Execution and Storage Logic
+    // Webhook Proxy Display Logic
     // ==========================================
-    
-    // Toggle Gemini API key input visibility
-    function toggleGeminiKeyVisibility(prefix) {
-      const provider = document.getElementById(`${prefix}AiProvider`).value;
-      const keyCol = document.getElementById(`${prefix}GeminiKeyCol`);
-      const modelCol = document.getElementById(`${prefix}GeminiModelCol`);
-      if (provider === 'gemini') {
-        keyCol.style.display = 'block';
-        modelCol.style.display = 'block';
-      } else {
-        keyCol.style.display = 'none';
-        modelCol.style.display = 'none';
+    function updateWebhookDisplay() {
+      const gasUrl = document.getElementById('gasUrlInput').value.trim();
+      const baseUrl = window.location.origin + '/api/webhook';
+      const finalUrl = gasUrl ? `${baseUrl}?gas=${encodeURIComponent(gasUrl)}` : baseUrl;
+      const el = document.getElementById('cfWebhookEndpoint');
+      if (el) {
+        el.innerText = finalUrl;
       }
     }
 
-    // Save key to localStorage and sync both inputs
+    // ==========================================
+    // UNIFIED AI Execution and Storage Logic
+    // ==========================================
+    
+    // Toggle Provider Visibility
+    function toggleUnifiedAiProviderVisibility() {
+      const provider = document.getElementById('unifiedAiProvider').value;
+      const builtinCol = document.getElementById('builtinModelCol');
+      const geminiCol = document.getElementById('geminiModelCol');
+      const geminiKeyCol = document.getElementById('geminiKeyCol');
+      
+      if (provider === 'builtin') {
+        builtinCol.style.display = 'block';
+        geminiCol.style.display = 'none';
+        geminiKeyCol.style.display = 'none';
+      } else {
+        builtinCol.style.display = 'none';
+        geminiCol.style.display = 'block';
+        geminiKeyCol.style.display = 'block';
+      }
+    }
+
+    // Save key to localStorage
     function saveGeminiKey(prefix) {
-      const keyInput = document.getElementById(`${prefix}GeminiKey`);
+      const keyInput = document.getElementById('unifiedGeminiKey');
       const val = keyInput.value.trim();
       
       if (!val) {
@@ -1787,54 +1662,134 @@
       }
       
       localStorage.setItem('falo_gemini_key', val);
-      
-      // Sync across both forms
-      document.getElementById('lineGeminiKey').value = val;
-      document.getElementById('dbGeminiKey').value = val;
-      
       alert('Gemini API Key 已成功安全地儲存至您本地瀏覽器快取 (LocalStorage)！');
     }
 
-    // Load API Keys from localStorage on Connection
+    // Load API Keys from localStorage
     function loadGeminiKeys() {
       const savedKey = localStorage.getItem('falo_gemini_key') || '';
-      if (savedKey) {
-        document.getElementById('lineGeminiKey').value = savedKey;
-        document.getElementById('dbGeminiKey').value = savedKey;
+      const keyInput = document.getElementById('unifiedGeminiKey');
+      if (savedKey && keyInput) {
+        keyInput.value = savedKey;
       }
     }
 
     // Automatically call key loading
     window.addEventListener('DOMContentLoaded', () => {
       loadGeminiKeys();
+      toggleUnifiedAiProviderVisibility(); // align UI
     });
 
-    // Run AI analysis query via backend API
-    async function runAiAnalysis(prefix) {
-      const provider = document.getElementById(`${prefix}AiProvider`).value;
-      const key = localStorage.getItem('falo_gemini_key') || '';
-      const model = document.getElementById(`${prefix}GeminiModel`).value;
-      const promptText = (prefix === 'line') 
-        ? document.getElementById('compiledContextPreview').value 
-        : document.getElementById('dbCompiledContextPreview').value;
+    // 8. Compile Unified Markdown output preview in real-time
+    function updateUnifiedCompiledContext() {
+      const previewEl = document.getElementById('unifiedCompiledContextPreview');
+      const statsEl = document.getElementById('unifiedPreviewStats');
+      const promptText = document.getElementById('unifiedAiPromptInput').value;
+      
+      let markdownParts = [];
+      let totalLineMsgs = 0;
+      let totalDbMsgs = 0;
+      
+      // 1. Process LINE segment
+      if (parsedChatLog && selectedDates.size > 0) {
+        markdownParts.push(`## 💬 LINE 歷史群組對話紀錄 - ${parsedChatLog.chatName || '未命名對話'}`);
+        markdownParts.push(`* **資料來源**: LINE 歷史匯出備份檔案`);
+        markdownParts.push(`* **選取天數**: ${selectedDates.size} 天`);
+        markdownParts.push('\n');
+        
+        const sortedSelected = Array.from(selectedDates).sort();
+        sortedSelected.forEach(d => {
+          const group = groupedByDate[d];
+          if (!group) return;
+          markdownParts.push(`### 📅 ${d}`);
+          group.messages.forEach(msg => {
+            markdownParts.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
+            totalLineMsgs++;
+          });
+          markdownParts.push('');
+        });
+        markdownParts.push('---\n');
+      }
+      
+      // 2. Process Database segment
+      if (dbParsedEvents && dbSelectedDates.size > 0) {
+        const selectEl = document.getElementById('dbChatsSelect');
+        const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+        
+        markdownParts.push(`## 📱 官方助手對話紀錄 - ${chatInfo}`);
+        markdownParts.push(`* **資料來源**: Google Sheets chat_events 資料表`);
+        markdownParts.push(`* **選取天數**: ${dbSelectedDates.size} 天`);
+        markdownParts.push('\n');
+        
+        const sortedSelected = Array.from(dbSelectedDates).sort();
+        sortedSelected.forEach(d => {
+          const group = dbGroupedByDate[d];
+          if (!group) return;
+          markdownParts.push(`### 📅 ${d}`);
+          group.messages.forEach(msg => {
+            const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+            markdownParts.push(`- **[${msg.time}] ${msg.sender}${roleLabel}**: ${msg.content}`);
+            totalDbMsgs++;
+          });
+          markdownParts.push('');
+        });
+        markdownParts.push('---\n');
+      }
+      
+      const dialogueText = markdownParts.join('\n');
+      
+      let finalContent = promptText;
+      if (dialogueText.trim() !== '') {
+        finalContent = `${promptText}\n\n以下是合併組裝的實際對話對談紀錄：\n\n${dialogueText}`;
+      }
+      
+      previewEl.value = finalContent;
+      statsEl.innerText = `LINE: ${selectedDates.size}天(${totalLineMsgs}筆) | 官方助手: ${dbSelectedDates.size}天(${totalDbMsgs}筆) | 總字數: ${finalContent.length}`;
+    }
 
-      if (!promptText || promptText.trim() === '') {
-        alert('請先載入對話資料並勾選日期以產出 AI 上下文！');
+    function copyUnifiedCompiledContext() {
+      const previewEl = document.getElementById('unifiedCompiledContextPreview');
+      if (!previewEl.value.trim()) {
+        alert('無內容可複製！');
+        return;
+      }
+      
+      navigator.clipboard.writeText(previewEl.value).then(() => {
+        alert('綜合分析 Context 已成功複製到剪貼簿！');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        previewEl.select();
+        document.execCommand('copy');
+        alert('綜合分析 Context 已複製！');
+      });
+    }
+
+    // Run Unified AI analysis query via backend API
+    async function runUnifiedAiAnalysis() {
+      const provider = document.getElementById('unifiedAiProvider').value;
+      const key = localStorage.getItem('falo_gemini_key') || '';
+      
+      const model = (provider === 'builtin')
+        ? document.getElementById('unifiedBuiltinModel').value
+        : document.getElementById('unifiedGeminiModel').value;
+        
+      const promptText = document.getElementById('unifiedCompiledContextPreview').value;
+
+      if (!promptText || promptText.trim() === '' || (!selectedDates.size && !dbSelectedDates.size)) {
+        alert('請先載入對話資料並勾選日期以產出對話上下文！');
         return;
       }
 
-      const reportBox = document.getElementById(`${prefix}AiReportBox`);
-      const reportOutput = document.getElementById(`${prefix}AiReportOutput`);
-      const analyzeBtn = (prefix === 'line') 
-        ? document.getElementById('btnLineAnalyze') 
-        : document.getElementById('btnDbAnalyze');
+      const reportBox = document.getElementById('unifiedAiReportBox');
+      const reportOutput = document.getElementById('unifiedAiReportOutput');
+      const analyzeBtn = document.getElementById('btnUnifiedAnalyze');
 
       // Show box, set loading status
       reportBox.classList.remove('d-none');
       reportOutput.innerHTML = `
         <div class="text-center py-4">
           <div class="spinner-border spinner-border-sm text-info me-2" role="status"></div>
-          <span class="small text-muted">AI 正在努力分析對話中，請稍候... (約需 5-15 秒)</span>
+          <span class="small text-muted">AI 正在努力分析整合對話中，請稍候... (約需 5-15 秒)</span>
         </div>`;
       
       analyzeBtn.disabled = true;
@@ -1854,7 +1809,7 @@
             provider: provider,
             prompt: promptText,
             gemini_key: provider === 'gemini' ? key : '',
-            model: provider === 'gemini' ? model : ''
+            model: model
           })
         });
 
@@ -1874,7 +1829,7 @@
         console.error('AI Analysis failed:', err);
         reportOutput.innerHTML = `
           <div class="alert alert-danger mb-0 p-2 small" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i> AI 分析發生錯誤！<br>
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> AI 綜合分析發生錯誤！<br>
             錯誤原因: ${err.message}
           </div>`;
       } finally {
@@ -1885,9 +1840,9 @@
 
     // Copy formatted report to clipboard
     function copyAiReport(prefix) {
-      const container = document.getElementById(`${prefix}AiReportOutput`);
+      const container = document.getElementById('unifiedAiReportOutput');
       const text = container.innerText;
-      if (!text || text.includes('AI 正在努力分析對話中') || text.includes('AI 分析發生錯誤')) {
+      if (!text || text.includes('AI 正在努力分析') || text.includes('AI 綜合分析發生錯誤')) {
         alert('無有效分析報告可複製！');
         return;
       }

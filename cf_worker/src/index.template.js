@@ -212,8 +212,15 @@ export default {
               headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
             });
           }
-          // Call Workers AI with Llama 3.1
-          const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          // Whitelist built-in models
+          const allowedBuiltinModels = [
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+            "@cf/meta/llama-3.2-3b-instruct"
+          ];
+          const selectedModel = allowedBuiltinModels.includes(body.model) ? body.model : "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+          
+          // Call Workers AI with selected model
+          const response = await env.AI.run(selectedModel, {
             messages: [
               { role: "system", content: "You are a helpful AI assistant. Please respond in Traditional Chinese (zh-TW)." },
               { role: "user", content: prompt }
@@ -234,7 +241,17 @@ export default {
             });
           }
 
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+          // Whitelist Gemini models
+          const allowedGeminiModels = [
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.1-flash",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite"
+          ];
+          const selectedModel = allowedGeminiModels.includes(body.model) ? body.model : "gemini-3.1-flash-lite";
+
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
           const geminiPayload = {
             contents: [
               {
@@ -289,8 +306,10 @@ export default {
         const bodyText = await request.text();
         const signature = request.headers.get("X-Line-Signature") || "";
 
-        // Forward to GAS Web App URL
-        const gasUrl = new URL(env.GAS_WEB_APP_URL);
+        // Forward to GAS Web App URL (support dynamic ?gas query parameter)
+        const urlObj = new URL(request.url);
+        const queryGas = urlObj.searchParams.get("gas");
+        const gasUrl = queryGas ? new URL(decodeURIComponent(queryGas)) : new URL(env.GAS_WEB_APP_URL);
         
         const fetchOptions = {
           method: "POST",
