@@ -2138,7 +2138,45 @@ const MVP_HTML = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Falo IM v2.x - MVP 協作控制台</title>
+  <title>Falo IM v2.01 - MVP 協作控制台</title>
+  
+  <!-- SEO & GEO (Generative Engine Optimization for AI Crawlers) -->
+  <meta name="description" content="Falo IM v2.01 - 專為 LINE 對話與官方助手設計的非結構化數據分析與切割控制台，由 Force Cheng 開發。支援精準的時序防呆審計與多來源脈絡購物車編譯。">
+  <meta name="keywords" content="Falo IM, Falo, Force Cheng, LINE 對話分析, 官方帳號對話分析, 語音對話切割, AI 語料庫編譯, 數據分析防呆審計, NotebookLM 格式導出">
+  <meta name="author" content="Force Cheng">
+  <meta name="copyright" content="Falo x Force Cheng 2026/7/5">
+  
+  <!-- Open Graph / AI Crawler Schema -->
+  <meta property="og:title" content="Falo IM v2.01 - MVP 協作控制台">
+  <meta property="og:description" content="非結構化通訊對話時序切割與智慧 Basket 脈絡編譯系統，提升 RAG 與 AI 語料精度。">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Falo IM Studio">
+  
+  <!-- AI Crawler JSON-LD Structured Data (GEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Falo IM",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "All",
+    "softwareVersion": "2.01",
+    "releaseDate": "2026-07-05",
+    "author": {
+      "@type": "Person",
+      "name": "Force Cheng",
+      "jobTitle": "Creator & Lead Architect"
+    },
+    "description": "Falo IM is a specialized unstructured chat data slicing and RAG compilation console, optimized for LINE exports and Google Sheets chat events with advanced temporal validation.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Falo Studio x Force Cheng"
+    }
+  }
+  </script>
+  
+  <!-- WATERMARK: Falo x Force Cheng 2026/7/5 | VERSION: v2.01 | LICENSE: FORCE-CHENG-RAG-ENGINE -->
+  <div style="display:none !important;" aria-hidden="true" class="falo-seo-watermark">Falo x Force Cheng 2026/7/5 v2.01 Audit Protected</div>
   
   <!-- CSS: Bootstrap 5, Icons, Fonts -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -2305,6 +2343,97 @@ const MVP_HTML = `<!doctype html>
       50% { opacity: 1; }
       100% { opacity: 0.6; }
     }
+
+    .date-slice-container {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 10px;
+    }
+
+    .date-slice-item {
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .date-slice-item:hover {
+      background: rgba(13, 148, 136, 0.08);
+      border-color: rgba(13, 148, 136, 0.2);
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(13, 148, 136, 0.3);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      background: rgba(13, 148, 136, 0.05);
+      border-color: var(--primary-emerald);
+    }
+
+    .preview-textarea {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid var(--border-color) !important;
+      color: #38bdf8 !important;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .sender-pill {
+      background: rgba(13, 148, 136, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(13, 148, 136, 0.3);
+      border-radius: 50px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 4px;
+      display: inline-block;
+    }
+
+    /* Button Click Feedback */
+    .btn {
+      transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease !important;
+    }
+
+    .btn:active, .btn.btn-clicked {
+      transform: scale(0.95) !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5) !important;
+    }
+
+    .btn-custom:active, .btn-custom.btn-clicked {
+      background: #0d9488 !important; /* solid primary teal */
+      border-color: #14b8a6 !important;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.6) !important;
+    }
+
+    .btn-emerald:active, .btn-emerald.btn-clicked {
+      background: #047857 !important; /* solid deep emerald */
+      border-color: #10b981 !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+    }
+
+    .btn-outline-light:active, .btn-outline-light.btn-clicked {
+      background: rgba(255, 255, 255, 0.2) !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+    }
   </style>
 </head>
 <body>
@@ -2314,7 +2443,7 @@ const MVP_HTML = `<!doctype html>
     <div class="container main-container py-0 d-flex justify-content-between align-items-center">
       <div class="navbar-brand-custom">
         <i class="bi bi-cpu-fill text-teal me-2" style="color: var(--primary-teal);"></i>
-        Falo IM v2.x <span class="fw-light text-muted">|</span> MVP 控制台
+        Falo IM v2.01 <span class="fw-light text-muted">|</span> MVP 控制台
       </div>
       <div>
         <span class="badge-status badge-offline" id="globalStatusBadge">未連線</span>
@@ -2336,12 +2465,12 @@ const MVP_HTML = `<!doctype html>
           
           <div class="mb-3">
             <label class="form-label small fw-bold text-light">GAS Web App URL:</label>
-            <input type="text" id="gasUrlInput" class="form-control form-control-custom" placeholder="https://script.google.com/macros/s/.../exec">
+            <input type="text" id="gasUrlInput" class="form-control form-control-custom" value="https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec" placeholder="https://script.google.com/macros/s/.../exec" oninput="updateWebhookDisplay()">
           </div>
           
           <div class="mb-4">
             <label class="form-label small fw-bold text-light">VIEWER_TOKEN (API 安全金鑰):</label>
-            <input type="password" id="tokenInput" class="form-control form-control-custom" placeholder="請輸入 API 金鑰 (上傳對話時需要)...">
+            <input type="password" id="tokenInput" class="form-control form-control-custom" value="falo_secure_token_12345" placeholder="請輸入 API 金鑰 (上傳對話時需要)...">
           </div>
           
           <button class="btn btn-custom w-100 mt-2" onclick="testConnection()">
@@ -2396,11 +2525,11 @@ const MVP_HTML = `<!doctype html>
                 </div>
               </div>
               
-              <!-- Cloudflare Webhook Proxy details -->
+              <!-- LINE Webhook Endpoint details -->
               <div class="meta-item mt-3" style="border: 1px solid rgba(52, 211, 153, 0.2); background: rgba(16, 185, 129, 0.03);">
-                <div class="meta-label" style="color: #34d399;">LINE Webhook 代理端點 (請複製此網址)</div>
+                <div class="meta-label" style="color: #34d399;">LINE Webhook 接收端點 (請複製此網址)</div>
                 <div class="d-flex justify-content-between align-items-center">
-                  <span id="cfWebhookEndpoint" class="meta-value text-emerald text-truncate fw-bold" style="font-size: 13px; font-family: monospace; color: #34d399;">
+                  <span id="cfWebhookEndpoint" class="meta-value text-emerald fw-bold text-break" style="font-size: 13px; font-family: monospace; color: #34d399; word-break: break-all;">
                     載入中...
                   </span>
                   <button class="btn btn-outline-success btn-sm px-2 py-0 border-0" onclick="copyWebhookUrl()" title="複製網址" style="height: 22px; font-size: 11px;">
@@ -2412,7 +2541,403 @@ const MVP_HTML = `<!doctype html>
           </div>
         </div>
     </div>
-    
+    <!-- LINE History Slicer Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card">
+          <div class="card-title-custom" style="color: #38bdf8;">
+            <i class="bi bi-scissors"></i> LINE 歷史對話紀錄切割器
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Source & Date Slices -->
+            <div class="col-12">
+              <h5 class="small fw-bold text-light mb-3">1. 選擇與載入對話資料來源</h5>
+              
+              <!-- Tab Headers -->
+              <ul class="nav nav-tabs mb-3 border-secondary" id="slicerTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active text-light px-3 py-2 border-0" id="drive-tab" data-bs-toggle="tab" data-bs-target="#drive-panel" type="button" role="tab" style="background: transparent;">
+                    <i class="bi bi-cloud-arrow-down-fill me-1 text-warning"></i> 雲端硬碟載入
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link text-light px-3 py-2 border-0" id="local-tab" data-bs-toggle="tab" data-bs-target="#local-panel" type="button" role="tab" style="background: transparent;">
+                    <i class="bi bi-laptop me-1 text-info"></i> 本機檔案拖放
+                  </button>
+                </li>
+              </ul>
+              
+              <!-- Tab Contents -->
+              <div class="tab-content mb-4" id="slicerTabsContent">
+                <!-- Tab: Drive Load -->
+                <div class="tab-pane fade show active" id="drive-panel" role="tabpanel">
+                  <div class="d-flex gap-2">
+                    <select id="driveFilesSelect" class="form-select form-control-custom" style="flex: 1;">
+                      <option value="">請先連線大腦以取得 Drive 檔案清單...</option>
+                    </select>
+                    <button class="btn btn-custom px-3" onclick="loadSelectedDriveFile()" id="btnLoadDriveFile" disabled>
+                      <i class="bi bi-download"></i> 載入
+                    </button>
+                  </div>
+                  <div id="driveLoadStatus" class="small text-muted mt-2"></div>
+                </div>
+                
+                <!-- Tab: Local Load -->
+                <div class="tab-pane fade" id="local-panel" role="tabpanel">
+                  <div id="dropZone" class="drop-zone" onclick="document.getElementById('localFileInput').click()">
+                    <i class="bi bi-file-earmark-arrow-up display-6 text-teal mb-2 d-block" style="color: var(--primary-teal);"></i>
+                    <span class="small text-light">拖曳 LINE 備份 \`.txt\` 檔案至此，或 <span class="text-teal fw-bold">點擊瀏覽檔案</span></span>
+                    <input type="file" id="localFileInput" class="d-none" accept=".txt">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="small fw-bold text-light mb-0">2. 對話日期區間切割 (勾選以包含)</h5>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDates(true)" style="font-size: 11px;">全選</button>
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDates(false)" style="font-size: 11px;">清空</button>
+                </div>
+              </div>
+              
+              <!-- Date Range Filter Row -->
+              <div class="row g-2 mb-3 align-items-end p-2 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.4); margin: 0 1px 12px 1px;">
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">開始日期</label>
+                  <input type="date" id="filterStartDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">結束日期</label>
+                  <input type="date" id="filterEndDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-12">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">快速區間</label>
+                  <div class="d-flex gap-1" style="height: 32px;">
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(7)" style="font-size: 11px; line-height: 1;">近7天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(30)" style="font-size: 11px; line-height: 1;">近30天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange('year')" style="font-size: 11px; line-height: 1;">今年</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slicing Checklist -->
+              <div id="dateSlicesList" class="date-slice-container">
+                <div class="text-center py-5 text-secondary small">
+                  <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+                  請先載入對話紀錄以產生日格清單
+                </div>
+              </div>
+              <!-- Action buttons for LINE Slicer -->
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
+                <div class="input-group input-group-sm" style="max-width: 140px; height: 31px;">
+                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
+                  <input type="text" id="lineFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="LN" style="font-size: 12px;">
+                </div>
+                <div class="d-flex gap-1 flex-grow-1">
+                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 11px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                    <i class="bi bi-cart-plus"></i> 存入清單
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtLineRange" onclick="exportSelectedLineToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="合併所選日期為單一 .txt 檔案下載">
+                    <i class="bi bi-file-earmark-arrow-down"></i> 區間匯出
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtLineEach" onclick="exportSelectedLineToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="所選日期個別下載為獨立的 .txt 檔案">
+                    <i class="bi bi-files"></i> 逐筆匯出
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATABASE Official Account Slicer Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card">
+          <div class="card-title-custom" style="color: #a78bfa;">
+            <i class="bi bi-robot"></i> 📱 官方助手對話紀錄切割器
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Source & Date Slices -->
+            <div class="col-12">
+              <h5 class="small fw-bold text-light mb-3">1. 選擇官方帳號與對話群組</h5>
+              
+              <div class="mb-3 d-flex gap-2">
+                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;">
+                  <option value="">請先建立系統連線以載入官方帳號列表...</option>
+                </select>
+                <button class="btn btn-custom px-3" onclick="loadDbChatEvents()" id="btnLoadDbChat" disabled>
+                  <i class="bi bi-search"></i> 載入對話
+                </button>
+              </div>
+              <div id="dbEventsLoadStatus" class="small text-muted mb-4"></div>
+              
+              <!-- Date Range Filter Row -->
+              <div class="row g-2 mb-3 align-items-end p-2 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.4); margin: 0 1px 12px 1px;">
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">開始日期</label>
+                  <input type="date" id="dbFilterStartDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDbDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">結束日期</label>
+                  <input type="date" id="dbFilterEndDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDbDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-12">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">快速區間</label>
+                  <div class="d-flex gap-1" style="height: 32px;">
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange(7)" style="font-size: 11px; line-height: 1;">近7天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange(30)" style="font-size: 11px; line-height: 1;">近30天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyDbPresetRange('year')" style="font-size: 11px; line-height: 1;">今年</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="small fw-bold text-light mb-0">2. 對話日期區間切割 (勾選以包含)</h5>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDbDates(true)" style="font-size: 11px;">全選</button>
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDbDates(false)" style="font-size: 11px;">清空</button>
+                </div>
+              </div>
+              
+              <!-- Slicing Checklist -->
+              <div id="dbDateSlicesList" class="date-slice-container">
+                <div class="text-center py-5 text-secondary small">
+                  <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+                  請先選取官方帳號並載入對話以產生日格清單
+                </div>
+              </div>
+              
+              <!-- Action buttons for Database Slicer -->
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
+                <div class="input-group input-group-sm" style="max-width: 140px; height: 31px;">
+                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
+                  <input type="text" id="dbFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="DB" style="font-size: 12px;">
+                </div>
+                <div class="d-flex gap-1 flex-grow-1">
+                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 11px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                    <i class="bi bi-cart-plus"></i> 存入清單
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtDbRange" onclick="exportSelectedDbToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="合併所選日期為單一 .txt 檔案下載">
+                    <i class="bi bi-file-earmark-arrow-down"></i> 區間匯出
+                  </button>
+                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtDbEach" onclick="exportSelectedDbToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="所選日期個別下載為獨立的 .txt 檔案">
+                    <i class="bi bi-files"></i> 逐筆匯出
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KM Knowledge Base Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(99, 102, 241, 0.2) !important;">
+          <div class="card-title-custom" style="color: #818cf8;">
+            <i class="bi bi-journal-bookmark-fill"></i> 📚 知識庫文字導入器 (KM)
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Input and Control -->
+            <div class="col-lg-6">
+              <p class="small text-muted mb-3">您可以直接貼入純文字、貼入 HTML 代碼，或是上傳 \`.txt\` 或 \`.html\` 格式的知識庫文件。系統支援自動/手動將 HTML 清洗並轉換為乾淨的 Markdown 格式。</p>
+              
+              <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <input type="file" id="kmFileInput" accept=".txt,.html" class="d-none" onchange="handleKmFileSelect(event)">
+                <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('kmFileInput').click()">
+                  <i class="bi bi-file-earmark-arrow-up"></i> 上傳本機檔案 (.txt/.html)
+                </button>
+                <button class="btn btn-outline-info btn-sm" id="btnKmConvert" onclick="triggerKmHtmlConversion()">
+                  <i class="bi bi-code-slash"></i> HTML 轉 Markdown
+                </button>
+                <button class="btn btn-outline-purple btn-sm" id="btnAddToBasketKm" onclick="addKmToBasket()">
+                  <i class="bi bi-cart-plus"></i> 📥 存入分析清單
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearKmData()">
+                  <i class="bi bi-trash"></i> 清除內容
+                </button>
+              </div>
+
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="kmIncludeCheck" onchange="handleKmCheckboxChange(this)">
+                <label class="form-check-label small fw-bold text-light" for="kmIncludeCheck">
+                  ☑️ 將此知識庫資料併入 AI 綜合分析
+                </label>
+              </div>
+            </div>
+            
+            <!-- Right Column: Text Input / Editor -->
+            <div class="col-lg-6">
+              <div class="mb-0">
+                <label class="form-label small fw-bold text-light mb-2">知識庫內文 (純文字 / Markdown):</label>
+                <textarea id="kmTextInput" class="form-control form-control-custom" rows="6" placeholder="請在此貼上或匯入內容..." oninput="handleKmTextInput()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Context Basket Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(139, 92, 246, 0.2) !important;">
+          <div class="card-title-custom" style="color: #a78bfa;">
+            <i class="bi bi-cart3"></i> 📋 FALO 綜合分析購物車 (已選上下文清單)
+          </div>
+          
+          <div id="analysisBasketEmptyState" class="text-center py-4 text-secondary small">
+            <i class="bi bi-inbox display-6 d-block mb-2 text-muted"></i>
+            目前分析清單為空，請從上方 LINE、官方助手或知識庫勾選內容並點擊「存入分析清單」按鈕加入。
+          </div>
+          
+          <div id="analysisBasketContainer" class="d-none">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover table-sm align-middle small mb-0" style="background: transparent !important;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="width: 50px; padding: 8px;">啟用</th>
+                    <th style="width: 80px; padding: 8px;">類型</th>
+                    <th style="padding: 8px;">資料源描述</th>
+                    <th style="width: 100px; padding: 8px;">字數</th>
+                    <th style="width: 140px; padding: 8px; text-align: center;">排序/操作</th>
+                  </tr>
+                </thead>
+                <tbody id="analysisBasketTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNIFIED AI Analysis Center Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(52, 211, 153, 0.2) !important;">
+          <div class="card-title-custom" style="color: #34d399;">
+            <i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Prompt Input & Model Config -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">1. AI 分析設定與提示詞指令</h5>
+              
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
+                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" rows="4" oninput="updateUnifiedCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。
+（提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）</textarea>
+              </div>
+
+              <!-- AI Provider & Model Select Row -->
+              <div class="p-3 rounded border border-secondary mb-3" style="background: rgba(15, 23, 42, 0.5);">
+                <div class="row g-2 align-items-center">
+                  <!-- AI Provider -->
+                  <div class="col-md-6 col-12">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-cpu"></i> 選擇 AI 服務商</label>
+                    <select id="unifiedAiProvider" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="toggleUnifiedAiProviderVisibility()">
+                      <option value="builtin">☁️ 內建 AI (Cloudflare Workers)</option>
+                      <option value="gemini">✨ Google Gemini API</option>
+                    </select>
+                  </div>
+
+                  <!-- Built-in Model Selector -->
+                  <div class="col-md-6 col-12" id="builtinModelCol">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> 內建 AI 模型</label>
+                    <select id="unifiedBuiltinModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                      <option value="@cf/mistralai/mistral-small-3.1-24b-instruct" selected>Mistral Small 24B (中型長文本 - 預設)</option>
+                      <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Llama 3.3 70B (進階高智能)</option>
+                      <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (輕量對話極速)</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Gemini Model Selector -->
+                  <div class="col-md-6 col-12" id="geminiModelCol" style="display: none;">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-robot"></i> Gemini 模型</label>
+                    <select id="unifiedGeminiModel" class="form-select form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;">
+                      <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+                    </select>
+                  </div>
+
+                  <!-- Gemini API Key input -->
+                  <div class="col-12 mt-2" id="geminiKeyCol" style="display: none;">
+                    <label class="form-label small fw-bold text-light mb-1"><i class="bi bi-key"></i> Gemini API Key (可選，留空則使用系統預設)</label>
+                    <div class="d-flex gap-1">
+                      <input type="password" id="unifiedGeminiKey" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
+                      <button class="btn btn-outline-success btn-sm px-2" onclick="saveGeminiKey('unified')" title="儲存至瀏覽器"><i class="bi bi-save"></i> 儲存</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="btn btn-emerald w-100 py-2 fw-bold" onclick="runUnifiedAiAnalysis()" id="btnUnifiedAnalyze" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                <i class="bi bi-robot"></i> 🤖 執行 AI 綜合對話分析
+              </button>
+            </div>
+            
+            <!-- Right Column: Unified Markdown Preview & Report -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">2. 雙對話整合預覽與 AI 報告</h5>
+              
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label small fw-bold text-light mb-0">整合對話內容預覽 (Markdown):</label>
+                  <span id="unifiedPreviewStats" class="small text-muted" style="font-size: 11px;">LINE: 0天 | 官方助手: 0天 | 總字數: 0</span>
+                </div>
+                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" rows="8" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選的對話內容..."></textarea>
+              </div>
+
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-custom flex-grow-1" id="btnCopyUnifiedContext" onclick="copyUnifiedCompiledContext()">
+                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
+                </button>
+              </div>
+
+              <!-- AI Output Report Container -->
+              <div id="unifiedAiReportBox" class="mt-3 p-3 rounded bg-dark border border-secondary text-light d-none" style="background: rgba(15, 23, 42, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
+                  <span class="small fw-bold text-emerald"><i class="bi bi-journal-text"></i> AI 綜合分析報告</span>
+                  
+                  <!-- Switch button group -->
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group" role="group" aria-label="Format Selector" style="height: 24px;">
+                      <button type="button" class="btn btn-outline-success btn-xs px-2 active" id="btnFormatMd" onclick="setReportFormat('md')" style="font-size: 10px; line-height: 1.2;">MD 原始碼</button>
+                      <button type="button" class="btn btn-outline-success btn-xs px-2" id="btnFormatHtml" onclick="setReportFormat('html')" style="font-size: 10px; line-height: 1.2;">網頁預覽/HTML</button>
+                    </div>
+                    <button class="btn btn-outline-info btn-xs py-0 px-2" onclick="downloadAiReport()" style="font-size: 10px; height: 24px;"><i class="bi bi-download"></i> 下載檔案</button>
+                    <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="copyAiReport()" style="font-size: 10px; height: 24px;"><i class="bi bi-clipboard"></i> 複製報告</button>
+                  </div>
+                  </div>
+                
+                <!-- Token Usage & Estimations -->
+                <div id="unifiedAiUsageStats" class="d-none alert alert-info py-2 px-3 mb-3 small" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.2); font-size: 11px;">
+                  <i class="bi bi-calculator"></i> <strong>📊 Token 消耗與成本預估：</strong>
+                  <span id="usageStatsDetails">計算中...</span>
+                </div>
+                
+                <!-- MD View -->
+                <textarea id="unifiedAiReportMdView" class="form-control form-control-custom text-light small lh-base" rows="12" readonly style="font-size: 12.5px; font-family: monospace; background: rgba(0,0,0,0.2); border: none; resize: vertical;" placeholder="正在生成 Markdown 報告..."></textarea>
+                
+                <!-- HTML View -->
+                <div id="unifiedAiReportHtmlView" class="small lh-base d-none" style="font-size: 12.5px; max-height: 400px; overflow-y: auto; padding: 5px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Guided Setup Tutorial Row -->
     <div class="row mt-4">
       <div class="col-12">
@@ -2501,13 +3026,21 @@ const MVP_HTML = `<!doctype html>
 
           </div>
         </div>
-      </div>
-    </div>
+    <!-- Footer Signature -->
+    <footer class="mt-5 mb-4 pt-4 border-top border-secondary text-center text-muted" style="border-top-color: rgba(255,255,255,0.05) !important; font-size: 12px;">
+      <p class="mb-1">Falo IM v2.01 &copy; 2026. All Rights Reserved.</p>
+      <p class="mb-0">Created by <span class="text-teal" style="color: var(--primary-teal); font-weight: 600;">Falo Studio x Force Cheng</span> | 發布日期: 2026/7/5</p>
+    </footer>
     
   </div>
 
   <!-- JavaScript logic -->
   <script>
+    // Global state for AI Analysis Reports
+    let rawAiReportText = "";
+    let currentReportFormat = "md";
+    let analysisBasket = [];
+
     // Auto load cached configs
     window.addEventListener('DOMContentLoaded', () => {
       const cachedUrl = localStorage.getItem('gasExplorerUrl') || 'https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec';
@@ -2517,8 +3050,7 @@ const MVP_HTML = `<!doctype html>
       document.getElementById('tokenInput').value = cachedToken;
       
       // Calculate and display Cloudflare Webhook Endpoint URL
-      const webhookUrl = window.location.origin + '/webhook';
-      document.getElementById('cfWebhookEndpoint').innerText = webhookUrl;
+      updateWebhookDisplay();
       
       if (cachedUrl) {
         // Automatically attempt silent connection on load
@@ -2630,6 +3162,10 @@ const MVP_HTML = `<!doctype html>
           // Script URL
           endpointText.innerText = result.scriptUrl || url;
 
+          // Fetch Drive files and Database chats list after successful connection
+          refreshDriveFiles(url, token);
+          refreshDbChats(url, token);
+
         } else {
           throw new Error(result.error || '回傳格式不正確');
         }
@@ -2646,7 +3182,1871 @@ const MVP_HTML = `<!doctype html>
         }
       }
     }
+
+    // ==========================================
+    // Slicer & Parser Logic
+    // ==========================================
+    let parsedChatLog = null; // Stores { chatName, messages }
+    let selectedDates = new Set();
+    let groupedByDate = {}; // Stores grouped messages
+
+    // 1. Refresh Drive Files list via action=list_files
+    async function refreshDriveFiles(url, token) {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const loadBtn = document.getElementById('btnLoadDriveFile');
+      
+      selectEl.innerHTML = '<option value="">正在讀取 Drive 檔案清單...</option>';
+      loadBtn.disabled = true;
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=list_files&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=list_files&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok && result.files && result.files.length > 0) {
+          let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
+          result.files.forEach(f => {
+            const kbSize = Math.round(f.size / 1024);
+            const label = f.displayName ? \`\${f.displayName} (\${f.name} - \${kbSize} KB)\` : \`\${f.name} (\${kbSize} KB)\`;
+            html += \`<option value="\${f.id}">\${label}</option>\`;
+          });
+          selectEl.innerHTML = html;
+          loadBtn.disabled = false;
+        } else {
+          selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
+        }
+      } catch (err) {
+        console.error('Failed to list files:', err);
+        selectEl.innerHTML = \`<option value="">讀取失敗: \${err.message}</option>\`;
+      }
+    }
+
+    // 2. Load drive file content via action=get_file_content
+    async function loadSelectedDriveFile() {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const fileId = selectEl.value;
+      const statusEl = document.getElementById('driveLoadStatus');
+      const loadBtn = document.getElementById('btnLoadDriveFile');
+      
+      if (!fileId) {
+        alert('請先選擇一個檔案！');
+        return;
+      }
+      
+      statusEl.className = 'small text-warning mt-2';
+      statusEl.innerText = '正在從 Drive 下載檔案內容，請稍候...';
+      loadBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=get_file_content&file_id=\${fileId}&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=get_file_content&file_id=\${fileId}&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const text = await response.text();
+        
+        statusEl.className = 'small text-success mt-2';
+        statusEl.innerText = '下載成功！正在解析...';
+        
+        processRawText(text);
+        
+        statusEl.innerText = \`載入成功！共解析出 \${parsedChatLog.messages.length} 筆對話。\`;
+      } catch (err) {
+        console.error('Failed to get file content:', err);
+        statusEl.className = 'small text-danger mt-2';
+        statusEl.innerText = \`下載失敗: \${err.message}\`;
+      } finally {
+        loadBtn.disabled = false;
+      }
+    }
+
+    // 3. Setup local file Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    const localInput = document.getElementById('localFileInput');
+
+    // Dragover class
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        handleLocalFile(files[0]);
+      }
+    });
+
+    localInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleLocalFile(e.target.files[0]);
+      }
+    });
+
+    function handleLocalFile(file) {
+      if (!file.name.endsWith('.txt')) {
+        alert('請上傳 LINE 備份產生的 .txt 檔案格式！');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        processRawText(text);
+        alert(\`本機載入成功！共解析出 \${parsedChatLog.messages.length} 筆對話記錄。\`);
+      };
+      reader.readAsText(file);
+    }
+
+    // 4. Process raw text and group
+    function processRawText(text) {
+      parsedChatLog = parseLineChatLog(text);
+      groupMessagesByDate();
+      
+      // Auto-set the Date Range picker inputs to min and max dates
+      initDateRangePickerInputs();
+      
+      renderDateSlices();
+      updateUnifiedCompiledContext();
+    }
+
+    // 4.1 Initialize date range inputs from parsed data
+    function initDateRangePickerInputs() {
+      const dates = Object.keys(groupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      
+      startInput.min = minDate;
+      startInput.max = maxDate;
+      endInput.min = minDate;
+      endInput.max = maxDate;
+      
+      // Default to end at maxDate
+      endInput.value = maxDate;
+      
+      // Default range: select last 7 days of the log
+      const maxDateObj = new Date(maxDate);
+      const startDateObj = new Date(maxDateObj.getTime() - (7 - 1) * 24 * 60 * 60 * 1000);
+      
+      const y = startDateObj.getFullYear();
+      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(startDateObj.getDate()).padStart(2, '0');
+      const startDateStr = \`\${y}-\${m}-\${d}\`;
+      
+      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      
+      // Default: Unchecked on load
+      selectedDates.clear();
+    }
+
+    // 4.2 Apply the custom date range filter
+    function applyDateRangeFilter() {
+      const startVal = document.getElementById('filterStartDate').value;
+      const endVal = document.getElementById('filterEndDate').value;
+      
+      if (!startVal || !endVal) return;
+      
+      selectedDates.clear();
+      Object.keys(groupedByDate).forEach(d => {
+        if (d >= startVal && d <= endVal) {
+          selectedDates.add(d);
+        }
+      });
+      
+      // Sync checkboxes
+      const checkboxes = document.querySelectorAll('#dateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = selectedDates.has(cb.value);
+      });
+      
+      updateUnifiedCompiledContext();
+    }
+
+    // 4.3 Preset selector (Last X days relative to dataset latest date)
+    function applyPresetRange(days) {
+      const dates = Object.keys(groupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      
+      if (days === 'year') {
+        const currentYear = new Date().getFullYear();
+        startInput.value = \`\${currentYear}-01-01\`;
+        endInput.value = \`\${currentYear}-12-31\`;
+      } else {
+        const minDate = dates[0];
+        const maxDate = dates[dates.length - 1];
+        endInput.value = maxDate;
+        
+        const maxDateObj = new Date(maxDate);
+        const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+        
+        const y = startDateObj.getFullYear();
+        const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(startDateObj.getDate()).padStart(2, '0');
+        const startDateStr = \`\${y}-\${m}-\${d}\`;
+        
+        startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      }
+      
+      applyDateRangeFilter();
+    }
+
+    // 5. LINE chat log text parser implementing Falo Spec
+    function parseLineChatLog(text) {
+      const lines = text.split(/\\r?\\n/);
+      if (lines.length === 0) return { chatName: "LINE Chat", messages: [] };
+      
+      // Parse chat name from first line
+      const firstLine = lines[0];
+      let chatName = "LINE Chat";
+      if (firstLine.startsWith("[LINE]")) {
+        chatName = firstLine.replace("[LINE]", "").replace("的聊天記錄", "").replace("的聊天", "").trim();
+      }
+      
+      // Find export date or use current system date + 1 day
+      let maxAllowedDateObj = new Date();
+      maxAllowedDateObj.setDate(maxAllowedDateObj.getDate() + 1); // fallback tomorrow
+      
+      const exportDateRegex = /(?:儲存日期|Saved date)[：:\\s]*(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})/;
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const match = lines[i].match(exportDateRegex);
+        if (match) {
+          const y = match[1];
+          const m = match[2].padStart(2, '0');
+          const d = match[3].padStart(2, '0');
+          const parsedExportDate = new Date(\`\${y}-\${m}-\${d}\`);
+          if (!isNaN(parsedExportDate.getTime())) {
+            maxAllowedDateObj = parsedExportDate;
+            break;
+          }
+        }
+      }
+
+      const messages = [];
+      let currentDateStr = "2020-01-01";
+      let lastParsedDateObj = null;
+      let isNextLineNewDate = false;
+      
+      const dateRegex = /^(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})(?:日)?(?:\\s*（[^）]+）|\\s*\\([^)]+\\)|\\s*星期[一二三四五六日]|\\s*[a-zA-Z]+)?\\s*$/;
+      const msgRegex = /^((?:上午|下午)?\\d{2}:\\d{2})\\t([^\\t]+)\\t(.*)$/;
+      
+      function isValidDateHeader(y, m, d) {
+        const year = parseInt(y, 10);
+        if (year < 2011) return false; // LINE launched in 2011
+        
+        const candidateStr = \`\${y}-\${m}-\${d}\`;
+        const candidateDateObj = new Date(candidateStr);
+        if (isNaN(candidateDateObj.getTime())) return false;
+        
+        // 1. Exceeds export/system date check
+        if (maxAllowedDateObj && candidateDateObj > maxAllowedDateObj) {
+          return false;
+        }
+        
+        // 2. Progression check (Must be >= last parsed date)
+        if (lastParsedDateObj && candidateDateObj < lastParsedDateObj) {
+          return false;
+        }
+        
+        return true;
+      }
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        
+        if (line.trim() === "") {
+          isNextLineNewDate = true;
+          continue;
+        }
+        
+        if (isNextLineNewDate) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const y = dateMatch[1];
+            const m = dateMatch[2].padStart(2, '0');
+            const d = dateMatch[3].padStart(2, '0');
+            
+            if (isValidDateHeader(y, m, d)) {
+              currentDateStr = \`\${y}-\${m}-\${d}\`;
+              lastParsedDateObj = new Date(currentDateStr);
+              isNextLineNewDate = false;
+              continue;
+            }
+          }
+        }
+        
+        const msgMatch = line.match(msgRegex);
+        if (msgMatch) {
+          isNextLineNewDate = false;
+          const rawTime = msgMatch[1];
+          const sender = msgMatch[2];
+          const content = msgMatch[3];
+          
+          // Normalize 12-hour (下午/上午) to 24-hour style
+          let hourMin = rawTime;
+          const isPm = rawTime.includes("下午");
+          const isAm = rawTime.includes("上午");
+          let cleanTime = rawTime.replace("下午", "").replace("上午", "").trim();
+          const timeParts = cleanTime.split(":");
+          if (timeParts.length === 2) {
+            let h = parseInt(timeParts[0]);
+            const m = timeParts[1];
+            if (isPm && h < 12) h += 12;
+            if (isAm && h === 12) h = 0;
+            hourMin = \`\${String(h).padStart(2, '0')}:\${m}\`;
+          }
+          
+          let type = "text";
+          if (content === "[圖片]" || content === "[Photo]") type = "image";
+          else if (content === "[貼圖]" || content === "[Sticker]") type = "sticker";
+          else if (content === "[檔案]" || content === "[File]") type = "file";
+          else if (content.startsWith("☎ 通話時間") || content.startsWith("☎ Call time")) type = "call";
+          else if (content.includes("unsent a message") || content.includes("收回訊息")) type = "unsent";
+          
+          messages.push({
+            date: currentDateStr,
+            time: hourMin,
+            sender: sender,
+            content: content,
+            type: type
+          });
+        } else {
+          // Continuation line
+          if (messages.length > 0 && !line.startsWith("儲存日期：")) {
+            const lastMsg = messages[messages.length - 1];
+            lastMsg.content += "\\n" + line;
+          }
+        }
+      }
+      
+      return { chatName, messages };
+    }
+
+    // 6. Group messages by date
+    function groupMessagesByDate() {
+      groupedByDate = {};
+      if (!parsedChatLog || !parsedChatLog.messages) return;
+      
+      parsedChatLog.messages.forEach(msg => {
+        const d = msg.date;
+        if (!groupedByDate[d]) {
+          groupedByDate[d] = {
+            date: d,
+            messages: [],
+            senders: new Set(),
+            media: { image: 0, file: 0, sticker: 0, call: 0 }
+          };
+        }
+        groupedByDate[d].messages.push(msg);
+        groupedByDate[d].senders.add(msg.sender);
+        if (groupedByDate[d].media.hasOwnProperty(msg.type)) {
+          groupedByDate[d].media[msg.type]++;
+        }
+      });
+    }
+
+    // 7. Render interactive checkable slices
+    function renderDateSlices() {
+      const container = document.getElementById('dateSlicesList');
+      if (Object.keys(groupedByDate).length === 0) {
+        container.innerHTML = \`
+          <div class="text-center py-5 text-secondary small">
+            <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+            無對話資料。請重試。
+          </div>\`;
+        return;
+      }
+      
+      let html = '';
+      
+      // Sort dates descending (newest first) to see recent conversations first
+      const sortedDates = Object.keys(groupedByDate).sort().reverse();
+      
+      sortedDates.forEach(dateStr => {
+        const group = groupedByDate[dateStr];
+        const isChecked = selectedDates.has(dateStr) ? 'checked' : '';
+        const sendersList = Array.from(group.senders).slice(0, 3).map(s => \`<span class="sender-pill">\${s}</span>\`).join('');
+        const sendersMore = group.senders.size > 3 ? \`<span class="text-muted small">+\${group.senders.size - 3}</span>\` : '';
+        
+        let mediaHtml = '';
+        if (group.media.image > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-info me-1">📷 \${group.media.image}</span>\`;
+        if (group.media.file > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-warning me-1">📁 \${group.media.file}</span>\`;
+        if (group.media.call > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-danger me-1">📞 \${group.media.call}</span>\`;
+        
+        html += \`
+          <div class="date-slice-item">
+            <div class="d-flex align-items-center gap-3" style="flex: 1; min-width: 0;">
+              <input type="checkbox" class="form-check-input" value="\${dateStr}" \${isChecked} onchange="handleDateCheckboxChange(this)" style="width: 18px; height: 18px; cursor: pointer; border-color: rgba(255,255,255,0.2);">
+              <div style="min-width: 0; flex: 1;">
+                <div class="fw-bold small text-light">\${dateStr}</div>
+                <div class="text-truncate mt-1">\${sendersList}\${sendersMore}</div>
+              </div>
+            </div>
+            <div class="text-end ms-3">
+              <span class="badge bg-secondary p-2 mb-1" style="font-size: 11px;">共 \${group.messages.length} 筆</span>
+              <div class="d-flex justify-content-end">\${mediaHtml}</div>
+            </div>
+          </div>\`;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function handleDateCheckboxChange(cb) {
+      const dateStr = cb.value;
+      if (cb.checked) {
+        selectedDates.add(dateStr);
+      } else {
+        selectedDates.delete(dateStr);
+      }
+      updateUnifiedCompiledContext();
+    }
+
+    function toggleSelectAllDates(select) {
+      const checkboxes = document.querySelectorAll('#dateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        if (select) selectedDates.add(cb.value);
+        else selectedDates.delete(cb.value);
+      });
+      updateUnifiedCompiledContext();
+    }
+
+    function clearParsedData() {
+      parsedChatLog = null;
+      selectedDates.clear();
+      groupedByDate = {};
+      
+      document.getElementById('dateSlicesList').innerHTML = \`
+        <div class="text-center py-5 text-secondary small">
+          <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+          請先載入對話紀錄以產生日格清單
+        </div>\`;
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      startInput.value = '';
+      startInput.removeAttribute('min');
+      startInput.removeAttribute('max');
+      endInput.value = '';
+      endInput.removeAttribute('min');
+      endInput.removeAttribute('max');
+      
+      document.getElementById('driveLoadStatus').innerText = '';
+      document.getElementById('localFileInput').value = '';
+      updateUnifiedCompiledContext();
+    }
+
+    // ==========================================
+    // Database Official Account Slicer & Parser Logic
+    // ==========================================
+    let dbParsedEvents = null; // Array of event objects from database query
+    let dbSelectedDates = new Set();
+    let dbGroupedByDate = {}; // Stores grouped messages for db
+
+    // 1. Load active bots/chats into dropdown selector
+    async function refreshDbChats(url, token) {
+      const selectEl = document.getElementById('dbChatsSelect');
+      const loadBtn = document.getElementById('btnLoadDbChat');
+      
+      selectEl.innerHTML = '<option value="">正在讀取官方帳號清單...</option>';
+      loadBtn.disabled = true;
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=get_chats&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=get_chats&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok && result.data && result.data.length > 0) {
+          let html = '<option value="">-- 請選擇官方帳號 / 對話群組 --</option>';
+          result.data.forEach(c => {
+            html += \`<option value="\${c.bot_alias}|\${c.chat_id}">助手: \${c.bot_alias} | 群組ID: \${c.chat_id}</option>\`;
+          });
+          selectEl.innerHTML = html;
+          loadBtn.disabled = false;
+        } else {
+          selectEl.innerHTML = '<option value="">（未在資料庫中找到任何對話紀錄）</option>';
+        }
+      } catch (err) {
+        console.error('Failed to list db chats:', err);
+        selectEl.innerHTML = \`<option value="">讀取失敗: \${err.message}</option>\`;
+      }
+    }
+
+    // 2. Fetch events from database for selected bot & chat
+    async function loadDbChatEvents() {
+      const selectEl = document.getElementById('dbChatsSelect');
+      const selectedVal = selectEl.value;
+      const statusEl = document.getElementById('dbEventsLoadStatus');
+      const loadBtn = document.getElementById('btnLoadDbChat');
+      
+      if (!selectedVal) {
+        alert('請先選擇官方帳號！');
+        return;
+      }
+      
+      const [botAlias, chatId] = selectedVal.split('|');
+      
+      statusEl.className = 'small text-warning mb-4';
+      statusEl.innerText = '正在從試算表資料庫載入對話歷史紀錄，請稍候...';
+      loadBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=query&table=chat_events&bot_alias=\${botAlias}&chat_id=\${chatId}&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=query&table=chat_events&bot_alias=\${botAlias}&chat_id=\${chatId}&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok && result.data) {
+          statusEl.className = 'small text-success mb-4';
+          statusEl.innerText = \`成功載入！共取得 \${result.data.length} 筆對話記錄。\`;
+          
+          processDbRawEvents(result.data);
+        } else {
+          throw new Error(result.error || '未取得對話資料');
+        }
+      } catch (err) {
+        console.error('Failed to get db events:', err);
+        statusEl.className = 'small text-danger mb-4';
+        statusEl.innerText = \`載入失敗: \${err.message}\`;
+      } finally {
+        loadBtn.disabled = false;
+      }
+    }
+
+    // 3. Process raw database event objects and group by date
+    function processDbRawEvents(events) {
+      dbParsedEvents = events;
+      groupDbEventsByDate();
+      
+      // Auto-set the date range picker input values
+      initDbDateRangePickerInputs();
+      
+      renderDbDateSlices();
+      updateUnifiedCompiledContext();
+    }
+
+    // 4. Group db events by date
+    function groupDbEventsByDate() {
+      dbGroupedByDate = {};
+      if (!dbParsedEvents) return;
+      
+      dbParsedEvents.forEach(evt => {
+        let dateStr = "2020-01-01";
+        let timeStr = "00:00";
+        
+        if (evt.captured_at) {
+          try {
+            const parts = evt.captured_at.split('T');
+            if (parts.length >= 1) dateStr = parts[0];
+            if (parts.length >= 2) {
+              const tParts = parts[1].split(':');
+              if (tParts.length >= 2) timeStr = \`\${tParts[0]}:\${tParts[1]}\`;
+            }
+          } catch (e) {
+            console.error("Error parsing date:", evt.captured_at);
+          }
+        }
+        
+        const d = dateStr;
+        if (!dbGroupedByDate[d]) {
+          dbGroupedByDate[d] = {
+            date: d,
+            messages: [],
+            senders: new Set(),
+            media: { image: 0, file: 0, sticker: 0, call: 0 }
+          };
+        }
+        
+        let type = evt.message_type || "text";
+        if (type === "image" || type === "sticker" || type === "file" || type === "call") {
+          dbGroupedByDate[d].media[type]++;
+        }
+        
+        dbGroupedByDate[d].messages.push({
+          time: timeStr,
+          sender: evt.sender_name || (evt.sender_role === "host" ? "官方助手" : "使用者"),
+          content: evt.text_content || \`[\${evt.message_type}]\`,
+          role: evt.sender_role
+        });
+        
+        dbGroupedByDate[d].senders.add(evt.sender_name || (evt.sender_role === "host" ? "官方助手" : "使用者"));
+      });
+    }
+
+    // 5. Initialize date range inputs for database slicer
+    function initDbDateRangePickerInputs() {
+      const dates = Object.keys(dbGroupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      
+      const startInput = document.getElementById('dbFilterStartDate');
+      const endInput = document.getElementById('dbFilterEndDate');
+      
+      startInput.min = minDate;
+      startInput.max = maxDate;
+      endInput.min = minDate;
+      endInput.max = maxDate;
+      
+      endInput.value = maxDate;
+      
+      // Default select last 7 days of db log
+      const maxDateObj = new Date(maxDate);
+      const startDateObj = new Date(maxDateObj.getTime() - (7 - 1) * 24 * 60 * 60 * 1000);
+      
+      const y = startDateObj.getFullYear();
+      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(startDateObj.getDate()).padStart(2, '0');
+      const startDateStr = \`\${y}-\${m}-\${d}\`;
+      
+      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      
+      // Default: Unchecked on load
+      dbSelectedDates.clear();
+    }
+
+    function applyDbDateRangeFilter() {
+      const startVal = document.getElementById('dbFilterStartDate').value;
+      const endVal = document.getElementById('dbFilterEndDate').value;
+      
+      if (!startVal || !endVal) return;
+      
+      dbSelectedDates.clear();
+      Object.keys(dbGroupedByDate).forEach(d => {
+        if (d >= startVal && d <= endVal) {
+          dbSelectedDates.add(d);
+        }
+      });
+      
+      const checkboxes = document.querySelectorAll('#dbDateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = dbSelectedDates.has(cb.value);
+      });
+      
+      updateUnifiedCompiledContext();
+    }
+
+    function applyDbPresetRange(days) {
+      const dates = Object.keys(dbGroupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const startInput = document.getElementById('dbFilterStartDate');
+      const endInput = document.getElementById('dbFilterEndDate');
+      
+      if (days === 'year') {
+        const currentYear = new Date().getFullYear();
+        startInput.value = \`\${currentYear}-01-01\`;
+        endInput.value = \`\${currentYear}-12-31\`;
+      } else {
+        const minDate = dates[0];
+        const maxDate = dates[dates.length - 1];
+        endInput.value = maxDate;
+        
+        const maxDateObj = new Date(maxDate);
+        const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+        
+        const y = startDateObj.getFullYear();
+        const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(startDateObj.getDate()).padStart(2, '0');
+        const startDateStr = \`\${y}-\${m}-\${d}\`;
+        
+        startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      }
+      
+      applyDbDateRangeFilter();
+    }
+
+    // 6. Render database checkable slices
+    function renderDbDateSlices() {
+      const container = document.getElementById('dbDateSlicesList');
+      if (Object.keys(dbGroupedByDate).length === 0) {
+        container.innerHTML = \`
+          <div class="text-center py-5 text-secondary small">
+            <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+            無對話資料。請重試。
+          </div>\`;
+        return;
+      }
+      
+      let html = '';
+      const sortedDates = Object.keys(dbGroupedByDate).sort().reverse();
+      
+      sortedDates.forEach(dateStr => {
+        const group = dbGroupedByDate[dateStr];
+        const isChecked = dbSelectedDates.has(dateStr) ? 'checked' : '';
+        const sendersList = Array.from(group.senders).slice(0, 3).map(s => \`<span class="sender-pill">\${s}</span>\`).join('');
+        const sendersMore = group.senders.size > 3 ? \`<span class="text-muted small">+\${group.senders.size - 3}</span>\` : '';
+        
+        let mediaHtml = '';
+        if (group.media.image > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-info me-1">📷 \${group.media.image}</span>\`;
+        if (group.media.file > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-warning me-1">📁 \${group.media.file}</span>\`;
+        if (group.media.call > 0) mediaHtml += \`<span class="badge bg-dark border border-secondary text-danger me-1">📞 \${group.media.call}</span>\`;
+        
+        html += \`
+          <div class="date-slice-item">
+            <div class="d-flex align-items-center gap-3" style="flex: 1; min-width: 0;">
+              <input type="checkbox" class="form-check-input" value="\${dateStr}" \${isChecked} onchange="handleDbDateCheckboxChange(this)" style="width: 18px; height: 18px; cursor: pointer; border-color: rgba(255,255,255,0.2);">
+              <div style="min-width: 0; flex: 1;">
+                <div class="fw-bold small text-light">\${dateStr}</div>
+                <div class="text-truncate mt-1">\${sendersList}\${sendersMore}</div>
+              </div>
+            </div>
+            <div class="text-end ms-3">
+              <span class="badge bg-secondary p-2 mb-1" style="font-size: 11px;">共 \${group.messages.length} 筆</span>
+              <div class="d-flex justify-content-end">\${mediaHtml}</div>
+            </div>
+          </div>\`;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function handleDbDateCheckboxChange(cb) {
+      const dateStr = cb.value;
+      if (cb.checked) {
+        dbSelectedDates.add(dateStr);
+      } else {
+        dbSelectedDates.delete(dateStr);
+      }
+      updateUnifiedCompiledContext();
+    }
+
+    // Toggle Select All Db Dates
+    function toggleSelectAllDbDates(select) {
+      const checkboxes = document.querySelectorAll('#dbDateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        if (select) dbSelectedDates.add(cb.value);
+        else dbSelectedDates.delete(cb.value);
+      });
+      updateUnifiedCompiledContext();
+    }
+
+    function clearDbParsedData() {
+      dbParsedEvents = null;
+      dbSelectedDates.clear();
+      dbGroupedByDate = {};
+      
+      document.getElementById('dbDateSlicesList').innerHTML = \`
+        <div class="text-center py-5 text-secondary small">
+          <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+          請先選取官方帳號並載入對話以產生日格清單
+        </div>\`;
+      
+      const startInput = document.getElementById('dbFilterStartDate');
+      const endInput = document.getElementById('dbFilterEndDate');
+      startInput.value = '';
+      startInput.removeAttribute('min');
+      startInput.removeAttribute('max');
+      endInput.value = '';
+      endInput.removeAttribute('min');
+      endInput.removeAttribute('max');
+      
+      document.getElementById('dbEventsLoadStatus').innerText = '';
+      updateUnifiedCompiledContext();
+    }
+
+    // ==========================================
+    // Webhook Endpoint Display Logic
+    // ==========================================
+    function updateWebhookDisplay() {
+      const gasUrl = document.getElementById('gasUrlInput').value.trim();
+      const el = document.getElementById('cfWebhookEndpoint');
+      if (el) {
+        el.innerText = gasUrl || '尚未輸入 GAS Web App URL';
+      }
+    }
+
+    // ==========================================
+    // UNIFIED AI Execution and Storage Logic
+    // ==========================================
+    
+    // Toggle Provider Visibility
+    function toggleUnifiedAiProviderVisibility() {
+      const provider = document.getElementById('unifiedAiProvider').value;
+      const builtinCol = document.getElementById('builtinModelCol');
+      const geminiCol = document.getElementById('geminiModelCol');
+      const geminiKeyCol = document.getElementById('geminiKeyCol');
+      
+      if (provider === 'builtin') {
+        builtinCol.style.display = 'block';
+        geminiCol.style.display = 'none';
+        geminiKeyCol.style.display = 'none';
+      } else {
+        builtinCol.style.display = 'none';
+        geminiCol.style.display = 'block';
+        geminiKeyCol.style.display = 'block';
+      }
+    }
+
+    // Save key to localStorage
+    function saveGeminiKey(prefix) {
+      const keyInput = document.getElementById('unifiedGeminiKey');
+      const val = keyInput.value.trim();
+      
+      if (!val) {
+        alert('請先輸入 API Key 再進行儲存！');
+        return;
+      }
+      
+      localStorage.setItem('falo_gemini_key', val);
+      alert('Gemini API Key 已成功安全地儲存至您本地瀏覽器快取 (LocalStorage)！');
+    }
+
+    // Load API Keys from localStorage
+    function loadGeminiKeys() {
+      const savedKey = localStorage.getItem('falo_gemini_key') || '';
+      const keyInput = document.getElementById('unifiedGeminiKey');
+      if (savedKey && keyInput) {
+        keyInput.value = savedKey;
+      }
+    }
+
+    // Automatically call key loading
+    window.addEventListener('DOMContentLoaded', () => {
+      loadGeminiKeys();
+      toggleUnifiedAiProviderVisibility(); // align UI
+    });
+
+    // 8. Compile Unified Markdown output preview in real-time
+    function updateUnifiedCompiledContext() {
+      const previewEl = document.getElementById('unifiedCompiledContextPreview');
+      const statsEl = document.getElementById('unifiedPreviewStats');
+      const promptText = document.getElementById('unifiedAiPromptInput').value;
+      
+      let markdownParts = [];
+      let totalLineMsgs = 0;
+      let totalDbMsgs = 0;
+      let hasKm = false;
+      let statsStr = "";
+      
+      if (analysisBasket && analysisBasket.length > 0) {
+        // Build from Basket
+        let enabledCount = 0;
+        analysisBasket.forEach(item => {
+          if (item.enabled) {
+            markdownParts.push(item.content);
+            enabledCount++;
+            if (item.type === 'line') totalLineMsgs++;
+            if (item.type === 'db') totalDbMsgs++;
+            if (item.type === 'km') hasKm = true;
+          }
+        });
+        
+        statsStr = \`購物車: 啟用 \${enabledCount}/\${analysisBasket.length} 個區塊\`;
+      } else {
+        // Fallback: Build from active slicers (LINE, DB, KM)
+        // 1. Process LINE segment
+        if (parsedChatLog && selectedDates.size > 0) {
+          let lineContent = [];
+          lineContent.push(\`## 💬 LINE 歷史群組對話紀錄 - \${parsedChatLog.chatName || '未命名對話'}\`);
+          lineContent.push(\`* **資料來源**: LINE 歷史匯出備份檔案\`);
+          lineContent.push(\`* **選取天數**: \${selectedDates.size} 天\`);
+          lineContent.push('\\n');
+          
+          const sortedSelected = Array.from(selectedDates).sort();
+          sortedSelected.forEach(d => {
+            const group = groupedByDate[d];
+            if (!group) return;
+            lineContent.push(\`### 📅 \${d}\`);
+            group.messages.forEach(msg => {
+              lineContent.push(\`- **[\${msg.time}] \${msg.sender}**: \${msg.content}\`);
+              totalLineMsgs++;
+            });
+            lineContent.push('');
+          });
+          lineContent.push('---\\n');
+          markdownParts.push(lineContent.join('\\n'));
+        }
+        
+        // 2. Process Database segment
+        if (dbParsedEvents && dbSelectedDates.size > 0) {
+          let dbContent = [];
+          const selectEl = document.getElementById('dbChatsSelect');
+          const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+          
+          dbContent.push(\`## 📱 官方助手對話紀錄 - \${chatInfo}\`);
+          dbContent.push(\`* **資料來源**: Google Sheets chat_events 資料表\`);
+          dbContent.push(\`* **選取天數**: \${dbSelectedDates.size} 天\`);
+          dbContent.push('\\n');
+          
+          const sortedSelected = Array.from(dbSelectedDates).sort();
+          sortedSelected.forEach(d => {
+            const group = dbGroupedByDate[d];
+            if (!group) return;
+            dbContent.push(\`### 📅 \${d}\`);
+            group.messages.forEach(msg => {
+              const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+              dbContent.push(\`- **[\${msg.time}] \${msg.sender}\${roleLabel}**: \${msg.content}\`);
+              totalDbMsgs++;
+            });
+            dbContent.push('');
+          });
+          dbContent.push('---\\n');
+          markdownParts.push(dbContent.join('\\n'));
+        }
+
+        // 3. Process KM segment
+        const kmInclude = document.getElementById('kmIncludeCheck').checked;
+        const kmText = document.getElementById('kmTextInput').value.trim();
+        if (kmInclude && kmText) {
+          let kmContent = [];
+          kmContent.push(\`## 📚 知識庫參考資料 (KM)\`);
+          kmContent.push(\`* **資料來源**: 知識庫文字導入器 (KM)\`);
+          kmContent.push('\\n');
+          kmContent.push(kmText);
+          kmContent.push('\\n---\\n');
+          markdownParts.push(kmContent.join('\\n'));
+          hasKm = true;
+        }
+        
+        statsStr = \`LINE: \${selectedDates.size}天(\${totalLineMsgs}筆) | 官方助手: \${dbSelectedDates.size}天(\${totalDbMsgs}筆)\`;
+        if (hasKm) {
+          statsStr += \` | 知識庫: 啟用\`;
+        }
+      }
+      
+      const dialogueText = markdownParts.join('\\n');
+      
+      let finalContent = promptText;
+      if (dialogueText.trim() !== '') {
+        finalContent = \`\${promptText}\\n\\n以下是合併組裝的實際對話對談與背景參考紀錄：\\n\\n\${dialogueText}\`;
+      }
+      
+      previewEl.value = finalContent;
+      
+      statsStr += \` | 總字數: \${finalContent.length}\`;
+      statsEl.innerText = statsStr;
+    }
+
+    function copyUnifiedCompiledContext() {
+      const previewEl = document.getElementById('unifiedCompiledContextPreview');
+      if (!previewEl.value.trim()) {
+        alert('無內容可複製！');
+        return;
+      }
+      
+      navigator.clipboard.writeText(previewEl.value).then(() => {
+        alert('綜合分析 Context 已成功複製到剪貼簿！');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        previewEl.select();
+        document.execCommand('copy');
+        alert('綜合分析 Context 已複製！');
+      });
+    }
+
+    // Run Unified AI analysis query via backend API
+    async function runUnifiedAiAnalysis() {
+      const provider = document.getElementById('unifiedAiProvider').value;
+      const key = localStorage.getItem('falo_gemini_key') || '';
+      
+      const model = (provider === 'builtin')
+        ? document.getElementById('unifiedBuiltinModel').value
+        : document.getElementById('unifiedGeminiModel').value;
+        
+      const promptText = document.getElementById('unifiedCompiledContextPreview').value;
+      const kmInclude = document.getElementById('kmIncludeCheck').checked;
+      const kmText = document.getElementById('kmTextInput').value.trim();
+
+      if (!promptText || promptText.trim() === '' || (!selectedDates.size && !dbSelectedDates.size && !(kmInclude && kmText))) {
+        alert('請先載入對話資料或知識庫，並勾選/啟用以產出對話上下文！');
+        return;
+      }
+
+      const reportBox = document.getElementById('unifiedAiReportBox');
+      const mdView = document.getElementById('unifiedAiReportMdView');
+      const htmlView = document.getElementById('unifiedAiReportHtmlView');
+      const analyzeBtn = document.getElementById('btnUnifiedAnalyze');
+
+      // Show box, set loading status
+      reportBox.classList.remove('d-none');
+      document.getElementById('unifiedAiUsageStats').classList.add('d-none');
+      mdView.value = "AI 正在努力分析整合對話中，請稍候... (約需 5-15 秒)";
+      htmlView.innerHTML = \`
+        <div class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-info me-2" role="status"></div>
+          <span class="small text-muted">AI 正在努力分析整合對話中，請稍候...</span>
+        </div>\`;
+      
+      // Keep correct view display during loading
+      if (currentReportFormat === 'md') {
+        mdView.classList.remove('d-none');
+        htmlView.classList.add('d-none');
+      } else {
+        mdView.classList.add('d-none');
+        htmlView.classList.remove('d-none');
+      }
+      
+      analyzeBtn.disabled = true;
+      const originalText = analyzeBtn.innerHTML;
+      analyzeBtn.innerHTML = \`<i class="bi bi-hourglass-split"></i> AI 正在分析中...\`;
+
+      // Resolve endpoint relative to worker domain
+      const endpoint = window.location.origin + '/api/ai/analyze';
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            provider: provider,
+            prompt: promptText,
+            gemini_key: provider === 'gemini' ? key : '',
+            model: model
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.ok && result.result) {
+          rawAiReportText = result.result;
+          
+          // Populate both views
+          mdView.value = rawAiReportText;
+          const parsedHtml = marked.parse(rawAiReportText);
+          htmlView.innerHTML = \`<div class="ai-report-markdown-content">\${parsedHtml}</div>\`;
+          
+          // Render usage stats if available
+          displayTokenCosts(result.usage, model);
+          
+          // Align format visibility
+          setReportFormat(currentReportFormat);
+          
+          // Scroll box to top
+          reportBox.scrollTop = 0;
+        } else {
+          throw new Error(result.error || 'AI 無法產生回應');
+        }
+      } catch (err) {
+        console.error('AI Analysis failed:', err);
+        const errMsg = \`AI 綜合分析發生錯誤！\\n錯誤原因: \${err.message}\`;
+        mdView.value = errMsg;
+        htmlView.innerHTML = \`
+          <div class="alert alert-danger mb-0 p-2 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> AI 綜合分析發生錯誤！<br>
+            錯誤原因: \${err.message}
+          </div>\`;
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = originalText;
+      }
+    }
+
+    // Calculate and display Gemini Token usage and cost estimations
+    function displayTokenCosts(usage, model) {
+      const statsEl = document.getElementById('unifiedAiUsageStats');
+      const detailsEl = document.getElementById('usageStatsDetails');
+      
+      if (!usage || !usage.promptTokenCount) {
+        statsEl.classList.add('d-none');
+        return;
+      }
+      
+      const inputTokens = usage.promptTokenCount || 0;
+      const outputTokens = usage.candidatesTokenCount || 0;
+      const totalTokens = usage.totalTokenCount || 0;
+      
+      // Define rates per 1M tokens
+      let inputRate = 0.075; // Default for Flash
+      let outputRate = 0.30;
+      let modelLabel = "Gemini Flash";
+      
+      if (model.includes('lite')) {
+        inputRate = 0.0375;
+        outputRate = 0.15;
+        modelLabel = "Gemini Flash-Lite";
+      } else if (model.includes('pro')) {
+        inputRate = 1.25;
+        outputRate = 5.00;
+        modelLabel = "Gemini Pro";
+      }
+      
+      const usdCost = (inputTokens / 1000000 * inputRate) + (outputTokens / 1000000 * outputRate);
+      const ntdCost = usdCost * 30;
+      
+      detailsEl.innerHTML = \`
+        <span class="badge bg-primary me-1">\${modelLabel}</span> 
+        輸入: <strong class="text-light">\${inputTokens.toLocaleString()}</strong> tokens | 
+        輸出: <strong class="text-light">\${outputTokens.toLocaleString()}</strong> tokens | 
+        總計: <strong class="text-light">\${totalTokens.toLocaleString()}</strong> | 
+        預估成本: <strong class="text-warning" style="font-size: 12px;">NT$ \${ntdCost.toFixed(4)}</strong> (約 US$ \${usdCost.toFixed(5)})
+      \`;
+      statsEl.classList.remove('d-none');
+    }
+
+    // Set active report format (md / html)
+    function setReportFormat(format) {
+      currentReportFormat = format;
+      const btnMd = document.getElementById('btnFormatMd');
+      const btnHtml = document.getElementById('btnFormatHtml');
+      const mdView = document.getElementById('unifiedAiReportMdView');
+      const htmlView = document.getElementById('unifiedAiReportHtmlView');
+      
+      if (format === 'md') {
+        btnMd.classList.add('active');
+        btnHtml.classList.remove('active');
+        mdView.classList.remove('d-none');
+        htmlView.classList.add('d-none');
+      } else {
+        btnMd.classList.remove('active');
+        btnHtml.classList.add('active');
+        mdView.classList.add('d-none');
+        htmlView.classList.remove('d-none');
+      }
+    }
+
+    // Download AI report as file (.md or .html)
+    function downloadAiReport() {
+      const text = rawAiReportText || '';
+      if (!text || text.includes('AI 正在努力分析') || text.includes('AI 綜合分析發生錯誤')) {
+        alert('無有效分析報告可下載！');
+        return;
+      }
+      
+      let blob, filename;
+      if (currentReportFormat === 'md') {
+        blob = new Blob([text], { type: 'text/markdown;charset=utf-8;' });
+        filename = \`Falo_AI_Report_\${new Date().toISOString().slice(0,10)}.md\`;
+      } else {
+        const parsedHtml = marked.parse(text);
+        const fullHtml = \`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FALO AI 綜合分析報告</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 40px;
+      color: #1f2937;
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #f9fafb;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+    }
+    h1, h2, h3 {
+      color: #111827;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    h1 { font-size: 28px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+    h2 { font-size: 20px; border-left: 4px solid #10b981; padding-left: 10px; }
+    h3 { font-size: 16px; }
+    p { margin-bottom: 16px; color: #374151; }
+    code {
+      background-color: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 85%;
+      color: #ef4444;
+    }
+    pre {
+      background-color: #1e293b;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    pre code {
+      background-color: transparent;
+      padding: 0;
+      color: #f8fafc;
+      font-size: 14px;
+    }
+    blockquote {
+      border-left: 4px solid #10b981;
+      padding: 12px 16px;
+      color: #4b5563;
+      background-color: #f0fdf4;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 24px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f3f4f6;
+      color: #111827;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background-color: #f9fafb; }
+    ul, ol { margin-bottom: 16px; padding-left: 24px; color: #374151; }
+    li { margin-bottom: 6px; }
+    hr { border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    \${parsedHtml}
+  </div>
+</body>
+</html>\`;
+        blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8;' });
+        filename = \`Falo_AI_Report_\${new Date().toISOString().slice(0,10)}.html\`;
+      }
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // Copy formatted report to clipboard (Support Rich Text copying in HTML mode)
+    function copyAiReport() {
+      const text = rawAiReportText || '';
+      if (!text || text.includes('AI 正在努力分析') || text.includes('AI 綜合分析發生錯誤')) {
+        alert('無有效分析報告可複製！');
+        return;
+      }
+
+      if (currentReportFormat === 'md') {
+        // Copy raw markdown plain text
+        navigator.clipboard.writeText(text).then(() => {
+          alert('AI 原始 Markdown 報告已複製到剪貼簿！');
+        }).catch(err => {
+          console.error('Failed to copy report:', err);
+          alert('複製失敗！');
+        });
+      } else {
+        // Smart rich text copying (combines html format & plain text fallback)
+        try {
+          const parsedHtml = marked.parse(text);
+          const richHtml = \`<div style="font-family: -apple-system, sans-serif; line-height: 1.6; color: #333;">\\\${parsedHtml}</div>\`;
+          
+          const htmlBlob = new Blob([richHtml], { type: 'text/html' });
+          const textBlob = new Blob([text], { type: 'text/plain' });
+          
+          const clipboardData = [
+            new ClipboardItem({
+              'text/html': htmlBlob,
+              'text/plain': textBlob
+            })
+          ];
+          
+          navigator.clipboard.write(clipboardData).then(() => {
+            alert('AI 網頁預覽格式已複製！貼至 Word/Google Docs/Gmail 時將自動保留標題與粗體排版！');
+          }).catch(err => {
+            console.error('Clipboard API failed, fallback to plain text copy:', err);
+            // Fallback to plain text copy
+            navigator.clipboard.writeText(text).then(() => {
+              alert('AI 報告已複製 (純文字)！');
+            });
+          });
+        } catch (err) {
+          console.error('Copy Rich Text Error:', err);
+          navigator.clipboard.writeText(text).then(() => {
+            alert('AI 報告已複製 (純文字)！');
+          });
+        }
+      }
+    }
+
+    // ==========================================
+    // KM Knowledge Base Logic
+    // ==========================================
+    function handleKmFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const textInput = document.getElementById('kmTextInput');
+        
+        if (file.name.toLowerCase().endsWith('.html')) {
+          textInput.value = convertHtmlToMarkdown(content);
+        } else {
+          textInput.value = content;
+        }
+        
+        document.getElementById('kmIncludeCheck').checked = true;
+        updateUnifiedCompiledContext();
+        alert(\`知識庫檔案「\${file.name}」匯入成功！已自動勾選併入分析。\`);
+      };
+      reader.readAsText(file);
+    }
+
+    function triggerKmHtmlConversion() {
+      const textInput = document.getElementById('kmTextInput');
+      const rawText = textInput.value;
+      if (!rawText.trim()) {
+        alert('請先貼入 HTML 內容再進行轉換！');
+        return;
+      }
+      
+      const md = convertHtmlToMarkdown(rawText);
+      textInput.value = md;
+      updateUnifiedCompiledContext();
+      alert('已成功將貼入之 HTML 轉換為 Markdown！');
+    }
+
+    function convertHtmlToMarkdown(html) {
+      if (!html) return '';
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      function processNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.nodeValue;
+        }
+        
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return '';
+        }
+        
+        const tagName = node.tagName.toLowerCase();
+        let childrenContent = '';
+        
+        for (let i = 0; i < node.childNodes.length; i++) {
+          childrenContent += processNode(node.childNodes[i]);
+        }
+        
+        switch (tagName) {
+          case 'h1':
+            return \`\\n# \${childrenContent.trim()}\\n\`;
+          case 'h2':
+            return \`\\n## \${childrenContent.trim()}\\n\`;
+          case 'h3':
+            return \`\\n### \${childrenContent.trim()}\\n\`;
+          case 'h4':
+            return \`\\n#### \${childrenContent.trim()}\\n\`;
+          case 'h5':
+            return \`\\n##### \${childrenContent.trim()}\\n\`;
+          case 'h6':
+            return \`\\n###### \${childrenContent.trim()}\\n\`;
+          case 'p':
+            return \`\\n\${childrenContent.trim()}\\n\`;
+          case 'br':
+            return '\\n';
+          case 'strong':
+          case 'b':
+            return \`**\${childrenContent}**\`;
+          case 'em':
+          case 'i':
+            return \`*\${childrenContent}*\`;
+          case 'code':
+            return \`\\\`\${childrenContent}\\\`\`;
+          case 'pre':
+            return \`\\n\\\`\\\`\\\`\\n\${childrenContent}\\n\\\`\\\`\\\`\\n\`;
+          case 'a':
+            const href = node.getAttribute('href') || '';
+            return href ? \`[\${childrenContent}](\${href})\` : childrenContent;
+          case 'li':
+            return \`* \${childrenContent.trim()}\\n\`;
+          case 'ul':
+            return \`\\n\${childrenContent}\\n\`;
+          case 'ol':
+            return \`\\n\${childrenContent}\\n\`;
+          case 'blockquote':
+            return \`\\n> \${childrenContent.trim().replace(/\\n/g, '\\n> ')}\\n\`;
+          case 'hr':
+            return '\\n---\\n';
+          case 'script':
+          case 'style':
+          case 'head':
+          case 'title':
+            return '';
+          default:
+            return childrenContent;
+        }
+      }
+      
+      const targetElement = doc.body || doc.documentElement;
+      let md = processNode(targetElement);
+      md = md.replace(/\\n{3,}/g, '\\n\\n');
+      return md.trim();
+    }
+
+    function clearKmData() {
+      document.getElementById('kmTextInput').value = '';
+      document.getElementById('kmIncludeCheck').checked = false;
+      document.getElementById('kmFileInput').value = '';
+      updateUnifiedCompiledContext();
+    }
+
+    function handleKmCheckboxChange(cb) {
+      updateUnifiedCompiledContext();
+    }
+
+    // Auto check if user types text
+    function handleKmTextInput() {
+      const textVal = document.getElementById('kmTextInput').value.trim();
+      const includeCheck = document.getElementById('kmIncludeCheck');
+      
+      if (textVal && !includeCheck.checked) {
+        includeCheck.checked = true;
+      } else if (!textVal && includeCheck.checked) {
+        includeCheck.checked = false;
+      }
+      updateUnifiedCompiledContext();
+    }
+
+    // ==========================================
+    // FALO Analysis Context Basket Logic
+    // ==========================================
+    function addSelectedLineToBasket() {
+      if (!parsedChatLog || selectedDates.size === 0) {
+        alert('請先載入 LINE 對話並勾選至少一天的對話紀錄！');
+        return;
+      }
+      
+      const chatName = parsedChatLog.chatName || '未命名對話';
+      const daysCount = selectedDates.size;
+      let totalLineMsgs = 0;
+      let lineContent = [];
+      
+      lineContent.push(\`## 💬 LINE 歷史群組對話紀錄 - \${chatName}\`);
+      lineContent.push(\`* **資料來源**: LINE 歷史匯出備份檔案\`);
+      lineContent.push(\`* **選取天數**: \${daysCount} 天\`);
+      lineContent.push('\\n');
+      
+      const sortedSelected = Array.from(selectedDates).sort();
+      sortedSelected.forEach(d => {
+        const group = groupedByDate[d];
+        if (!group) return;
+        lineContent.push(\`### 📅 \${d}\`);
+        group.messages.forEach(msg => {
+          lineContent.push(\`- **[\${msg.time}] \${msg.sender}**: \${msg.content}\`);
+          totalLineMsgs++;
+        });
+        lineContent.push('');
+      });
+      lineContent.push('---\\n');
+      
+      const contentString = lineContent.join('\\n');
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : \`\${minSelectedDate} ~ \${maxSelectedDate}\`;
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "line",
+        title: \`💬 LINE - \${chatName}\`,
+        info: \`時間: \${dateRangeStr} (\${daysCount} 天, 共 \${totalLineMsgs} 筆對話)\`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(\`已成功將 \${chatName} (\${daysCount} 天, \${totalLineMsgs} 筆對話) 存入分析清單！\`);
+    }
+
+    function addSelectedDbToBasket() {
+      if (!dbParsedEvents || dbSelectedDates.size === 0) {
+        alert('請先選取官方助手對話並勾選至少一天的紀錄！');
+        return;
+      }
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+      const daysCount = dbSelectedDates.size;
+      let totalDbMsgs = 0;
+      let dbContent = [];
+      
+      dbContent.push(\`## 📱 官方助手對話紀錄 - \${chatInfo}\`);
+      dbContent.push(\`* **資料來源**: Google Sheets chat_events 資料表\`);
+      dbContent.push(\`* **選取天數**: \${daysCount} 天\`);
+      dbContent.push('\\n');
+      
+      const sortedSelected = Array.from(dbSelectedDates).sort();
+      sortedSelected.forEach(d => {
+        const group = dbGroupedByDate[d];
+        if (!group) return;
+        dbContent.push(\`### 📅 \${d}\`);
+        group.messages.forEach(msg => {
+          const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+          dbContent.push(\`- **[\${msg.time}] \${msg.sender}\${roleLabel}**: \${msg.content}\`);
+          totalDbMsgs++;
+        });
+        dbContent.push('');
+      });
+      dbContent.push('---\\n');
+      
+      const contentString = dbContent.join('\\n');
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : \`\${minSelectedDate} ~ \${maxSelectedDate}\`;
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "db",
+        title: \`📱 助手 - \${chatInfo}\`,
+        info: \`時間: \${dateRangeStr} (\${daysCount} 天, 共 \${totalDbMsgs} 筆對話)\`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(\`已成功將 \${chatInfo} (\${daysCount} 天, \${totalDbMsgs} 筆對話) 存入分析清單！\`);
+    }
+
+    function addKmToBasket() {
+      const kmText = document.getElementById('kmTextInput').value.trim();
+      if (!kmText) {
+        alert('請先在知識庫輸入框貼入或匯入文字內容！');
+        return;
+      }
+      
+      let kmContent = [];
+      kmContent.push(\`## 📚 知識庫參考資料 (KM)\`);
+      kmContent.push(\`* **資料來源**: 知識庫文字導入器 (KM)\`);
+      kmContent.push('\\n');
+      kmContent.push(kmText);
+      kmContent.push('\\n---\\n');
+      
+      const contentString = kmContent.join('\\n');
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "km",
+        title: \`📚 知識庫 - 參考資料\`,
+        info: \`文字長度 \${kmText.length} 字\`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(\`已成功將知識庫參考資料存入分析清單！\`);
+    }
+
+    function renderBasketUI() {
+      const emptyState = document.getElementById('analysisBasketEmptyState');
+      const container = document.getElementById('analysisBasketContainer');
+      const tableBody = document.getElementById('analysisBasketTableBody');
+      
+      if (!analysisBasket || analysisBasket.length === 0) {
+        emptyState.classList.remove('d-none');
+        container.classList.add('d-none');
+        return;
+      }
+      
+      emptyState.classList.add('d-none');
+      container.classList.remove('d-none');
+      
+      let html = '';
+      analysisBasket.forEach((item, index) => {
+        const typeBadge = item.type === 'line' 
+          ? '<span class="badge bg-primary text-light">LINE</span>'
+          : item.type === 'db'
+            ? '<span class="badge bg-success text-light">助手</span>'
+            : '<span class="badge bg-purple text-light">知識庫</span>';
+            
+        const isChecked = item.enabled ? 'checked' : '';
+        
+        html += \`
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 8px;">
+              <input type="checkbox" class="form-check-input" \${isChecked} onchange="toggleBasketItem('\${item.id}')" style="cursor: pointer;">
+            </td>
+            <td style="padding: 8px;">\${typeBadge}</td>
+            <td style="padding: 8px;">
+              <div class="fw-bold text-light">\${item.title}</div>
+              <div class="text-muted small">\${item.info}</div>
+            </td>
+            <td style="padding: 8px;" class="text-muted">\${item.charCount} 字</td>
+            <td style="padding: 8px; text-align: center;">
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, -1)" \${index === 0 ? 'disabled' : ''} title="上移">▲</button>
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, 1)" \${index === analysisBasket.length - 1 ? 'disabled' : ''} title="下移">▼</button>
+                <button class="btn btn-outline-danger btn-xs py-0 ms-2" onclick="deleteBasketItem('\${item.id}')" title="刪除"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>
+          </tr>\`;
+      });
+      
+      tableBody.innerHTML = html;
+    }
+
+    function toggleBasketItem(id) {
+      const item = analysisBasket.find(x => x.id === id);
+      if (item) {
+        item.enabled = !item.enabled;
+        updateUnifiedCompiledContext();
+        renderBasketUI();
+      }
+    }
+
+    function deleteBasketItem(id) {
+      analysisBasket = analysisBasket.filter(x => x.id !== id);
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+    }
+
+    function moveBasketItem(index, direction) {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= analysisBasket.length) return;
+      
+      // Swap elements
+      const temp = analysisBasket[index];
+      analysisBasket[index] = analysisBasket[targetIndex];
+      analysisBasket[targetIndex] = temp;
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+    }
+
+    function exportSelectedLineToTxt(mode) {
+      if (!parsedChatLog || selectedDates.size === 0) {
+        alert('請先載入 LINE 對話並勾選至少一天的對話紀錄！');
+        return;
+      }
+      
+      const chatName = parsedChatLog.chatName || '未命名對話';
+      const sortedSelected = Array.from(selectedDates).sort();
+      const prefix = document.getElementById('lineFilePrefix').value.trim() || 'LN';
+      
+      function downloadFile(content, filename) {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      
+      if (mode === 'each') {
+        // Export day-by-day (each date in a separate file)
+        sortedSelected.forEach((d, idx) => {
+          setTimeout(() => {
+            const group = groupedByDate[d];
+            if (!group) return;
+            
+            let textContent = [];
+            textContent.push(\`[LINE] \${chatName}的聊天記錄\`);
+            textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+            
+            const dateObj = new Date(d);
+            const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+            const weekdayStr = weekdays[dateObj.getDay()];
+            
+            textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+            group.messages.forEach(msg => {
+              textContent.push(\`\${msg.time}\\t\${msg.sender}\\t\${msg.content}\`);
+            });
+            
+            const filename = \`\${prefix}_\${chatName}_\${d}.txt\`;
+            downloadFile(textContent.join('\\n'), filename);
+          }, idx * 200); // 200ms delay between downloads to prevent browser blocking
+        });
+      } else {
+        // Range export (all merged in one file)
+        const minSelectedDate = sortedSelected[0];
+        const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+        const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+          ? minSelectedDate 
+          : \`\${minSelectedDate}_\${maxSelectedDate}\`;
+          
+        const filename = \`\${prefix}_\${chatName}_\${dateRangeStr}.txt\`;
+        
+        let textContent = [];
+        textContent.push(\`[LINE] \${chatName}的聊天記錄\`);
+        textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+        
+        sortedSelected.forEach(d => {
+          const group = groupedByDate[d];
+          if (!group) return;
+          
+          const dateObj = new Date(d);
+          const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+          const weekdayStr = weekdays[dateObj.getDay()];
+          
+          textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+          group.messages.forEach(msg => {
+            textContent.push(\`\${msg.time}\\t\${msg.sender}\\t\${msg.content}\`);
+          });
+          textContent.push('');
+        });
+        
+        downloadFile(textContent.join('\\n'), filename);
+      }
+    }
+
+    function exportSelectedDbToTxt(mode) {
+      if (!dbParsedEvents || dbSelectedDates.size === 0) {
+        alert('請先選取官方助手對話並勾選至少一天的紀錄！');
+        return;
+      }
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+      const sortedSelected = Array.from(dbSelectedDates).sort();
+      const prefix = document.getElementById('dbFilePrefix').value.trim() || 'DB';
+      
+      function downloadFile(content, filename) {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      
+      if (mode === 'each') {
+        // Export day-by-day (each date in a separate file)
+        sortedSelected.forEach((d, idx) => {
+          setTimeout(() => {
+            const group = dbGroupedByDate[d];
+            if (!group) return;
+            
+            let textContent = [];
+            textContent.push(\`[LINE] 官方助手對話 - \${chatInfo}\`);
+            textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+            
+            const dateObj = new Date(d);
+            const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+            const weekdayStr = weekdays[dateObj.getDay()];
+            
+            textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+            group.messages.forEach(msg => {
+              const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+              textContent.push(\`\${msg.time}\\t\${msg.sender}\${roleLabel}\\t\${msg.content}\`);
+            });
+            
+            const filename = \`\${prefix}_\${chatInfo}_\${d}.txt\`;
+            downloadFile(textContent.join('\\n'), filename);
+          }, idx * 200); // 200ms delay between downloads to prevent browser blocking
+        });
+      } else {
+        // Range export (all merged in one file)
+        const minSelectedDate = sortedSelected[0];
+        const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+        const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+          ? minSelectedDate 
+          : \`\${minSelectedDate}_\${maxSelectedDate}\`;
+          
+        const filename = \`\${prefix}_\${chatInfo}_\${dateRangeStr}.txt\`;
+        
+        let textContent = [];
+        textContent.push(\`[LINE] 官方助手對話 - \${chatInfo}\`);
+        textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+        
+        sortedSelected.forEach(d => {
+          const group = dbGroupedByDate[d];
+          if (!group) return;
+          
+          const dateObj = new Date(d);
+          const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+          const weekdayStr = weekdays[dateObj.getDay()];
+          
+          textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+          group.messages.forEach(msg => {
+            const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+            textContent.push(\`\${msg.time}\\t\${msg.sender}\${roleLabel}\\t\${msg.content}\`);
+          });
+          textContent.push('');
+        });
+        
+        downloadFile(textContent.join('\\n'), filename);
+      }
+    }
+
+    // Global event listener to add btn-clicked class for click visual feedback
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn');
+      if (btn) {
+        btn.classList.add('btn-clicked');
+        setTimeout(() => {
+          btn.classList.remove('btn-clicked');
+        }, 150);
+      }
+    });
   </script>
+
+  <!-- JS: Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- JS: Bootstrap 5 Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -4028,6 +6428,55 @@ const LINE_PARSER_SPEC_HTML = `<!doctype html>
 }</code></pre>
     </section>
 
+    <!-- Google Drive Restoration and Mapping Registry -->
+    <section>
+      <h2>五、 Google Drive 雲端架構隔離與 Mapping 機制 (v2.1)</h2>
+      <p>自 v2.1 版起，專案引入了嚴格的檔案結構隔離以及對話 Mapping 對照機制，以解決多個 LINE 帳號管理時的雜亂問題。</p>
+      
+      <h3>1. 三層隔離目錄架構</h3>
+      <ul>
+        <li><strong><code>exports/</code></strong>：存放使用者手動上傳的對話備份文字檔。控制台只掃描此資料夾。</li>
+        <li><strong><code>system_raw/Bot_[botAlias]/</code></strong>：Webhook 自動備份產生的 <code>raw_</code> 對話文字檔收納區。</li>
+        <li><strong><code>system_media/</code></strong>：Webhook 抓回的圖片、語音等系統附件。</li>
+      </ul>
+
+      <h3>2. 智慧名稱提取與對照註冊表 (Registry)</h3>
+      <p>GAS 調用 <code>list_files</code> 時，會自動讀取 <code>exports/</code> 底下各文字檔的首行提取群組名稱，並與試算表中的 <code>chat_registry</code> 對比，在控制台選單直接顯示好讀名稱（如 <code>FALO 核心研發群</code>），而非無意義的檔名。</p>
+
+      <h3>3. 增量對齊策略 (Incremental Sync)</h3>
+      <p>支援增量與覆蓋兩種同步資料庫方式。增量模式下，系統會查詢該對話的最大時間戳，自動過濾並僅寫入新收到的訊息，確保資料庫內容沒有重疊與重複。</p>
+    </section>
+
+    <!-- FALO Analysis Basket Spec Section -->
+    <section>
+      <h2>六、 FALO 綜合分析購物車與上下文積木編譯機制 (v2.2)</h2>
+      <p>自 v2.2 版起，控制台導入了 <strong>「FALO 綜合分析購物車 (Analysis Context Basket)」</strong> 機制，實現多來源資料積木的隨選組合與排序。</p>
+      
+      <h3>1. 資料積木化 (Data Blocks Packaging)</h3>
+      <p>LINE、官方助手、KM 卡片底部均配備「存入分析清單」按鈕。點擊時，當前所勾選切片之資料（或文字內容）會立即冷凍並組裝成獨立的 Block 物件，追加存入全域清單 <code>analysisBasket</code> 中。</p>
+
+      <h3>2. 隨選啟用與上下排序</h3>
+      <p>積木清單中，使用者可單獨啟用/關閉某個積木。同時，可使用 <code>▲</code> 與 <code>▼</code> 按鈕自由搬移積木，AI 最終閱讀 Prompt 上下文的先後順序將嚴格按照使用者的自訂排序，大幅提升比對的準確性。</p>
+
+      <h3>3. 智慧編譯串接</h3>
+      <p>編譯器 <code>updateUnifiedCompiledContext</code> 會優先抓取購物車中已啟用的 Block 內容，依索引順序由上而下串接，並在各 Block 區段間插入 Markdown <code>---</code> 分割線，實現多來源上下文的智慧編譯與字數即時累加。</p>
+    </section>
+
+    <!-- FALO Auditing and Foolproofing Spec Section -->
+    <section>
+      <h2>七、 資料分析與防呆審計機制 (v2.3)</h2>
+      <p>在非結構化對話分析中，防止 inline 垃圾資料或內文日期被誤判為系統日期分隔線，是確保分析結果精準度的重要防禦工程。</p>
+      
+      <h3>1. 正規表示式行尾嚴格錨定</h3>
+      <p><code>dateRegex</code> 加入行尾錨定 <code>$</code>，並且嚴格限制僅能有如 <code>（週六）</code> 或 <code>(Sat)</code> 等合規星期標誌。任何包含 <code>~</code> 波浪號或額外文字之內文日程，正規表示式將直接拒絕判定為日期分隔線。</p>
+
+      <h3>2. 匯出日期上限稽核 (Export Date Audit)</h3>
+      <p>物理邏輯上，訊息發送時間絕不可能晚於檔案儲存/匯出時間。解析器在讀取首部時，會先提取出例如 <code>儲存日期：2026/7/5</code>。解析出的日期若大於此限，一律自動否決。</p>
+
+      <h3>3. 時間單向遞增稽核 (Progression Audit)</h3>
+      <p>對話歷史是單向遞增的。若新匹配的日期早於前一個有效日期（例如已經到 2020 年卻出現 2018 年），表示為內文中引用的歷史時間。系統會直接稽核否決該日期分隔，回退為上一則訊息的換行文字追加。</p>
+    </section>
+
   </main>
 </body>
 </html>
@@ -4726,7 +7175,7 @@ export default {
     if (path === "/product-analysis" || path === "/product-analysis.html") {
       return htmlResponse(PRODUCT_ANALYSIS_HTML);
     }
-    if (path === "/line-parser-spec" || path === "/line-parser-spec.html") {
+    if (path === "/line-parser-spec" || path === "/line-parser-spec.html" || path === "/docs/tutorials/line_parser_spec.html") {
       return htmlResponse(LINE_PARSER_SPEC_HTML);
     }
     if (path === "/google-sheets-access-methods" || path === "/google-sheets-access-methods.html") {
@@ -4841,14 +7290,132 @@ export default {
       }
     }
 
+    // 4.5 Universal AI Analyze Route (supports Built-in Workers AI and custom Gemini Key)
+    if (path === "/api/ai/analyze" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const provider = body.provider || "builtin";
+        const prompt = body.prompt || "";
+        const customGeminiKey = body.gemini_key || "";
+
+        if (!prompt.trim()) {
+          return new Response(JSON.stringify({ ok: false, error: "Prompt context cannot be empty" }), {
+            status: 400,
+            headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+          });
+        }
+
+        let aiResultText = "";
+
+        if (provider === "builtin") {
+          if (!env.AI) {
+            return new Response(JSON.stringify({ ok: false, error: "Cloudflare Workers AI binding [ai] is missing in wrangler.toml!" }), {
+              status: 500,
+              headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+          // Whitelist built-in models
+          const allowedBuiltinModels = [
+            "@cf/mistralai/mistral-small-3.1-24b-instruct",
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+            "@cf/meta/llama-3.2-3b-instruct"
+          ];
+          const selectedModel = allowedBuiltinModels.includes(body.model) ? body.model : "@cf/mistralai/mistral-small-3.1-24b-instruct";
+          
+          // Call Workers AI with selected model
+          const response = await env.AI.run(selectedModel, {
+            messages: [
+              { role: "system", content: "You are a helpful AI assistant. Please respond in Traditional Chinese (zh-TW)." },
+              { role: "user", content: prompt }
+            ]
+          });
+          
+          if (response && response.response) {
+            aiResultText = response.response;
+          } else {
+            throw new Error("Empty response from Workers AI model");
+          }
+        } else if (provider === "gemini") {
+          const apiKey = customGeminiKey.trim() || env.GEMINI_API_KEY;
+          if (!apiKey || apiKey === "AIzaSyxxxx") {
+            return new Response(JSON.stringify({ ok: false, error: "Gemini API key is not configured!" }), {
+              status: 400,
+              headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // Whitelist Gemini models
+          const allowedGeminiModels = [
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.1-flash",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite"
+          ];
+          const selectedModel = allowedGeminiModels.includes(body.model) ? body.model : "gemini-3.1-flash-lite";
+
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+          const geminiPayload = {
+            contents: [
+              {
+                parts: [
+                  { text: prompt }
+                ]
+              }
+            ]
+          };
+
+          const geminiResponse = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(geminiPayload)
+          });
+
+          if (!geminiResponse.ok) {
+            const errorText = await geminiResponse.text();
+            throw new Error(`Gemini API error (Status ${geminiResponse.status}): ${errorText}`);
+          }
+
+          const geminiJson = await geminiResponse.json();
+          try {
+            aiResultText = geminiJson.candidates[0].content.parts[0].text;
+            globalThis.geminiLastUsage = geminiJson.usageMetadata || null;
+          } catch (e) {
+            throw new Error("Failed to parse response content from Gemini API JSON");
+          }
+        } else {
+          return new Response(JSON.stringify({ ok: false, error: "Unsupported AI provider: " + provider }), {
+            status: 400,
+            headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+          });
+        }
+
+        const usagePayload = (provider === "gemini") ? globalThis.geminiLastUsage : null;
+
+        return new Response(JSON.stringify({ ok: true, result: aiResultText, usage: usagePayload }), {
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: err.message }), {
+          status: 500,
+          headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+    }
+
     // 5. LINE Webhook Proxy Route (converts GAS 302 Found to direct 200 OK for LINE verification)
     if ((path === "/webhook" || path === "/api/webhook") && request.method === "POST") {
       try {
         const bodyText = await request.text();
         const signature = request.headers.get("X-Line-Signature") || "";
 
-        // Forward to GAS Web App URL
-        const gasUrl = new URL(env.GAS_WEB_APP_URL);
+        // Forward to GAS Web App URL (support dynamic ?gas query parameter)
+        const urlObj = new URL(request.url);
+        const queryGas = urlObj.searchParams.get("gas");
+        const gasUrl = queryGas ? new URL(decodeURIComponent(queryGas)) : new URL(env.GAS_WEB_APP_URL);
         
         const fetchOptions = {
           method: "POST",

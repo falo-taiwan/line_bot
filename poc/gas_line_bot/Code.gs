@@ -45,7 +45,7 @@ function doGet(e) {
   // Render Diagnostics Dashboard when no action parameter is provided (direct browser access)
   if (!action) {
     return HtmlService.createHtmlOutputFromFile('Index')
-      .setTitle('Falo IM v2.x Diagnostics Dashboard')
+      .setTitle('Falo IM v2.01 Diagnostics Dashboard')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 

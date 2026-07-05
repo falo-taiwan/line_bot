@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GAS 前端只有授權 Google 帳號可看：Debug 報告</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f6f7f9;
+      line-height: 1.7;
+    }
+    main {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      color: #111827;
+    }
+    h1 {
+      font-size: clamp(30px, 5vw, 48px);
+      margin: 0 0 8px;
+    }
+    h2 {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px solid #d9dee8;
+      font-size: 24px;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 19px;
+    }
+    p {
+      margin: 12px 0;
+    }
+    .date {
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+    .callout {
+      border-left: 4px solid #2563eb;
+      background: #eef4ff;
+      padding: 14px 16px;
+      margin: 18px 0;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      background: white;
+      border: 1px solid #d9dee8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #edf0f5;
+      font-weight: 700;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    code {
+      background: #e9edf5;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      background: #111827;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    ol, ul {
+      padding-left: 24px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>GAS 前端只有授權 Google 帳號可看：Debug 報告</h1>
+    <p class="date">日期：2026-07-05</p>
+
+    <h2>1. 這是什麼問題</h2>
+    <p>目前的問題不是「LINE webhook 沒有回應」，也不是「Google Sheet 一定沒有權限」。</p>
+    <div class="callout">GAS Web App 的 <code>/exec</code> 後端可以被匿名 HTTP client 取得 HTML，但某些瀏覽器、手機、私密視窗或非部署者 Google 帳號，無法穩定載入 GAS 的 HTML 前端。</div>
+    <p>也就是說，問題發生在「GAS HTML 前端被 Google 外框載入」這一層，而不是單純發生在資料庫、LINE 或 API token。</p>
+
+    <h2>2. 已驗證現象</h2>
+    <table>
+      <thead>
+        <tr><th>檢查項目</th><th>結果</th><th>代表意義</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>debug notes 內的目標 <code>/exec</code> URL</td><td><code>curl -L</code> 可取得 <code>200 text/html</code></td><td>這個部署 URL 本身不是完全私有或不存在</td></tr>
+        <tr><td>目標 URL 回傳內容</td><td>HTML title 是 <code>Falo IM v2.x Diagnostics Dashboard</code></td><td>GAS 有回傳診斷前端</td></tr>
+        <tr><td>本機 <code>clasp deployments</code></td><td>沒有列出 debug notes 目標 deployment id</td><td>本機 <code>clasp</code> 目前指向的 Apps Script 專案，可能不是正在測的那個公開部署</td></tr>
+        <tr><td>另一個本機 HEAD deployment</td><td>會導向 Google 登入</td><td>該部署不是公開匿名可讀，或不是正式 <code>/exec</code> 公開版本</td></tr>
+        <tr><td>另一個本機 v2 deployment</td><td>回 404</td><td>可能是舊部署、已失效部署，或部署設定不完整</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. 最可能根因</h2>
+    <h3>根因 A：GAS HtmlService 前端依賴 Google 外框與帳號狀態</h3>
+    <p>Apps Script 的 HTML 前端不是普通靜態網頁。</p>
+    <pre>使用者瀏覽器
+  -&gt; script.google.com 的 Web App 外框
+  -&gt; script.googleusercontent.com 的 iframe 內容
+  -&gt; google.script.run 呼叫 GAS 後端函式
+  -&gt; Google Sheet / Drive</pre>
+    <p>這中間會受到使用者登入帳號、第三方 cookie、手機瀏覽器、LINE 內建瀏覽器、Safari 私密模式與公司 Google Workspace 政策影響。</p>
+    <div class="callout">後端 HTTP 測試成功，但人在瀏覽器打開時失敗。</div>
+
+    <h3>根因 B：本機 <code>clasp</code> 專案與目前測試 URL 不一致</h3>
+    <p>目前本機 <code>clasp deployments</code> 列出的 deployment id，沒有 debug notes 裡的目標 id。</p>
+    <table>
+      <thead>
+        <tr><th>問題</th><th>為什麼重要</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>目前 LINE / 使用者正在打開哪一個 <code>/exec</code> URL？</td><td>避免修 A 專案，測 B 專案</td></tr>
+        <tr><td>本機 <code>.clasp.json</code> 指向哪個 Script ID？</td><td><code>clasp push</code> 只會推到這個專案</td></tr>
+        <tr><td>Apps Script UI 裡正式部署是哪一個版本？</td><td><code>clasp push</code> 不等於重新部署 Web App</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. 短期修復檢查表</h2>
+    <p>先不要改程式碼，先做部署層確認。</p>
+    <ol>
+      <li>在 Apps Script 編輯器打開正在使用的專案。</li>
+      <li>到 <code>Deploy -&gt; Manage deployments</code>。</li>
+      <li>編輯正式 Web App deployment。</li>
+      <li>設定 <code>Execute as: Me</code>、<code>Who has access: Anyone</code>、<code>Version: New version</code>。</li>
+      <li>按 <code>Deploy</code> 後，複製新的 <code>/exec</code> URL。</li>
+      <li>不要用 <code>/dev</code> URL 給一般使用者測試。</li>
+    </ol>
+    <pre>curl -L "&lt;WEB_APP_EXEC_URL&gt;"</pre>
+    <p>再用 Chrome 無痕視窗與手機外部瀏覽器測試。若 <code>curl</code> 成功、無痕或手機失敗，代表部署已公開，但 GAS HTML 前端仍受 Google 瀏覽器外框限制。</p>
+
+    <h2>5. 建議架構修正</h2>
+    <p>長期不要把「公開給客戶看的前端」放在 GAS HtmlService。</p>
+    <pre>使用者
+  -&gt; Cloudflare Pages 靜態前端
+  -&gt; Cloudflare Worker API proxy
+  -&gt; GAS Web App JSON API
+  -&gt; 私有 Google Sheet / Drive</pre>
+    <table>
+      <thead>
+        <tr><th>模組</th><th>責任</th><th>是否公開給一般使用者</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Cloudflare Pages</td><td>顯示診斷頁、教學頁、操作介面</td><td>是</td></tr>
+        <tr><td>Cloudflare Worker</td><td>代理 API、保護 token、處理 CORS</td><td>是，但 token 不外露</td></tr>
+        <tr><td>GAS Web App</td><td>只當 Google Sheet / Drive gateway</td><td>不直接給一般使用者開</td></tr>
+        <tr><td>Google Sheet / Drive</td><td>儲存資料與附件</td><td>私有</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 最小可行版本</h2>
+    <h3>第一步：GAS 保留 API，不當公開前端</h3>
+    <pre>GET /exec?action=query&amp;token=...
+GET /exec?action=get_chats&amp;token=...
+GET /exec?action=config&amp;token=...
+POST /exec?token=...</pre>
+    <p>前端診斷頁先只給內部帳號使用。</p>
+
+    <h3>第二步：新增 Cloudflare Worker proxy</h3>
+    <p>Worker 從 secret 讀取 GAS URL 與 token，server-to-server 呼叫 GAS，再回傳 JSON 給 Cloudflare Pages 前端。這樣使用者看到的是 Cloudflare 頁面，不直接碰 GAS HTML。</p>
+
+    <h2>7. 本次 debug 結論</h2>
+    <div class="callout">這不是 Google Sheet 沒分享，也不是 Code.gs 的 <code>doGet</code> 不會回前端；真正風險在 GAS HtmlService 前端的公開瀏覽器相容性，以及目前本機 <code>clasp</code> 指向的 deployment 與實測 URL 不一致。</div>
+    <p>短期先重新確認正式 <code>/exec</code> deployment。長期建議把公開前端搬到 Cloudflare Pages，把 GAS 降級為私有資料 gateway。</p>
+  </main>
+</body>
+</html>

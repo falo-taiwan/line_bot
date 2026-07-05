@@ -1,0 +1,634 @@
+const html = `<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Sheets 存取技術大解析：SQL 作為資料交換 Gateway 的抽象思想</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-light: #0d9488;
+      --primary-bg: #f0fdfa;
+      --dark: #0f172a;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --indigo: #4f46e5;
+      --indigo-bg: #e0e7ff;
+      --glass: rgba(255, 255, 255, 0.85);
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+      --gradient: linear-gradient(135deg, #115e59 0%, #0f766e 50%, #0d9488 100%);
+      --indigo-gradient: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6366f1 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease-in-out;
+    }
+
+    body {
+      margin: 0;
+      background: var(--light);
+      color: var(--dark);
+      font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header Styling */
+    header {
+      background: var(--gradient);
+      color: #ffffff;
+      padding: 64px 0 48px;
+      border-bottom: 5px solid #0f766e;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: -50px;
+      right: -50px;
+      width: 250px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sections */
+    section {
+      padding: 48px 0 16px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      border-left: 5px solid var(--primary);
+      padding-left: 14px;
+      margin: 0 0 28px;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: #334155;
+    }
+
+    /* Comparison Table */
+    .table-container {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--dark);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+
+    .status-good {
+      background: #d1fae5;
+      color: var(--success);
+    }
+
+    .status-warn {
+      background: #fef3c7;
+      color: var(--warning);
+    }
+
+    .status-bad {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border);
+      border-radius: 16px 0 0 16px;
+    }
+
+    .card-primary::before { background: var(--primary); }
+    .card-success::before { background: var(--success); }
+    .card-warning::before { background: var(--warning); }
+    .card-danger::before { background: var(--danger); }
+    .card-indigo::before { background: var(--indigo); }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h3 i {
+      font-size: 24px;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+      margin: 18px 0;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Grid for Pros and Cons */
+    .pro-con-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .pro-con-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pro-box, .con-box {
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-size: 13.5px;
+    }
+
+    .pro-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+
+    .con-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    .pro-box h4, .con-box h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pro-box h4 { color: var(--success); }
+    .con-box h4 { color: var(--danger); }
+
+    .pro-box ul, .con-box ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .pro-box li, .con-box li {
+      margin-bottom: 6px;
+    }
+    
+    .pro-box li:last-child, .con-box li:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Highlight Banner */
+    .concept-banner {
+      background: var(--indigo-gradient);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+    .concept-banner h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .concept-banner p {
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      margin: 0 0 16px;
+    }
+    .concept-banner code {
+      background: rgba(255,255,255,0.15);
+      color: #ffffff;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="badge">架構師思維與技術分享</div>
+      <h1>Google Sheets 存取技術大解析</h1>
+      <p>探討 SQL 作為「資料交換 Gateway」的抽象化核心思想，及 7 種試算表資料庫化的實作評估</p>
+    </div>
+  </header>
+
+  <!-- Content Section -->
+  <main class="container">
+    
+    <!-- SQL Abstraction Concept Section -->
+    <section style="padding-top: 48px;">
+      <div class="concept-banner">
+        <h3><i class="bi bi-cpu-fill"></i> 核心思想：SQL 只是一種「資料交換 Gateway」的抽象協議</h3>
+        <p>在傳統開發中，我們常把 SQL 窄化地理解為「對實體資料庫檔案（如 MySQL/PostgreSQL）進行的查詢」。但在現代雲地協同與 AI 開發時代，<strong>SQL 代表的是一種高度標準化、宣告式（Declarative）的「資料交換 Gateway 契約」</strong>。</p>
+        <p>不論底層的實體儲存媒體是 Google Sheets、地端 CSV、甚至是雲端 JSON 檔案；只要我們在中間包裝一層 **SQL API Gateway**，讓呼叫端預設使用 <code>SELECT</code>, <code>WHERE</code>, <code>LIMIT</code> 等 SQL 邏輯進行溝通，就能在架構上實現<strong>資料庫技術細節的完全隱藏</strong>：</p>
+        <ul>
+          <li><strong>對 AI Coding 與 Agent 極度友善</strong>：AI Agent 自然懂 SQL，只要介面是 SQL 規格，AI 就能在不需要了解 Google 特有 API 與限制的情況下，進行 100% 正確的檢索與操作。</li>
+          <li><strong>儲存媒介隨時無痛升級</strong>：今天用 Google Sheets (GAS 封裝 SQL API) 作為 $0 成本資料庫；明天想升級到 Cloudflare D1，地端與前端的程式碼 **完全不用改寫任何一行**，因為底層都是說著相同的 SQL Gateway 語言！</li>
+        </ul>
+      </div>
+    </section>
+
+    <section style="padding-top: 16px;">
+      <h2>一、 各種存取 Google Sheets 方案總覽</h2>
+      <p>基於上述 SQL Gateway 的抽象思想，我們評估了 7 種將 Google Sheets 當作資料庫存取的主流架構：</p>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>方案名稱</th>
+              <th>存取速度</th>
+              <th>資安隱私等級</th>
+              <th>查詢能力 (SQL)</th>
+              <th>開發複雜度</th>
+              <th>最適合場景</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. 官方 API v4</strong></td>
+              <td><span class="status-badge status-warn">中 (約 200-500ms)</span></td>
+              <td><span class="status-badge status-good">極高 (OAuth/金鑰)</span></td>
+              <td><span class="status-badge status-bad">無 (需手動篩選)</span></td>
+              <td><span class="status-badge status-warn">中高 (OAuth/SDK)</span></td>
+              <td>大型企業系統整合</td>
+            </tr>
+            <tr>
+              <td><strong>2. GAS Web App 封裝</strong></td>
+              <td><span class="status-badge status-warn">中 (約 300-800ms)</span></td>
+              <td><span class="status-badge status-good">極高 (Token 校驗)</span></td>
+              <td><span class="status-badge status-good">極佳 (JS 記憶體過濾)</span></td>
+              <td><span class="status-badge status-warn">中等 (JS)</span></td>
+              <td>SME MVP / FALO v2.x</td>
+            </tr>
+            <tr>
+              <td><strong>3. Google GViz API</strong></td>
+              <td><span class="status-badge status-good">快 (約 100-300ms)</span></td>
+              <td><span class="status-badge status-bad">低 (需公開連結)</span></td>
+              <td><span class="status-badge status-good">原生支援 SQL 語法</span></td>
+              <td><span class="status-badge status-good">極低 (HTTP)</span></td>
+              <td>公開數據展示 / 簡易看板</td>
+            </tr>
+            <tr>
+              <td><strong>4. 第三方 NoCode 轉 API</strong></td>
+              <td><span class="status-badge status-good">快 (CDN 快取)</span></td>
+              <td><span class="status-badge status-warn">中等 (依賴第三方)</span></td>
+              <td><span class="status-badge status-good">支援 API 參數篩選</span></td>
+              <td><span class="status-badge status-good">極低 (免代碼)</span></td>
+              <td>原型快速開發 / 簡易網站</td>
+            </tr>
+            <tr>
+              <td><strong>5. 本地 SQLite 快取同步</strong></td>
+              <td><span class="status-badge status-good">極速 (0-1ms)</span></td>
+              <td><span class="status-badge status-good">極高 (資料完全落地)</span></td>
+              <td><span class="status-badge status-good">100% 相容實體 SQL</span></td>
+              <td><span class="status-badge status-bad">高 (需寫背景同步)</span></td>
+              <td>離線運作 / 地端 AI Agent</td>
+            </tr>
+            <tr>
+              <td><strong>6. DuckDB + CSV 直連</strong></td>
+              <td><span class="status-badge status-good">極速 (本機執行)</span></td>
+              <td><span class="status-badge status-warn">中等 (CSV 連結暴露)</span></td>
+              <td><span class="status-badge status-good">超強 DuckDB 分析 SQL</span></td>
+              <td><span class="status-badge status-good">低 (Pandas/DuckDB)</span></td>
+              <td>大數據離線分析 / 報表產出</td>
+            </tr>
+            <tr>
+              <td><strong>7. BigQuery 聯邦查詢</strong></td>
+              <td><span class="status-badge status-warn">慢 (約數秒延遲)</span></td>
+              <td><span class="status-badge status-good">最高 (GCP IAM 權限)</span></td>
+              <td><span class="status-badge status-good">完整企業級 SQL-92</span></td>
+              <td><span class="status-badge status-bad">極高 (GCP 管理)</span></td>
+              <td>企業內部商業智慧 (BI)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>二、 核心方案深度解析與實作範例</h2>
+
+      <!-- 1. Google Apps Script Web App (API Wrapper) -->
+      <div class="card card-primary">
+        <h3><i class="bi bi-code-slash text-teal"></i> 1. GAS Web App (自建 API 代理)</h3>
+        <p>這是最被推薦的「先求有，再求好」的彈性設計。在 Google 試算表內部署 Apps Script 並發布為 Web App，負責接收 HTTP GET/POST 請求，在 Google 的伺服器端運行 JavaScript 來讀寫與篩選 Sheets 內容。</p>
+        
+        <div class="pro-con-grid">
+          <div class="pro-box">
+            <h4><i class="bi bi-plus-circle"></i> 優點</h4>
+            <ul>
+              <li><strong>絕對的安全隱私</strong>：試算表無需對外公開，GAS 會以「部署者帳號」的身分執行存取，只需自訂 API Key 即可防盜。</li>
+              <li><strong>自定義 Schema</strong>：可以在 GAS 中處理好資料轉換、去重、資料格式清洗，直接回傳最乾淨的 JSON，地端無負擔。</li>
+              <li><strong>API 限制分散化</strong>：程式部署在客戶端，資源與頻率配額由客戶帳號自行負擔。</li>
+            </ul>
+          </div>
+          <div class="con-box">
+            <h4><i class="bi bi-dash-circle"></i> 缺點</h4>
+            <ul>
+              <li><strong>執行時間限制</strong>：單次 HTTP 執行最多 30 秒至 6 分鐘，不適合處理極大流量的寫入。</li>
+              <li><strong>冷啟動時間 (Cold Start)</strong>：有時 Google 容器初始化需要 1-2 秒，會造成些許延遲。</li>
+            </ul>
+          </div>
+        </div>
+
+        <pre><code>// GAS Web App doGet 簡易實作：模擬 SQL Filtering 接口
+function doGet(e) {
+  var action = e.parameter.action;
+  var targetId = e.parameter.chat_id;
+  
+  if (action === 'query') {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("events");
+    var values = sheet.getDataRange().getValues();
+    var headers = values[0];
+    
+    // 在 Google 雲端記憶體中進行 JS Array 過濾
+    var results = [];
+    for (var i = 1; i < values.length; i++) {
+      var row = values[i];
+      if (row[2] === targetId) { // 假設第三欄為 chat_id
+        results.push({ id: row[0], text: row[8] });
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify(results))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</code></pre>
+      </div>
+
+      <!-- 2. Google Sheets GViz API (SQL Endpoint) -->
+      <div class="card card-success">
+        <h3><i class="bi bi-database-fill-check text-success"></i> 2. Google GViz API (Google 原生 SQL 查詢端點)</h3>
+        <p>Google 試算表內部有提供一個給 Google Visualization API 使用的端點，允許外部程式直接下 SQL-like 的 Query String。Google 伺服器會在雲端解析並篩選完畢後才將資料回傳。</p>
+        
+        <div class="pro-con-grid">
+          <div class="pro-box">
+            <h4><i class="bi bi-plus-circle"></i> 優點</h4>
+            <ul>
+              <li><strong>原生 SQL 支援</strong>：支持 <code>SELECT</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>ORDER BY</code>, <code>LIMIT</code> 等關鍵字。</li>
+              <li><strong>免自寫代碼</strong>：不需要部署任何 Apps Script 程式碼，直接打特定 HTTP 網址就能撈資料。</li>
+            </ul>
+          </div>
+          <div class="con-box">
+            <h4><i class="bi bi-dash-circle"></i> 缺點</h4>
+            <ul>
+              <li><strong>資安隱憂</strong>：試算表通常需要設定為「公開檢視」，否則外部發送 GET 請求時會回傳 403 Forbidden（雖然可以用 OAuth 2.0 處理，但程式開發複雜度會暴增）。</li>
+              <li><strong>格式極難解析</strong>：回傳的是一段 JS 程式碼而非乾淨的 JSON，地端需要做正則切片過濾。</li>
+            </ul>
+          </div>
+        </div>
+
+        <pre><code># Python 呼叫 GViz 原生 SQL 示範
+import requests
+import json
+import re
+
+spreadsheet_id = "your_sheet_id_here"
+sql_query = "SELECT A, B, C WHERE D = 'group_test' LIMIT 10"
+url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/gviz/tq?tq={sql_query}"
+
+response = requests.get(url)
+# 必須用 Regex 去除 google.visualization.Query.setResponse() 包裝字串
+json_str = re.search(r"google\\.visualization\\.Query\\.setResponse\\((.*)\\);", response.text).group(1)
+data = json.loads(json_str)</code></pre>
+      </div>
+
+      <!-- 3. Local SQLite Sync + Cache -->
+      <div class="card card-warning">
+        <h3><i class="bi bi-cloud-arrow-down-fill text-warning"></i> 3. Local SQLite Sync + Cache (本地同步快取)</h3>
+        <p>這是最適合對效能、離線運用與 AI 本地隱私要求極高時採用的架構。地端 Python 後台僅在背景「非同步」地將 Google Sheets 下載同步到本地 SQLite 中，前台的查詢則 100% 走本地 SQLite。</p>
+        
+        <div class="pro-con-grid">
+          <div class="pro-box">
+            <h4><i class="bi bi-plus-circle"></i> 優點</h4>
+            <ul>
+              <li><strong>0 毫秒極速查詢</strong>：前台搜尋、時間篩選直接下 SQLite 查詢，流暢度領先所有雲端直接讀取方案。</li>
+              <li><strong>離線斷網高可用</strong>：即使 Google 伺服器掛掉或辦公室斷網，地端系統運作完全不受影響。</li>
+              <li><strong>解放 AI 效率</strong>：地端 AI Agent 可以直接物理讀取本地 SQLite 資料庫與下載落地的圖片、PDF 文件，進行高速的 RAG 向量切片。</li>
+            </ul>
+          </div>
+          <div class="con-box">
+            <h4><i class="bi bi-dash-circle"></i> 缺點</h4>
+            <ul>
+              <li><strong>存在同步時間差 (Sync Lag)</strong>：本地資料不是 100% 的即時即刻（Real-time），除非每次 LINE Webhook 進來都發送 Signal 通知地端 Pull 數據。</li>
+              <li><strong>開發成本高</strong>：必須編寫去重 (Deduplicate)、Checkpoint、以及資料衝突處理機制。</li>
+            </ul>
+          </div>
+        </div>
+
+        <pre><code># Python 背景執行 SQLite 增量同步虛擬碼
+def sync_worker():
+    # 1. 取得本地資料庫最新的最後一筆 timestamp
+    last_sync_time = db.execute("SELECT MAX(captured_at) FROM chat_events").fetchone()[0]
+    
+    # 2. 向 GAS 網關發送請求，只拉取該時間點之後的新訊息
+    url = f"https://script.google.com/macros/s/.../exec?action=query&start_date={last_sync_time}"
+    new_events = requests.get(url).json()["data"]
+    
+    # 3. 寫入本地 SQLite，並非同步下載實體媒體檔案落地
+    for event in new_events:
+        db.execute("INSERT INTO chat_events VALUES (?, ?, ?, ...)", event)
+        if event["message_type"] == "image":
+            download_media_to_local_disk(event["message_id"])</code></pre>
+      </div>
+
+      <!-- 4. DuckDB / Pandas with CSV Export -->
+      <div class="card card-danger">
+        <h3><i class="bi bi-pie-chart-fill text-danger"></i> 4. DuckDB / Pandas + CSV 直連 (大數據分析專用)</h3>
+        <p>Google 試算表原生支援直接導出 CSV 格式。如果對話紀錄累積到數萬筆，我們可以用 DuckDB (極速嵌入式 SQL 分析引擎) 或 Python Pandas，直接在內存中對 Google Sheets 匯出的實體 CSV 網址進行 SQL 查詢。</p>
+        
+        <div class="pro-con-grid">
+          <div class="pro-box">
+            <h4><i class="bi bi-plus-circle"></i> 優點</h4>
+            <ul>
+              <li><strong>分析效能極強</strong>：DuckDB 執行複雜的 Group By、Joins、Window functions 的速度比 SQLite 更快數倍，極適合做戰情中心的大量報表分析。</li>
+              <li><strong>程式碼超簡潔</strong>：幾乎只需一行指令就能把線上 CSV 當作 SQL table 查詢。</li>
+            </ul>
+          </div>
+          <div class="con-box">
+            <h4><i class="bi bi-dash-circle"></i> 缺點</h4>
+            <ul>
+              <li><strong>高頻率呼叫頻寬開銷大</strong>：因為每次下 SQL 查詢，DuckDB 都必須向 Google 伺服器重新下載一次完整的 CSV 檔案，不適合做即時性高頻查詢，只適合做每日/每週批次報表分析。</li>
+            </ul>
+          </div>
+        </div>
+
+        <pre><code># Python + DuckDB 直接將 Google Sheet 當 SQL Table 查詢示範
+import duckdb
+
+spreadsheet_id = "your_sheet_id_here"
+gid = "0" # 第一張分頁的 GID
+csv_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&gid={gid}"
+
+# DuckDB 可以直接用 SQL 查詢網路上的 CSV 網址！
+query = f"""
+  SELECT sender_name, COUNT(*) as count 
+  FROM read_csv_auto('{csv_url}') 
+  GROUP BY sender_name 
+  ORDER BY count DESC
+"""
+result = duckdb.query(query).to_df()
+print(result)</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>三、 架構師深度建議與選型策略</h2>
+      <p>對於 **Force** 與 **Falo 開發團隊** 而言，我們將這一套 SQL Gateway 的抽象思想融入架構規劃，並提供以下演進路徑：</p>
+      
+      <div class="callout" style="border-left-color: var(--indigo); background: #f5f3ff;">
+        <h4 style="color: var(--indigo);"><i class="bi bi-rocket-takeoff-fill"></i> 給 Falo 產品線的黃金演進組合提案：</h4>
+        <ul>
+          <li><strong>MVP 階段（先求有，SME 轉型補助首選）</strong>：<br>
+            採用 **「GAS Web App 封裝 (模擬 SQL API)」**。
+            這能做到對話隱私 100% 安全、部署 $0 元、客戶有 Sheets 當做實體備份安全感，且地端 Python 程式開發速度最快。
+          </li>
+          <li><strong>Agent 落地 / 離線應用階段（再求好，高價值分析）</strong>：<br>
+            升級為 **「本地 SQLite 快取同步」**。
+            大腦依然在 Cloudflare，但客戶地端 Python 背景非同步同步資料與實體檔案。本地 AI Agent 讀取本地路徑，進行毫秒級 RAG 檢索與離線運作，效能與資安防線達到商業旗艦級別。
+          </li>
+          <li><strong>大數據戰情報表（分析層）</strong>：<br>
+            採用 **「DuckDB + CSV / SQLite」**。
+            對於複雜的每日發言趨勢圖表與指標統計，不用手寫長迴圈，交給 DuckDB SQL 直接高速運算。
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
+`;
+
+export default {
+  async fetch(request) {
+    return new Response(html, {
+      headers: { "content-type": "text/html;charset=UTF-8" }
+    });
+  }
+};
