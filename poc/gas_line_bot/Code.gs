@@ -38,6 +38,12 @@ function doGet(e) {
     return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
   }
 
+  // Secure endpoint to re-run setup directly from URL
+  if (action === 'run_setup') {
+    runSetup();
+    return jsonResponse({ ok: true, message: 'Setup completed. Spreadsheet bot_configs initialized with single bot.' });
+  }
+
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
   ensureSetup(ss);
 
