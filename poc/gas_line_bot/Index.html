@@ -3,454 +3,525 @@
 <head>
   <meta charset="utf-8">
   <base target="_top">
-  <title>FALO GAS LINE Bot Monitor</title>
+  <title>Falo IM v2.x Diagnostics Dashboard</title>
   <style>
     :root {
-      --line-green: #06c755;
-      --ink: #25313b;
-      --muted: #687785;
-      --border: #d8e0e7;
-      --bg: #f5f7f9;
-      --panel: #ffffff;
-      --danger: #b3261e;
-      --warn: #946200;
+      --falo-green: #06c755;
+      --falo-dark-green: #05b04b;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --panel-bg: #ffffff;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--slate-100);
+      color: var(--slate-900);
+      line-height: 1.5;
     }
     header {
+      background: var(--slate-900);
+      color: white;
+      padding: 20px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      padding: 18px 24px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 1;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     }
-    h1 { margin: 0; font-size: 22px; }
-    main { padding: 24px; }
-    button {
-      min-height: 38px;
-      border: 0;
-      border-radius: 6px;
-      background: var(--line-green);
-      color: white;
-      padding: 0 16px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .ghost {
-      background: white;
-      color: var(--ink);
-      border: 1px solid var(--border);
-    }
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-    .actions {
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       gap: 10px;
-      margin: 0 0 18px;
     }
-    .actions a {
-      min-height: 38px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: white;
-      color: var(--ink);
-      padding: 8px 14px;
+    header h1 span {
+      background: var(--falo-green);
+      color: white;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
       font-weight: 800;
-      text-decoration: none;
+    }
+    .header-desc {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel-bg);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid var(--slate-200);
+    }
+    .card h2 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--slate-800);
+      border-bottom: 1px solid var(--slate-200);
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0 16px;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.2s;
     }
-    .resource-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin: 0 0 18px;
-      padding: 16px;
+    .btn-primary {
+      background: var(--falo-green);
+      color: white;
     }
-    .resource-card h2 {
-      font-size: 18px;
-      margin: 0 0 10px;
+    .btn-primary:hover {
+      background: var(--falo-dark-green);
     }
-    .resource-grid {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 8px 12px;
+    .btn-secondary {
+      background: var(--slate-100);
+      color: var(--slate-800);
+      border: 1px solid var(--slate-200);
+    }
+    .btn-secondary:hover {
+      background: var(--slate-200);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    .btn-xs {
+      min-height: 28px;
+      padding: 0 10px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .info-item {
+      display: flex;
+      justify-content: space-between;
       font-size: 14px;
+      border-bottom: 1px dashed var(--slate-200);
+      padding-bottom: 8px;
     }
-    .resource-grid code {
-      overflow-wrap: anywhere;
-      white-space: normal;
+    .info-item:last-child {
+      border: none;
+      padding-bottom: 0;
     }
-    .resource-grid a {
-      color: #0969da;
-      font-weight: 800;
+    .info-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .info-val {
+      font-family: monospace;
+      color: var(--slate-900);
+      font-weight: 600;
+      max-width: 60%;
+      word-break: break-all;
+    }
+    .info-val a {
+      color: #0284c7;
       text-decoration: none;
     }
-    .metric {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
+    .info-val a:hover {
+      text-decoration: underline;
     }
-    .metric strong { display: block; font-size: 20px; margin-bottom: 4px; overflow-wrap: anywhere; }
-    .muted { color: var(--muted); font-size: 13px; }
-    .table-wrap {
-      overflow-x: auto;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 18px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
     }
-    table { width: 100%; border-collapse: collapse; min-width: 1120px; }
     th, td {
-      border-bottom: 1px solid var(--border);
-      padding: 11px 12px;
       text-align: left;
-      vertical-align: top;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--slate-200);
     }
-    th { background: #eef3f6; color: #465663; font-size: 13px; }
+    th {
+      background: var(--slate-100);
+      color: var(--slate-700);
+      font-weight: 700;
+    }
     .badge {
       display: inline-block;
-      border-radius: 999px;
-      background: #e7f7ee;
-      color: #087a36;
       padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 9999px;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-info { background: #e0f2fe; color: #0369a1; }
+    .copy-box {
+      margin-bottom: 16px;
+    }
+    .copy-box label {
+      display: block;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 6px;
     }
-    .message-text { white-space: pre-wrap; max-width: 360px; }
-    .error { color: var(--danger); font-weight: 800; }
-    .warn { color: var(--warn); font-weight: 800; }
-    .queue-error { max-width: 520px; white-space: pre-wrap; }
-    @media (max-width: 900px) {
-      header { align-items: flex-start; flex-direction: column; }
-      .summary { grid-template-columns: 1fr; }
-      .resource-grid { grid-template-columns: 1fr; }
+    .copy-input-group {
+      display: flex;
+      gap: 8px;
     }
+    .copy-input-group input {
+      flex: 1;
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 12px;
+      background: var(--slate-100);
+      color: var(--slate-900);
+    }
+    .console {
+      background: #020617;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 16px;
+      border-radius: 8px;
+      min-height: 150px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #1e293b;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    .indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--warning);
+      margin-right: 6px;
+    }
+    .indicator-success { background: var(--success); }
+    .indicator-danger { background: var(--danger); }
   </style>
 </head>
 <body>
+
   <header>
     <div>
-      <h1>FALO GAS LINE Bot Monitor</h1>
-      <div class="muted">GAS webhook 接收層 + Sheet 儲存 + JSON proxy</div>
+      <h1>Falo IM v2.x Diagnostics Dashboard <span>SQL Mode</span></h1>
+      <div class="header-desc">多官方帳號支援 • Google Sheets Relational DB • Google Drive 儲存</div>
     </div>
     <div>
-      <button class="ghost" onclick="loadEvents()">手動更新</button>
+      <button class="btn btn-primary" onclick="loadDashboard()">刷新數據</button>
     </div>
   </header>
+
   <main>
-    <section class="summary">
-      <div class="metric"><strong id="status">讀取中</strong><span class="muted">狀態</span></div>
-      <div class="metric"><strong id="count">0</strong><span class="muted">本頁事件數</span></div>
-      <div class="metric"><strong id="bot">-</strong><span class="muted">Bot</span></div>
-      <div class="metric"><strong id="sheet">-</strong><span class="muted">Sheet</span></div>
-      <div class="metric"><strong id="folder">-</strong><span class="muted">Drive file folder</span></div>
-      <div class="metric"><strong id="media-save">-</strong><span class="muted">媒體上傳開關</span></div>
-      <div class="metric"><strong id="media-trigger">-</strong><span class="muted">5 分鐘 trigger</span></div>
-      <div class="metric"><strong id="media-queue">-</strong><span class="muted">媒體佇列</span></div>
-    </section>
-    <section class="actions">
-      <button class="ghost" onclick="loadControls()">刷新狀態</button>
-      <button id="toggle-media-save" onclick="toggleMediaSave()">啟用媒體上傳</button>
-      <button id="toggle-trigger" onclick="toggleTrigger()">啟用 5 分鐘 trigger</button>
-      <button class="ghost" onclick="runMediaWorker()">手動處理媒體佇列</button>
-      <a id="sheet-link" href="#" target="_blank" rel="noopener">打開 Google Sheet</a>
-      <a id="folder-link" href="#" target="_blank" rel="noopener">打開 Drive Folder</a>
-    </section>
-    <section class="resource-card">
-      <h2>此 exec 對應資源</h2>
-      <div class="resource-grid">
-        <div class="muted">Web App URL</div>
-        <code id="resource-web-app">-</code>
-        <div class="muted">Sheet ID</div>
-        <div><code id="resource-sheet-id">-</code> <a id="resource-sheet-link" href="#" target="_blank" rel="noopener">打開</a></div>
-        <div class="muted">Drive Folder ID</div>
-        <div><code id="resource-folder-id">-</code> <a id="resource-folder-link" href="#" target="_blank" rel="noopener">打開</a></div>
-        <div class="muted">Bot Basic ID</div>
-        <code id="resource-bot-basic-id">-</code>
+    <div class="grid">
+      <!-- Left Column: Diagnostics and tables -->
+      <div>
+        <div class="card">
+          <h2>📊 試算表資料表 (Tables)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>資料表名稱 (Tab Name)</th>
+                <th>目前資料行數 (Rows)</th>
+                <th>作用說明 (Usage)</th>
+              </tr>
+            </thead>
+            <tbody id="tables-body">
+              <tr><td colspan="3" style="text-align:center; color:#64748b;">讀取中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>🤖 已配置官方帳號清單 (Official Accounts)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Bot Alias</th>
+                <th>名稱</th>
+                <th>備份資料夾 ID</th>
+                <th>連線測試</th>
+              </tr>
+            </thead>
+            <tbody id="bots-body">
+              <tr><td colspan="4" style="text-align:center; color:#64748b;">讀取中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>⚡ 連線診斷主控台 (Diagnostics Logger)</h2>
+          <div class="actions" style="margin-bottom: 12px; display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-xs" onclick="triggerDriveTest()">測試 Drive 寫入權限</button>
+            <button class="btn btn-secondary btn-xs" onclick="triggerSetupManual()">手動執行 Setup 初始化</button>
+            <button class="btn btn-danger btn-xs" style="margin-left: auto;" onclick="clearLog()">清空日誌</button>
+          </div>
+          <div class="console" id="console">Initializing Falo diagnostics...</div>
+        </div>
       </div>
-      <p class="muted">這個區塊是給使用者確認資料落點用：LINE webhook 打到此 exec 後，事件會進入上方 Sheet；媒體檔案若啟用排程上傳，會進入上方 Drive Folder。</p>
-    </section>
-    <section class="resource-card">
-      <h2>媒體佇列診斷</h2>
-      <p class="muted">圖片、影片、音訊與檔案會先進入 queue。若沒有進 Drive，先看這裡的 status 與 last_error。</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>排入時間</th>
-              <th>狀態</th>
-              <th>型態</th>
-              <th>嘗試</th>
-              <th>最後錯誤</th>
-              <th>Drive</th>
-            </tr>
-          </thead>
-          <tbody id="queue-rows">
-            <tr><td colspan="6">讀取中...</td></tr>
-          </tbody>
-        </table>
+
+      <!-- Right Column: Settings and copy panels -->
+      <div>
+        <div class="card">
+          <h2>📍 資料庫工作空間 (Workspace)</h2>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">資料庫名稱</span>
+              <span class="info-val" id="db-name">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">試算表 ID</span>
+              <span class="info-val"><a id="db-sheet-link" href="#" target="_blank">-</a></span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">母資料夾</span>
+              <span class="info-val"><a id="db-folder-link" href="#" target="_blank">-</a></span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">連線狀態</span>
+              <span class="info-val" id="db-status"><span class="indicator"></span>檢測中</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📋 連線拷貝面版 (Connection Copy Board)</h2>
+          
+          <div class="copy-box">
+            <label>1. GAS Web App URL (複製去填 wrangler.toml)</label>
+            <div class="copy-input-group">
+              <input type="text" id="copy-gas-url" readonly value="讀取中...">
+              <button class="btn btn-secondary btn-xs" onclick="copyText('copy-gas-url')">複製</button>
+            </div>
+          </div>
+
+          <div class="copy-box">
+            <label>2. API Secure Token (安全性金鑰)</label>
+            <div class="copy-input-group">
+              <input type="text" id="copy-token" readonly value="讀取中...">
+              <button class="btn btn-secondary btn-xs" onclick="copyText('copy-token')">複製</button>
+            </div>
+          </div>
+
+          <div class="copy-box">
+            <label>3. 模擬資料庫查詢 curl (SQL 測試)</label>
+            <div class="copy-input-group">
+              <input type="text" id="copy-curl" readonly value="讀取中...">
+              <button class="btn btn-secondary btn-xs" onclick="copyText('copy-curl')">複製</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
-    <section class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>捕捉時間</th>
-            <th>LINE 時間</th>
-            <th>Bot</th>
-            <th>來源</th>
-            <th>使用者</th>
-            <th>型態</th>
-            <th>內容</th>
-            <th>媒體</th>
-          </tr>
-        </thead>
-        <tbody id="rows">
-          <tr><td colspan="8">讀取中...</td></tr>
-        </tbody>
-      </table>
-    </section>
+    </div>
   </main>
+
   <script>
-    var initialConfig = <?!= publicConfigJson_() ?>;
-    var controlState = {};
-
-    function htmlEscape(value) {
-      return String(value == null ? '' : value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    // Console log utility
+    function log(message, type = 'info') {
+      const consoleBox = document.getElementById('console');
+      const time = new Date().toLocaleTimeString();
+      let color = '#38bdf8'; // Blue info
+      if (type === 'success') color = '#4ade80'; // Green success
+      if (type === 'error') color = '#f87171'; // Red error
+      if (type === 'warn') color = '#fbbf24'; // Yellow warn
+      
+      consoleBox.innerHTML += `<div style="color: ${color}">[${time}] ${message}</div>`;
+      consoleBox.scrollTop = consoleBox.scrollHeight;
     }
 
-    var TAIPEI_TIME_OPTIONS = {
-      timeZone: 'Asia/Taipei',
-      hour12: false,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    };
-
-    function formatTaipeiTime(value) {
-      if (value == null || value === '') return '';
-      var date = value instanceof Date ? value : new Date(value);
-      if (Number.isNaN(date.getTime())) return String(value);
-      return date.toLocaleString('zh-TW', TAIPEI_TIME_OPTIONS);
+    function clearLog() {
+      document.getElementById('console').innerHTML = '';
+      log('Console cleared.');
     }
 
-    function formatLineTime(value) {
-      if (!value) return '';
-      var numeric = Number(value);
-      if (!Number.isFinite(numeric)) return htmlEscape(value);
-      return formatTaipeiTime(numeric);
+    // Copy text utility
+    function copyText(elementId) {
+      const input = document.getElementById(elementId);
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value);
+      log('已將文字複製至剪貼簿: ' + input.value.substring(0, 50) + '...', 'success');
     }
 
-    async function loadEvents() {
-      var status = document.getElementById('status');
-      var rows = document.getElementById('rows');
-      status.textContent = '更新中';
-      try {
-        var payload = await callServer('getMonitorEvents');
-        if (!payload.ok) throw new Error(payload.error || 'API returned not ok');
-
-        document.getElementById('status').textContent = '正常';
-        document.getElementById('count').textContent = payload.count || 0;
-        document.getElementById('sheet').textContent = payload.spreadsheet_id || '-';
-
-        if (!payload.events || !payload.events.length) {
-          rows.innerHTML = '<tr><td colspan="8">尚未收到事件。</td></tr>';
-          return;
-        }
-
-        var first = payload.events[0] || {};
-        document.getElementById('bot').textContent = first.bot_name || first.bot_alias || '-';
-        rows.innerHTML = payload.events.map(function(item) {
-          var media = item.media_saved ? '<span class="badge">已存</span><br>' + htmlEscape(item.media_file_url) : htmlEscape(item.media_error || '');
-          return [
-            '<tr>',
-            '<td>' + htmlEscape(formatTaipeiTime(item.captured_at)) + '</td>',
-            '<td>' + formatLineTime(item.line_timestamp) + '</td>',
-            '<td>' + htmlEscape(item.bot_name || item.bot_alias) + '<br><span class="muted">' + htmlEscape(item.bot_basic_id || item.destination) + '</span></td>',
-            '<td><span class="badge">' + htmlEscape(item.source_type) + '</span><br><span class="muted">' + htmlEscape(item.source_key) + '</span></td>',
-            '<td>' + htmlEscape(item.user_id) + '</td>',
-            '<td>' + htmlEscape(item.event_type) + '<br><span class="muted">' + htmlEscape(item.message_type) + '</span></td>',
-            '<td class="message-text">' + htmlEscape(item.text) + '</td>',
-            '<td>' + media + '</td>',
-            '</tr>'
-          ].join('');
-        }).join('');
-      } catch (error) {
-        status.textContent = '錯誤';
-        rows.innerHTML = '<tr><td colspan="8" class="error">' + htmlEscape(error.message || error) + '</td></tr>';
-      }
+    // Load entire dashboard data from server
+    function loadDashboard() {
+      log('正在向 Apps Script 請求系統診斷數據...');
+      
+      google.script.run
+        .withSuccessHandler(onDashboardLoaded)
+        .withFailureHandler(function(err) {
+          log('連線讀取失敗: ' + err.message, 'error');
+          document.getElementById('db-status').innerHTML = '<span class="indicator indicator-danger"></span>連線異常';
+        })
+        .getDiagnosticsData();
     }
 
-    function callServer(functionName) {
-      var args = Array.prototype.slice.call(arguments, 1);
-      return new Promise(function(resolve, reject) {
-        var runner = google.script.run
-          .withSuccessHandler(resolve)
-          .withFailureHandler(function(error) {
-            reject(error && error.message ? new Error(error.message) : error);
-          });
-
-        if (functionName === 'getMonitorEvents') {
-          runner.getMonitorEvents();
-        } else if (functionName === 'getMonitorControls') {
-          runner.getMonitorControls();
-        } else if (functionName === 'getMonitorMediaQueue') {
-          runner.getMonitorMediaQueue();
-        } else if (functionName === 'monitorSetMediaSave') {
-          runner.monitorSetMediaSave(args[0]);
-        } else if (functionName === 'monitorSetMediaTrigger') {
-          runner.monitorSetMediaTrigger(args[0]);
-        } else if (functionName === 'monitorRunMediaWorker') {
-          runner.monitorRunMediaWorker();
-        } else {
-          reject(new Error('unknown server function: ' + functionName));
-        }
-      });
-    }
-
-    function boolText(value) {
-      return value ? '啟用中' : '停用中';
-    }
-
-    function applyResourceInfo(payload) {
-      if (!payload) return;
-      document.getElementById('resource-web-app').textContent = payload.web_app_url || window.location.href.split('?')[0];
-      document.getElementById('resource-sheet-id').textContent = payload.spreadsheet_id || '-';
-      document.getElementById('resource-folder-id').textContent = payload.media_folder_id || '-';
-      document.getElementById('resource-bot-basic-id').textContent = payload.bot && payload.bot.basic_id ? payload.bot.basic_id : '-';
-
-      var sheetUrl = payload.spreadsheet_url || (payload.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + payload.spreadsheet_id + '/edit' : '#');
-      var folderUrl = payload.media_folder_url || (payload.media_folder_id ? 'https://drive.google.com/drive/folders/' + payload.media_folder_id : '#');
-      document.getElementById('resource-sheet-link').href = sheetUrl;
-      document.getElementById('resource-folder-link').href = folderUrl;
-      document.getElementById('sheet-link').href = sheetUrl;
-      document.getElementById('folder-link').href = folderUrl;
-
-      if (payload.spreadsheet_id) document.getElementById('sheet').textContent = payload.spreadsheet_id;
-      if (payload.media_folder_id) document.getElementById('folder').textContent = payload.media_folder_id;
-      if (payload.bot && (payload.bot.name || payload.bot.alias)) {
-        document.getElementById('bot').textContent = payload.bot.name || payload.bot.alias;
-      }
-    }
-
-    async function loadControls() {
-      try {
-        var payload = await callServer('getMonitorControls');
-        if (!payload.ok) throw new Error(payload.error || 'controls failed');
-        controlState = payload;
-        document.getElementById('sheet').textContent = payload.spreadsheet_id || '-';
-        document.getElementById('folder').textContent = payload.media_folder_id || '-';
-        document.getElementById('media-save').textContent = boolText(payload.media_save_enabled);
-        document.getElementById('media-trigger').textContent = payload.media_worker_trigger_error
-          ? '需重新授權'
-          : boolText(payload.media_worker_trigger_enabled);
-        document.getElementById('media-queue').textContent = [
-          'pending ' + (payload.pending_media || 0),
-          'retry ' + (payload.retry_media || 0),
-          'failed ' + (payload.failed_media || 0),
-          'saved ' + (payload.saved_media || 0)
-        ].join(' / ');
-        document.getElementById('toggle-media-save').textContent = payload.media_save_enabled ? '停用媒體上傳' : '啟用媒體上傳';
-        document.getElementById('toggle-trigger').textContent = payload.media_worker_trigger_enabled ? '停用 5 分鐘 trigger' : '啟用 5 分鐘 trigger';
-        var sheetLink = document.getElementById('sheet-link');
-        var folderLink = document.getElementById('folder-link');
-        sheetLink.href = payload.spreadsheet_url || '#';
-        folderLink.href = payload.media_folder_url || '#';
-        applyResourceInfo(payload);
-        await loadMediaQueue();
-      } catch (error) {
-        document.getElementById('media-queue').innerHTML = '<span class="error">' + htmlEscape(error.message || error) + '</span>';
-      }
-    }
-
-    async function loadMediaQueue() {
-      var rows = document.getElementById('queue-rows');
-      try {
-        var payload = await callServer('getMonitorMediaQueue');
-        if (!payload.ok) throw new Error(payload.error || 'media queue failed');
-        if (!payload.media_queue || !payload.media_queue.length) {
-          rows.innerHTML = '<tr><td colspan="6">目前沒有媒體佇列資料。</td></tr>';
-          return;
-        }
-        rows.innerHTML = payload.media_queue.map(function(item) {
-          var drive = item.drive_file_url
-            ? '<a href="' + htmlEscape(item.drive_file_url) + '" target="_blank" rel="noopener">打開</a>'
-            : '-';
-          return [
-            '<tr>',
-            '<td>' + htmlEscape(formatTaipeiTime(item.queued_at)) + '</td>',
-            '<td><span class="badge">' + htmlEscape(item.status) + '</span></td>',
-            '<td>' + htmlEscape(item.message_type) + '<br><span class="muted">' + htmlEscape(item.message_id) + '</span></td>',
-            '<td>' + htmlEscape(item.attempt_count || 0) + '</td>',
-            '<td class="queue-error ' + (item.last_error ? 'error' : '') + '">' + htmlEscape(item.last_error || '') + '</td>',
-            '<td>' + drive + '</td>',
-            '</tr>'
-          ].join('');
-        }).join('');
-      } catch (error) {
-        rows.innerHTML = '<tr><td colspan="6" class="error">' + htmlEscape(error.message || error) + '</td></tr>';
-      }
-    }
-
-    async function toggleMediaSave() {
-      var next = !(controlState && controlState.media_save_enabled);
-      await callServer('monitorSetMediaSave', next);
-      await loadControls();
-    }
-
-    async function toggleTrigger() {
-      var next = !(controlState && controlState.media_worker_trigger_enabled);
-      await callServer('monitorSetMediaTrigger', next);
-      await loadControls();
-    }
-
-    async function runMediaWorker() {
-      document.getElementById('media-queue').textContent = '處理中...';
-      var payload = await callServer('monitorRunMediaWorker');
-      await loadControls();
-      if (!payload.ok) {
-        alert('媒體 worker 失敗：' + (payload.error || 'unknown'));
+    function onDashboardLoaded(res) {
+      if (!res.ok) {
+        log('讀取系統數據出錯: ' + res.error, 'error');
         return;
       }
-      if (payload.errors && payload.errors.length) {
-        alert('媒體 worker 完成但有錯誤：processed=' + payload.processed + ', saved=' + payload.saved + ', errors=' + payload.errors.length + '\\n' + payload.errors[0].error);
+
+      log('成功取得系統診斷數據。', 'success');
+
+      // 1. Update Database Info Card
+      document.getElementById('db-name').innerText = res.spreadsheet.name;
+      
+      const sheetLink = document.getElementById('db-sheet-link');
+      sheetLink.href = res.spreadsheet.url;
+      sheetLink.innerText = res.spreadsheet.id.substring(0, 12) + '...';
+      
+      const folderLink = document.getElementById('db-folder-link');
+      folderLink.href = res.parentFolder.url;
+      folderLink.innerText = res.parentFolder.name + ' (' + res.parentFolder.id.substring(0, 8) + '...)';
+      
+      document.getElementById('db-status').innerHTML = '<span class="indicator indicator-success"></span>連線正常';
+
+      // 2. Update Table Rows
+      const tablesBody = document.getElementById('tables-body');
+      tablesBody.innerHTML = '';
+      
+      const tableUsages = {
+        'bot_configs': '官方帳號配置與存取權限',
+        'chat_events': '結構化聊天事件歷史紀錄 (DB 主表)',
+        'ai_insights': 'AI 分析總結與商業行動清單'
+      };
+
+      res.sheets.forEach(function(s) {
+        const usage = tableUsages[s.name] || '其他自訂分頁';
+        tablesBody.innerHTML += `
+          <tr>
+            <td><strong>${s.name}</strong></td>
+            <td><span class="badge ${s.rows > 1 ? 'badge-success' : 'badge-info'}">${s.rows} 行</span></td>
+            <td>${usage}</td>
+          </tr>
+        `;
+      });
+
+      // 3. Update Configured Bots List
+      const botsBody = document.getElementById('bots-body');
+      botsBody.innerHTML = '';
+      
+      if (res.bots.length === 0) {
+        botsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">暫無官方帳號註冊</td></tr>`;
       } else {
-        alert('媒體 worker 完成：processed=' + payload.processed + ', saved=' + payload.saved + ', reason=' + payload.stopped_reason);
+        res.bots.forEach(function(b) {
+          const folderText = b.associated_drive_folder_id 
+            ? `<a href="${b.associated_drive_folder_url}" target="_blank">${b.associated_drive_folder_id.substring(0, 10)}...</a>`
+            : '<span style="color:#94a3b8; font-style:italic;">空白 (第一次寫入時將隨動生成)</span>';
+            
+          botsBody.innerHTML += `
+            <tr>
+              <td><span class="badge badge-info">${b.bot_alias}</span></td>
+              <td>${b.bot_name}</td>
+              <td>${folderText}</td>
+              <td>
+                <button class="btn btn-secondary btn-xs" onclick="testLineConnection('${b.bot_alias}')">測試 LINE API</button>
+              </td>
+            </tr>
+          `;
+        });
       }
-      await loadMediaQueue();
+
+      // 4. Update Copy Board
+      document.getElementById('copy-gas-url').value = res.scriptUrl;
+      document.getElementById('copy-token').value = res.securityToken;
+      document.getElementById('copy-curl').value = `curl "${res.scriptUrl}?action=query&token=${res.securityToken}&limit=5"`;
     }
 
-    applyResourceInfo(initialConfig);
-    loadEvents();
-    loadControls();
-    setInterval(loadEvents, 15000);
-    setInterval(loadControls, 30000);
+    // Diagnostic Triggers
+    function triggerDriveTest() {
+      log('正在發起 Google Drive 讀寫測試...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.ok) {
+            log(res.message, 'success');
+          } else {
+            log('Drive 測試失敗: ' + res.error, 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          log('Drive 測試未完成: ' + err.message, 'error');
+        })
+        .testDriveWrite();
+    }
+
+    function triggerSetupManual() {
+      log('手動執行資料表 Setup 初始化中...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.ok) {
+            log(res.message, 'success');
+            loadDashboard(); // Refresh
+          } else {
+            log('Setup 失敗: ' + res.error, 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          log('Setup 未完成: ' + err.message, 'error');
+        })
+        .runSetupManual();
+    }
+
+    function testLineConnection(botAlias) {
+      log(`正在測試 Bot "${botAlias}" 的 LINE API 連線能力...`);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.ok) {
+            log(res.message, 'success');
+          } else {
+            log(`Bot "${botAlias}" 連線測試失敗: ` + res.error, 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          log('LINE 連線測試未完成: ' + err.message, 'error');
+        })
+        .testLineApi(botAlias);
+    }
+
+    // Run on load
+    window.onload = function() {
+      loadDashboard();
+    };
   </script>
 </body>
 </html>

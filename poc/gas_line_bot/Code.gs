@@ -16,7 +16,14 @@ function doGet(e) {
   var action = e.parameter.action;
   var token = e.parameter.token;
 
-  // Simple token authentication
+  // Render Diagnostics Dashboard when no action parameter is provided (direct browser access)
+  if (!action) {
+    return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('Falo IM v2.x Diagnostics Dashboard')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
+  // Simple token authentication for API requests
   if (token !== SECURITY_TOKEN) {
     return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
   }
@@ -393,5 +400,140 @@ function fetchLineProfileName(userId, channelToken) {
 function ensureSetup(ss) {
   if (!ss.getSheetByName('bot_configs') || !ss.getSheetByName('chat_events')) {
     runSetup();
+  }
+}
+
+// ----------------------------------------------------
+// 5. SERVER-SIDE DIAGNOSTICS & CONTROL (For HTML Dashboard)
+// ----------------------------------------------------
+function getDiagnosticsData() {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    
+    // A. Spreadsheet Info
+    var ssName = ss.getName();
+    var ssUrl = ss.getUrl();
+    
+    // B. Sheets & Row Counts
+    var sheetsList = [];
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) {
+      var s = sheets[i];
+      sheetsList.push({
+        name: s.getName(),
+        rows: s.getLastRow()
+      });
+    }
+    
+    // C. Drive Folder Info
+    var currentFile = DriveApp.getFileById(MASTER_SPREADSHEET_ID);
+    var parents = currentFile.getParents();
+    var parentFolder = parents.hasNext() ? parents.next() : null;
+    var parentFolderInfo = parentFolder ? {
+      id: parentFolder.getId(),
+      name: parentFolder.getName(),
+      url: parentFolder.getUrl()
+    } : { id: 'root', name: 'My Drive Root', url: 'https://drive.google.com' };
+
+    // D. Bot Configurations
+    var configsList = [];
+    var configSheet = ss.getSheetByName('bot_configs');
+    if (configSheet) {
+      var vals = configSheet.getDataRange().getValues();
+      for (var i = 1; i < vals.length; i++) {
+        var subFolderId = vals[i][3];
+        var subFolderUrl = '';
+        if (subFolderId) {
+          try {
+            subFolderUrl = DriveApp.getFolderById(subFolderId).getUrl();
+          } catch(err) {}
+        }
+        
+        configsList.push({
+          bot_alias: vals[i][0],
+          bot_name: vals[i][1],
+          line_channel_token: vals[i][2],
+          associated_drive_folder_id: subFolderId,
+          associated_drive_folder_url: subFolderUrl,
+          created_at: vals[i][4]
+        });
+      }
+    }
+
+    // E. General Script Environment Info
+    var scriptUrl = ScriptApp.getService().getUrl();
+
+    return {
+      ok: true,
+      spreadsheet: { id: MASTER_SPREADSHEET_ID, name: ssName, url: ssUrl },
+      sheets: sheetsList,
+      parentFolder: parentFolderInfo,
+      bots: configsList,
+      scriptUrl: scriptUrl,
+      securityToken: SECURITY_TOKEN
+    };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function runSetupManual() {
+  try {
+    runSetup();
+    return { ok: true, message: 'Setup completed successfully!' };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function testDriveWrite() {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    var currentFile = DriveApp.getFileById(ss.getId());
+    var parents = currentFile.getParents();
+    var parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+    
+    var fileName = 'falo_test_write.txt';
+    var testFile = parentFolder.createFile(fileName, 'Falo Write Permission Test. Created at: ' + new Date().toISOString());
+    var fileId = testFile.getId();
+    
+    // Delete immediately to clean up
+    parentFolder.removeFile(testFile);
+    
+    return { ok: true, message: 'Drive Write OK. File created (ID: ' + fileId + ') and deleted successfully.' };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function testLineApi(botAlias) {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    var configs = getBotConfigsMap(ss);
+    var cfg = configs[botAlias];
+    if (!cfg || !cfg.line_channel_token) {
+      return { ok: false, error: 'No token configured for bot_alias: ' + botAlias };
+    }
+    
+    var url = 'https://api.line.me/v2/bot/info';
+    var response = UrlFetchApp.fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + cfg.line_channel_token
+      },
+      muteHttpExceptions: true
+    });
+    
+    var resCode = response.getResponseCode();
+    var resText = response.getContentText();
+    
+    if (resCode === 200) {
+      var botInfo = JSON.parse(resText);
+      return { ok: true, message: 'LINE API OK. Connected as bot basic ID: ' + botInfo.basicId + ' (' + botInfo.displayName + ')' };
+    } else {
+      return { ok: false, error: 'LINE API returned HTTP ' + resCode + ': ' + resText };
+    }
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
 }
