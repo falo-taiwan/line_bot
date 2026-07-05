@@ -348,27 +348,21 @@ function handleLineWebhook(webhookPayload) {
         mediaError, // media_error
         JSON.stringify(evt)
       ]);
+      if (['image', 'video', 'audio', 'file'].indexOf(message.type) !== -1) {
+        enqueueMediaIfNeeded_(
+          matchedBot.bot_alias,
+          chatId,
+          userId,
+          message.id,
+          message.type,
+          evt.timestamp,
+          JSON.stringify(evt)
+        );
+      }
     });
 
     if (valuesToAppend.length > 0) {
       sheet.getRange(startRow, 1, valuesToAppend.length, 13).setValues(valuesToAppend);
-
-      // Enqueue media files to media_queue
-      events.forEach(function(evt) {
-        if (evt.type !== 'message') return;
-        var message = evt.message || {};
-        if (['image', 'video', 'audio', 'file'].indexOf(message.type) !== -1) {
-          enqueueMediaIfNeeded_(
-            matchedBot.bot_alias,
-            chatId,
-            userId,
-            message.id,
-            message.type,
-            evt.timestamp,
-            JSON.stringify(evt)
-          );
-        }
-      });
     }
 
     return htmlPostAck_({ ok: true, logged_count: valuesToAppend.length });
