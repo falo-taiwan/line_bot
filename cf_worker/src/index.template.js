@@ -214,10 +214,11 @@ export default {
           }
           // Whitelist built-in models
           const allowedBuiltinModels = [
+            "@cf/mistral/mistral-small-3.1-24b-instruct",
             "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-            "@cf/meta/llama-3.2-3b-instruct"
+            "@cf/meta/llama-3.1-8b-instruct"
           ];
-          const selectedModel = allowedBuiltinModels.includes(body.model) ? body.model : "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+          const selectedModel = allowedBuiltinModels.includes(body.model) ? body.model : "@cf/mistral/mistral-small-3.1-24b-instruct";
           
           // Call Workers AI with selected model
           const response = await env.AI.run(selectedModel, {
