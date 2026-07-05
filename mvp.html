@@ -170,6 +170,70 @@
       50% { opacity: 1; }
       100% { opacity: 0.6; }
     }
+
+    .date-slice-container {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 10px;
+    }
+
+    .date-slice-item {
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .date-slice-item:hover {
+      background: rgba(13, 148, 136, 0.08);
+      border-color: rgba(13, 148, 136, 0.2);
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(13, 148, 136, 0.3);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      background: rgba(13, 148, 136, 0.05);
+      border-color: var(--primary-emerald);
+    }
+
+    .preview-textarea {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid var(--border-color) !important;
+      color: #38bdf8 !important;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .sender-pill {
+      background: rgba(13, 148, 136, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(13, 148, 136, 0.3);
+      border-radius: 50px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 4px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -277,7 +341,125 @@
           </div>
         </div>
     </div>
-    
+    <!-- LINE History Slicer Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card">
+          <div class="card-title-custom" style="color: #38bdf8;">
+            <i class="bi bi-scissors"></i> LINE 歷史對話紀錄切割器 & AI 上下文組裝
+          </div>
+          
+          <div class="row g-4">
+            <!-- Left Column: Source & Date Slices -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">1. 選擇與載入對話資料來源</h5>
+              
+              <!-- Tab Headers -->
+              <ul class="nav nav-tabs mb-3 border-secondary" id="slicerTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active text-light px-3 py-2 border-0" id="drive-tab" data-bs-toggle="tab" data-bs-target="#drive-panel" type="button" role="tab" style="background: transparent;">
+                    <i class="bi bi-cloud-arrow-down-fill me-1 text-warning"></i> 雲端硬碟載入
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link text-light px-3 py-2 border-0" id="local-tab" data-bs-toggle="tab" data-bs-target="#local-panel" type="button" role="tab" style="background: transparent;">
+                    <i class="bi bi-laptop me-1 text-info"></i> 本機檔案拖放
+                  </button>
+                </li>
+              </ul>
+              
+              <!-- Tab Contents -->
+              <div class="tab-content mb-4" id="slicerTabsContent">
+                <!-- Tab: Drive Load -->
+                <div class="tab-pane fade show active" id="drive-panel" role="tabpanel">
+                  <div class="d-flex gap-2">
+                    <select id="driveFilesSelect" class="form-select form-control-custom" style="flex: 1;">
+                      <option value="">請先連線大腦以取得 Drive 檔案清單...</option>
+                    </select>
+                    <button class="btn btn-custom px-3" onclick="loadSelectedDriveFile()" id="btnLoadDriveFile" disabled>
+                      <i class="bi bi-download"></i> 載入
+                    </button>
+                  </div>
+                  <div id="driveLoadStatus" class="small text-muted mt-2"></div>
+                </div>
+                
+                <!-- Tab: Local Load -->
+                <div class="tab-pane fade" id="local-panel" role="tabpanel">
+                  <div id="dropZone" class="drop-zone" onclick="document.getElementById('localFileInput').click()">
+                    <i class="bi bi-file-earmark-arrow-up display-6 text-teal mb-2 d-block" style="color: var(--primary-teal);"></i>
+                    <span class="small text-light">拖曳 LINE 備份 `.txt` 檔案至此，或 <span class="text-teal fw-bold">點擊瀏覽檔案</span></span>
+                    <input type="file" id="localFileInput" class="d-none" accept=".txt">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="small fw-bold text-light mb-0">2. 對話日期區間切割 (勾選以包含)</h5>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDates(true)" style="font-size: 11px;">全選</button>
+                  <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="toggleSelectAllDates(false)" style="font-size: 11px;">清空</button>
+                </div>
+              </div>
+              
+              <!-- Date Range Filter Row -->
+              <div class="row g-2 mb-3 align-items-end p-2 rounded border border-secondary" style="background: rgba(15, 23, 42, 0.4); margin: 0 1px 12px 1px;">
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">開始日期</label>
+                  <input type="date" id="filterStartDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">結束日期</label>
+                  <input type="date" id="filterEndDate" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" onchange="applyDateRangeFilter()">
+                </div>
+                <div class="col-md-4 col-12">
+                  <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">快速區間</label>
+                  <div class="d-flex gap-1" style="height: 32px;">
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(7)" style="font-size: 11px; line-height: 1;">近7天</button>
+                    <button class="btn btn-outline-info btn-sm flex-grow-1 py-0 px-1" onclick="applyPresetRange(30)" style="font-size: 11px; line-height: 1;">近30天</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slicing Checklist -->
+              <div id="dateSlicesList" class="date-slice-container">
+                <div class="text-center py-5 text-secondary small">
+                  <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+                  請先載入對話紀錄以產生日格清單
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right Column: AI Prompt & Preview -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">3. AI 提示詞與組裝結果預覽</h5>
+              
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
+                <textarea id="aiPromptInput" class="form-control form-control-custom" rows="3" oninput="updateCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。</textarea>
+              </div>
+              
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label small fw-bold text-light mb-0">雙方對話上下文預覽 (Markdown Context):</label>
+                  <span id="previewStats" class="small text-muted" style="font-size: 11px;">總字數: 0 | 選取天數: 0</span>
+                </div>
+                <textarea id="compiledContextPreview" class="form-control preview-textarea" rows="10" readonly></textarea>
+              </div>
+              
+              <div class="d-flex gap-2">
+                <button class="btn btn-custom flex-grow-1" onclick="copyCompiledContext()">
+                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
+                </button>
+                <button class="btn btn-outline-light px-3" onclick="clearParsedData()" title="重置">
+                  <i class="bi bi-arrow-counterclockwise"></i> 重置
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Guided Setup Tutorial Row -->
     <div class="row mt-4">
       <div class="col-12">
@@ -495,6 +677,9 @@
           // Script URL
           endpointText.innerText = result.scriptUrl || url;
 
+          // Fetch Drive files list after successful connection
+          refreshDriveFiles(url, token);
+
         } else {
           throw new Error(result.error || '回傳格式不正確');
         }
@@ -510,6 +695,500 @@
           alert('連線失敗！請檢查：\n1. 網址輸入是否正確？\n2. 線上 Apps Script 的 doGet 是否已發布新版本？\n3. 瀏覽器是否遇到 Google 帳號多開的重新導向衝突（請嘗試使用 Chrome 訪客模式開啟本網頁）。');
         }
       }
+    }
+
+    // ==========================================
+    // Slicer & Parser Logic
+    // ==========================================
+    let parsedChatLog = null; // Stores { chatName, messages }
+    let selectedDates = new Set();
+    let groupedByDate = {}; // Stores grouped messages
+
+    // 1. Refresh Drive Files list via action=list_files
+    async function refreshDriveFiles(url, token) {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const loadBtn = document.getElementById('btnLoadDriveFile');
+      
+      selectEl.innerHTML = '<option value="">正在讀取 Drive 檔案清單...</option>';
+      loadBtn.disabled = true;
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += `?action=list_files&token=${token}`;
+      } else {
+        fetchUrl += `&action=list_files&token=${token}`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok && result.files && result.files.length > 0) {
+          let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
+          result.files.forEach(f => {
+            const kbSize = Math.round(f.size / 1024);
+            html += `<option value="${f.id}">${f.name} (${kbSize} KB)</option>`;
+          });
+          selectEl.innerHTML = html;
+          loadBtn.disabled = false;
+        } else {
+          selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
+        }
+      } catch (err) {
+        console.error('Failed to list files:', err);
+        selectEl.innerHTML = `<option value="">讀取失敗: ${err.message}</option>`;
+      }
+    }
+
+    // 2. Load drive file content via action=get_file_content
+    async function loadSelectedDriveFile() {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const fileId = selectEl.value;
+      const statusEl = document.getElementById('driveLoadStatus');
+      const loadBtn = document.getElementById('btnLoadDriveFile');
+      
+      if (!fileId) {
+        alert('請先選擇一個檔案！');
+        return;
+      }
+      
+      statusEl.className = 'small text-warning mt-2';
+      statusEl.innerText = '正在從 Drive 下載檔案內容，請稍候...';
+      loadBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += `?action=get_file_content&file_id=${fileId}&token=${token}`;
+      } else {
+        fetchUrl += `&action=get_file_content&file_id=${fileId}&token=${token}`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const text = await response.text();
+        
+        statusEl.className = 'small text-success mt-2';
+        statusEl.innerText = '下載成功！正在解析...';
+        
+        processRawText(text);
+        
+        statusEl.innerText = `載入成功！共解析出 ${parsedChatLog.messages.length} 筆對話。`;
+      } catch (err) {
+        console.error('Failed to get file content:', err);
+        statusEl.className = 'small text-danger mt-2';
+        statusEl.innerText = `下載失敗: ${err.message}`;
+      } finally {
+        loadBtn.disabled = false;
+      }
+    }
+
+    // 3. Setup local file Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    const localInput = document.getElementById('localFileInput');
+
+    // Dragover class
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        handleLocalFile(files[0]);
+      }
+    });
+
+    localInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleLocalFile(e.target.files[0]);
+      }
+    });
+
+    function handleLocalFile(file) {
+      if (!file.name.endsWith('.txt')) {
+        alert('請上傳 LINE 備份產生的 .txt 檔案格式！');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        processRawText(text);
+        alert(`本機載入成功！共解析出 ${parsedChatLog.messages.length} 筆對話記錄。`);
+      };
+      reader.readAsText(file);
+    }
+
+    // 4. Process raw text and group
+    function processRawText(text) {
+      parsedChatLog = parseLineChatLog(text);
+      groupMessagesByDate();
+      
+      // Auto-set the Date Range picker inputs to min and max dates
+      initDateRangePickerInputs();
+      
+      renderDateSlices();
+      updateCompiledContext();
+    }
+
+    // 4.1 Initialize date range inputs from parsed data
+    function initDateRangePickerInputs() {
+      const dates = Object.keys(groupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      
+      startInput.min = minDate;
+      startInput.max = maxDate;
+      endInput.min = minDate;
+      endInput.max = maxDate;
+      
+      // Default to end at maxDate
+      endInput.value = maxDate;
+      
+      // Default range: select last 7 days of the log
+      const maxDateObj = new Date(maxDate);
+      const startDateObj = new Date(maxDateObj.getTime() - (7 - 1) * 24 * 60 * 60 * 1000);
+      
+      const y = startDateObj.getFullYear();
+      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(startDateObj.getDate()).padStart(2, '0');
+      const startDateStr = `${y}-${m}-${d}`;
+      
+      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      
+      // Initialize selectedDates set based on the range values
+      applyDateRangeFilter();
+    }
+
+    // 4.2 Apply the custom date range filter
+    function applyDateRangeFilter() {
+      const startVal = document.getElementById('filterStartDate').value;
+      const endVal = document.getElementById('filterEndDate').value;
+      
+      if (!startVal || !endVal) return;
+      
+      selectedDates.clear();
+      Object.keys(groupedByDate).forEach(d => {
+        if (d >= startVal && d <= endVal) {
+          selectedDates.add(d);
+        }
+      });
+      
+      // Sync checkboxes
+      const checkboxes = document.querySelectorAll('#dateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = selectedDates.has(cb.value);
+      });
+      
+      updateCompiledContext();
+    }
+
+    // 4.3 Preset selector (Last X days relative to dataset latest date)
+    function applyPresetRange(days) {
+      const dates = Object.keys(groupedByDate).sort();
+      if (dates.length === 0) return;
+      
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      
+      endInput.value = maxDate;
+      
+      const maxDateObj = new Date(maxDate);
+      const startDateObj = new Date(maxDateObj.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+      
+      const y = startDateObj.getFullYear();
+      const m = String(startDateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(startDateObj.getDate()).padStart(2, '0');
+      const startDateStr = `${y}-${m}-${d}`;
+      
+      startInput.value = startDateStr >= minDate ? startDateStr : minDate;
+      
+      applyDateRangeFilter();
+    }
+
+    // 5. LINE chat log text parser implementing Falo Spec
+    function parseLineChatLog(text) {
+      const lines = text.split(/\r?\n/);
+      if (lines.length === 0) return { chatName: "LINE Chat", messages: [] };
+      
+      // Parse chat name from first line
+      const firstLine = lines[0];
+      let chatName = "LINE Chat";
+      if (firstLine.startsWith("[LINE]")) {
+        chatName = firstLine.replace("[LINE]", "").replace("的聊天記錄", "").replace("的聊天", "").trim();
+      }
+      
+      const messages = [];
+      let currentDateStr = "2020-01-01";
+      let isNextLineNewDate = false;
+      
+      const dateRegex = /^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})/;
+      const msgRegex = /^((?:上午|下午)?\d{2}:\d{2})\t([^\t]+)\t(.*)$/;
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        
+        if (line.trim() === "") {
+          isNextLineNewDate = true;
+          continue;
+        }
+        
+        if (isNextLineNewDate) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const y = dateMatch[1];
+            const m = dateMatch[2].padStart(2, '0');
+            const d = dateMatch[3].padStart(2, '0');
+            currentDateStr = `${y}-${m}-${d}`;
+            isNextLineNewDate = false;
+            continue;
+          }
+        }
+        
+        const msgMatch = line.match(msgRegex);
+        if (msgMatch) {
+          isNextLineNewDate = false;
+          const rawTime = msgMatch[1];
+          const sender = msgMatch[2];
+          const content = msgMatch[3];
+          
+          // Normalize 12-hour (下午/上午) to 24-hour style
+          let hourMin = rawTime;
+          const isPm = rawTime.includes("下午");
+          const isAm = rawTime.includes("上午");
+          let cleanTime = rawTime.replace("下午", "").replace("上午", "").trim();
+          const timeParts = cleanTime.split(":");
+          if (timeParts.length === 2) {
+            let h = parseInt(timeParts[0]);
+            const m = timeParts[1];
+            if (isPm && h < 12) h += 12;
+            if (isAm && h === 12) h = 0;
+            hourMin = `${String(h).padStart(2, '0')}:${m}`;
+          }
+          
+          let type = "text";
+          if (content === "[圖片]" || content === "[Photo]") type = "image";
+          else if (content === "[貼圖]" || content === "[Sticker]") type = "sticker";
+          else if (content === "[檔案]" || content === "[File]") type = "file";
+          else if (content.startsWith("☎ 通話時間") || content.startsWith("☎ Call time")) type = "call";
+          else if (content.includes("unsent a message") || content.includes("收回訊息")) type = "unsent";
+          
+          messages.push({
+            date: currentDateStr,
+            time: hourMin,
+            sender: sender,
+            content: content,
+            type: type
+          });
+        } else {
+          // Continuation line
+          if (messages.length > 0 && !line.startsWith("儲存日期：")) {
+            const lastMsg = messages[messages.length - 1];
+            lastMsg.content += "\n" + line;
+          }
+        }
+      }
+      
+      return { chatName, messages };
+    }
+
+    // 6. Group messages by date
+    function groupMessagesByDate() {
+      groupedByDate = {};
+      if (!parsedChatLog || !parsedChatLog.messages) return;
+      
+      parsedChatLog.messages.forEach(msg => {
+        const d = msg.date;
+        if (!groupedByDate[d]) {
+          groupedByDate[d] = {
+            date: d,
+            messages: [],
+            senders: new Set(),
+            media: { image: 0, file: 0, sticker: 0, call: 0 }
+          };
+        }
+        groupedByDate[d].messages.push(msg);
+        groupedByDate[d].senders.add(msg.sender);
+        if (groupedByDate[d].media.hasOwnProperty(msg.type)) {
+          groupedByDate[d].media[msg.type]++;
+        }
+      });
+    }
+
+    // 7. Render interactive checkable slices
+    function renderDateSlices() {
+      const container = document.getElementById('dateSlicesList');
+      if (Object.keys(groupedByDate).length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5 text-secondary small">
+            <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+            無對話資料。請重試。
+          </div>`;
+        return;
+      }
+      
+      let html = '';
+      
+      // Sort dates descending (newest first) to see recent conversations first
+      const sortedDates = Object.keys(groupedByDate).sort().reverse();
+      
+      sortedDates.forEach(dateStr => {
+        const group = groupedByDate[dateStr];
+        const isChecked = selectedDates.has(dateStr) ? 'checked' : '';
+        const sendersList = Array.from(group.senders).slice(0, 3).map(s => `<span class="sender-pill">${s}</span>`).join('');
+        const sendersMore = group.senders.size > 3 ? `<span class="text-muted small">+${group.senders.size - 3}</span>` : '';
+        
+        let mediaHtml = '';
+        if (group.media.image > 0) mediaHtml += `<span class="badge bg-dark border border-secondary text-info me-1">📷 ${group.media.image}</span>`;
+        if (group.media.file > 0) mediaHtml += `<span class="badge bg-dark border border-secondary text-warning me-1">📁 ${group.media.file}</span>`;
+        if (group.media.call > 0) mediaHtml += `<span class="badge bg-dark border border-secondary text-danger me-1">📞 ${group.media.call}</span>`;
+        
+        html += `
+          <div class="date-slice-item">
+            <div class="d-flex align-items-center gap-3" style="flex: 1; min-width: 0;">
+              <input type="checkbox" class="form-check-input" value="${dateStr}" ${isChecked} onchange="handleDateCheckboxChange(this)" style="width: 18px; height: 18px; cursor: pointer; border-color: rgba(255,255,255,0.2);">
+              <div style="min-width: 0; flex: 1;">
+                <div class="fw-bold small text-light">${dateStr}</div>
+                <div class="text-truncate mt-1">${sendersList}${sendersMore}</div>
+              </div>
+            </div>
+            <div class="text-end ms-3">
+              <span class="badge bg-secondary p-2 mb-1" style="font-size: 11px;">共 ${group.messages.length} 筆</span>
+              <div class="d-flex justify-content-end">${mediaHtml}</div>
+            </div>
+          </div>`;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function handleDateCheckboxChange(cb) {
+      const dateStr = cb.value;
+      if (cb.checked) {
+        selectedDates.add(dateStr);
+      } else {
+        selectedDates.delete(dateStr);
+      }
+      updateCompiledContext();
+    }
+
+    function toggleSelectAllDates(select) {
+      const checkboxes = document.querySelectorAll('#dateSlicesList input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        if (select) selectedDates.add(cb.value);
+        else selectedDates.delete(cb.value);
+      });
+      updateCompiledContext();
+    }
+
+    // 8. Compile Markdown output preview in real-time
+    function updateCompiledContext() {
+      const previewEl = document.getElementById('compiledContextPreview');
+      const statsEl = document.getElementById('previewStats');
+      const promptText = document.getElementById('aiPromptInput').value;
+      
+      if (!parsedChatLog || selectedDates.size === 0) {
+        previewEl.value = promptText;
+        statsEl.innerText = '總字數: ' + promptText.length + ' | 選取天數: 0';
+        return;
+      }
+      
+      let markdownParts = [];
+      markdownParts.push(`# LINE 對話紀錄 - ${parsedChatLog.chatName || '未命名對話'}`);
+      markdownParts.push(`* **資料來源**: LINE 歷史匯出對話紀錄切割`);
+      markdownParts.push(`* **選取天數**: ${selectedDates.size} 天`);
+      markdownParts.push(`* **組裝時間**: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
+      markdownParts.push('\n---\n');
+      
+      // Sort selected dates chronologically (oldest first) for readable chat progression
+      const sortedSelected = Array.from(selectedDates).sort();
+      let totalMsgs = 0;
+      
+      sortedSelected.forEach(d => {
+        const group = groupedByDate[d];
+        if (!group) return;
+        
+        markdownParts.push(`### 📅 ${d}`);
+        group.messages.forEach(msg => {
+          markdownParts.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
+          totalMsgs++;
+        });
+        markdownParts.push(''); // empty line
+      });
+      
+      const dialogueText = markdownParts.join('\n');
+      const finalContent = `${promptText}\n\n以下是雙方的實際對話紀錄，請依據主從角色關係與指引進行分析摘要：\n\n${dialogueText}`;
+      
+      previewEl.value = finalContent;
+      statsEl.innerText = `總字數: ${finalContent.length} | 選取天數: ${selectedDates.size} | 選取訊息: ${totalMsgs} 筆`;
+    }
+
+    function copyCompiledContext() {
+      const previewEl = document.getElementById('compiledContextPreview');
+      if (!previewEl.value.trim()) {
+        alert('無內容可複製！');
+        return;
+      }
+      
+      navigator.clipboard.writeText(previewEl.value).then(() => {
+        alert('完整分析 Context 已成功複製到剪貼簿！可直接貼入 ChatGPT/Gemini/NotebookLM 中進行分析。');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        previewEl.select();
+        document.execCommand('copy');
+        alert('完整分析 Context 已複製到剪貼簿！');
+      });
+    }
+
+    function clearParsedData() {
+      parsedChatLog = null;
+      selectedDates.clear();
+      groupedByDate = {};
+      
+      document.getElementById('dateSlicesList').innerHTML = `
+        <div class="text-center py-5 text-secondary small">
+          <i class="bi bi-calendar-x-fill display-6 d-block mb-2 text-muted"></i>
+          請先載入對話紀錄以產生日格清單
+        </div>`;
+      
+      const startInput = document.getElementById('filterStartDate');
+      const endInput = document.getElementById('filterEndDate');
+      startInput.value = '';
+      startInput.removeAttribute('min');
+      startInput.removeAttribute('max');
+      endInput.value = '';
+      endInput.removeAttribute('min');
+      endInput.removeAttribute('max');
+      
+      document.getElementById('driveLoadStatus').innerText = '';
+      document.getElementById('localFileInput').value = '';
+      updateCompiledContext();
     }
   </script>
 
