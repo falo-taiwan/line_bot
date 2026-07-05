@@ -90,6 +90,52 @@ function doGet(e) {
     }
   }
 
+  // Secure endpoint to list files inside the parent folder or media subfolder directly from URL
+  if (action === 'list_files') {
+    try {
+      var filesList = [];
+      var currentFile = DriveApp.getFileById(MASTER_SPREADSHEET_ID);
+      var parents = currentFile.getParents();
+      var parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+      
+      var files = parentFolder.getFiles();
+      while (files.hasNext()) {
+        var f = files.next();
+        if (f.getName().endsWith('.txt')) {
+          filesList.push({
+            id: f.getId(),
+            name: f.getName(),
+            size: f.getSize(),
+            mime: f.getMimeType(),
+            created: formatDateToTaipeiIso_(f.getDateCreated())
+          });
+        }
+      }
+      
+      var subFolders = parentFolder.getFoldersByName('media');
+      if (subFolders.hasNext()) {
+        var mediaFolder = subFolders.next();
+        var mediaFiles = mediaFolder.getFiles();
+        while (mediaFiles.hasNext()) {
+          var mf = mediaFiles.next();
+          if (mf.getName().endsWith('.txt')) {
+            filesList.push({
+              id: mf.getId(),
+              name: 'media/' + mf.getName(),
+              size: mf.getSize(),
+              mime: mf.getMimeType(),
+              created: formatDateToTaipeiIso_(mf.getDateCreated())
+            });
+          }
+        }
+      }
+
+      return jsonResponse({ ok: true, files: filesList });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
   ensureSetup(ss);
 
