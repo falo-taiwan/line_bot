@@ -1431,11 +1431,22 @@ media_queue 狀態變成 saved
 | `404` / `410` | 找不到或內容已不可取 | 可能是媒體已過期、被 LINE 清除，或 `messageId` 不屬於這隻 bot。 |
 | `5xx` | LINE 或網路暫時異常 | 保留佇列，稍後重試。 |
 
-預設 Drive folder：
+預設 Drive folder (v1.x 靜態配置)：
 
 ```text
 1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC
 ```
+
+#### v2.0 初始環境設定最小化：位置跟隨與自動建檔設計 (Folder Following & Auto-Creation)
+
+為了讓使用者/客戶擁有「開箱即用」的零痛點體驗，並兼顧**資安權限管理**，Falo v2.x 引入了動態位置跟隨機制：
+1. **無須手動建立資料夾**：使用者只要複製試算表範本，並在 `bot_configs` 的 `associated_drive_folder_id` 欄位保持空白即可。
+2. **位置隨動偵測**：當 Bot 接收到第一筆對話或上傳請求時，GAS 會自動抓取該試算表檔案當前所處的雲端資料夾：
+   ```javascript
+   var parentFolder = DriveApp.getFileById(ss.getId()).getParents().next();
+   ```
+3. **自動繼承權限**：系統隨即在同一個資料夾下自動建立子資料夾（如 `Bot_standard`），其 Google Drive 共享權限會完全自動繼承自母資料夾，不需要額外重複共享。
+4. **自動回填**：建立完成後，子資料夾的 ID 會自動填寫回 `bot_configs` 表格中，完成自動化配置。
 
 監看頁提供四個操作：
 

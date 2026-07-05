@@ -978,7 +978,16 @@ https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB
       </tr>
     </tbody>
   </table>
-  <p>預設 Drive folder：<code>1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC</code>。監看頁提供啟用 / 停用媒體上傳、啟用 / 停用 5 分鐘 trigger、手動處理媒體佇列，以及打開對應 Google Sheet / Drive Folder。</p>
+  <p>預設 Drive folder (v1.x 靜態配置)：<code>1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC</code>。</p>
+  <h4>v2.0 初始環境設定最小化：位置跟隨與自動建檔設計 (Folder Following & Auto-Creation)</h4>
+  <p>為了讓使用者/客戶擁有「開箱即用」的零痛點體驗，並兼顧<strong>資安權限管理</strong>，Falo v2.x 引入了動態位置跟隨機制：</p>
+  <ul>
+    <li><strong>無須手動建立資料夾</strong>：使用者只要複製試算表範本，並在 <code>bot_configs</code> 的 <code>associated_drive_folder_id</code> 欄位保持空白即可。</li>
+    <li><strong>位置隨動偵測</strong>：當 Bot 接收到第一筆對話或上傳請求時，GAS 會自動抓取該試算表檔案當前所處的雲端資料夾：<code>var parentFolder = DriveApp.getFileById(ss.getId()).getParents().next();</code>。</li>
+    <li><strong>自動繼承權限</strong>：系統隨即在同一個資料夾下自動建立子資料夾（如 <code>Bot_standard</code>），其 Google Drive 共享權限會完全自動繼承自母資料夾，不需要額外重複共享。</li>
+    <li><strong>自動回填</strong>：建立完成後，子資料夾的 ID 會自動填寫回 <code>bot_configs</code> 表格中，完成自動化配置。</li>
+  </ul>
+  <p>監看頁提供啟用 / 停用媒體上傳、啟用 / 停用 5 分鐘 trigger、手動處理媒體佇列，以及打開對應 Google Sheet / Drive Folder。</p>
   <h4>第一次 trigger / Drive 權限怎麼打開</h4>
   <p>GAS 的 trigger 權限不能完全由網頁前端第一次自動打開。第一次必須由 GAS 擁有者進 Apps Script 編輯器手動執行一次授權函式。</p>
   <p>請在 Apps Script 編輯器手動 Run：<code>authorizeRuntime</code></p>

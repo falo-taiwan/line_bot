@@ -206,3 +206,22 @@ GAS 回傳的資料結構必須轉換為標準的 **「Relation rows JSON 陣列
 }
 ```
 
+---
+
+### 5.3 雲端硬碟權限設計與位置隨動機制 (Google Drive Folder Following & Permission Inheritance)
+
+為了貫徹「**初始環境設定最小化原則**」，v2.x 捨棄了過去需要手動在 Google Drive 建立資料夾並複製填寫 Folder ID 的繁瑣步驟，改採「**自動位置跟隨與建檔**」設計：
+
+#### A. 偵測與跟隨母資料夾 (Folder Following)
+當 GAS 執行時，若 `bot_configs` 的 `associated_drive_folder_id` 欄位為空白，程式將自動偵測目前試算表檔案 (`Falo_Database`) 所在的資料夾：
+```javascript
+var currentFile = DriveApp.getFileById(ss.getId());
+var parentFolder = currentFile.getParents().next(); // 偵測並鎖定母資料夾
+```
+
+#### B. 權限繼承與自動建檔 (Permission Inheritance & Auto Creation)
+* 系統隨即在該母資料夾下，自動建立以該 Bot 名稱命名之子資料夾（如 `Bot_standard`）。
+* **資安優勢**：在 Google Drive 中，子資料夾會自動繼承母資料夾之共用權限設定。藉由此機制，擁有試算表存取權限之客戶團隊，將自然擁有對應對話記錄子資料夾的讀寫權限，不需再手動逐一共享。
+* **自動回填**：GAS 建立完子資料夾後，會自動將產生的 `Folder ID` 回填寫入 `bot_configs` 工作表中，供後續快速存取，達成零手動、開箱即用的極簡體驗。
+
+
