@@ -414,6 +414,21 @@
       <p>編譯器 <code>updateUnifiedCompiledContext</code> 會優先抓取購物車中已啟用的 Block 內容，依索引順序由上而下串接，並在各 Block 區段間插入 Markdown <code>---</code> 分割線，實現多來源上下文的智慧編譯與字數即時累加。</p>
     </section>
 
+    <!-- FALO Auditing and Foolproofing Spec Section -->
+    <section>
+      <h2>七、 資料分析與防呆審計機制 (v2.3)</h2>
+      <p>在非結構化對話分析中，防止 inline 垃圾資料或內文日期被誤判為系統日期分隔線，是確保分析結果精準度的重要防禦工程。</p>
+      
+      <h3>1. 正規表示式行尾嚴格錨定</h3>
+      <p><code>dateRegex</code> 加入行尾錨定 <code>$</code>，並且嚴格限制僅能有如 <code>（週六）</code> 或 <code>(Sat)</code> 等合規星期標誌。任何包含 <code>~</code> 波浪號或額外文字之內文日程，正規表示式將直接拒絕判定為日期分隔線。</p>
+
+      <h3>2. 匯出日期上限稽核 (Export Date Audit)</h3>
+      <p>物理邏輯上，訊息發送時間絕不可能晚於檔案儲存/匯出時間。解析器在讀取首部時，會先提取出例如 <code>儲存日期：2026/7/5</code>。解析出的日期若大於此限，一律自動否決。</p>
+
+      <h3>3. 時間單向遞增稽核 (Progression Audit)</h3>
+      <p>對話歷史是單向遞增的。若新匹配的日期早於前一個有效日期（例如已經到 2020 年卻出現 2018 年），表示為內文中引用的歷史時間。系統會直接稽核否決該日期分隔，回退為上一則訊息的換行文字追加。</p>
+    </section>
+
   </main>
 </body>
 </html>
