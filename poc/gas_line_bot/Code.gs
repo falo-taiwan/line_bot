@@ -22,6 +22,7 @@ function doGet(e) {
   }
 
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  ensureSetup(ss);
 
   // A. action=get_chats (Returns unique active chat groups)
   if (action === 'get_chats') {
@@ -133,6 +134,9 @@ function doGet(e) {
 // 2. HTTP POST ROUTER (ETL Write / Webhook Ingress)
 // ----------------------------------------------------
 function doPost(e) {
+  var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  ensureSetup(ss);
+
   // Simple authentication or LINE Webhook detection
   var token = e.parameter.token;
   
@@ -343,4 +347,10 @@ function fetchLineProfileName(userId, channelToken) {
     }
   } catch (e) {}
   return '';
+}
+
+function ensureSetup(ss) {
+  if (!ss.getSheetByName('bot_configs') || !ss.getSheetByName('chat_events')) {
+    runSetup();
+  }
 }
