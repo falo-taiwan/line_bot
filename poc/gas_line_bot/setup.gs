@@ -63,3 +63,10 @@ function runSetup() {
   
   Logger.log('Falo DB setup finished successfully!');
 }
+
+function authorizeAllScopes() {
+  SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  DriveApp.getRootFolder();
+  UrlFetchApp.fetch('https://api.line.me');
+  Logger.log('All scopes authorized successfully!');
+}
