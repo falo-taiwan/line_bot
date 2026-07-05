@@ -299,6 +299,24 @@
       background: rgba(255, 255, 255, 0.2) !important;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
     }
+
+    /* Prompt list style */
+    .prompt-list-item {
+      transition: background 0.15s ease, color 0.15s ease;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      text-decoration: none;
+    }
+    .prompt-list-item:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+    .prompt-list-item.active {
+      background: rgba(14, 165, 233, 0.15) !important;
+      color: #38bdf8 !important;
+      border-left: 3px solid #0ea5e9 !important;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -729,14 +747,9 @@
                   </div>
                 </div>
                 
-                <!-- Presets dropdown/selector -->
-                <div class="mb-2 d-flex gap-2">
-                  <select id="promptTemplateSelector" class="form-select form-control-custom py-1" style="font-size: 12px; height: 32px;" onchange="loadSelectedPromptTemplate()">
-                    <!-- Options populated dynamically -->
-                  </select>
-                  <button class="btn btn-outline-danger btn-sm px-2" id="btnDeleteCustomPrompt" onclick="deleteCurrentCustomPrompt()" style="height: 32px; display: none;" title="刪除此自訂提示詞">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                <!-- Presets list group -->
+                <div class="list-group border border-secondary mb-2" id="promptTemplateList" style="max-height: 220px; height: 180px; overflow-y: auto; background: rgba(15, 23, 42, 0.4); border-radius: 6px;">
+                  <!-- Populated dynamically -->
                 </div>
 
                 <!-- Add/Edit Inline Form (Hidden by default) -->
@@ -976,7 +989,7 @@
       
       // Initialize prompt templates
       renderPromptTemplates();
-      loadSelectedPromptTemplate();
+      selectPromptTemplate(selectedPromptKey);
 
       if (cachedUrl) {
         // Automatically attempt silent connection on load
@@ -3012,68 +3025,87 @@
       customPrompts = [];
     }
 
+    let selectedPromptKey = "default_0";
+
     function renderPromptTemplates() {
-      const selector = document.getElementById('promptTemplateSelector');
-      if (!selector) return;
-      selector.innerHTML = '';
+      const listEl = document.getElementById('promptTemplateList');
+      if (!listEl) return;
+      listEl.innerHTML = '';
       
       // Add default prompts
       defaultPrompts.forEach((p, idx) => {
-        const opt = document.createElement('option');
-        opt.value = `default_${idx}`;
-        opt.innerText = p.name;
-        selector.appendChild(opt);
+        const itemKey = `default_${idx}`;
+        const isActive = (selectedPromptKey === itemKey) ? 'active' : '';
+        
+        const item = document.createElement('a');
+        item.href = 'javascript:void(0)';
+        item.className = `list-group-item list-group-item-action prompt-list-item text-light border-0 py-2 px-3 small ${isActive}`;
+        item.style.background = 'transparent';
+        item.style.fontSize = '12.5px';
+        item.innerHTML = `<i class="bi bi-file-earmark-text text-muted me-2"></i> ${p.name}`;
+        item.onclick = () => selectPromptTemplate(itemKey);
+        listEl.appendChild(item);
       });
       
       // Add custom prompts
       customPrompts.forEach((p, idx) => {
-        const opt = document.createElement('option');
-        opt.value = `custom_${idx}`;
-        opt.innerText = `⭐ ${p.name}`;
-        selector.appendChild(opt);
+        const itemKey = `custom_${idx}`;
+        const isActive = (selectedPromptKey === itemKey) ? 'active' : '';
+        
+        const item = document.createElement('a');
+        item.href = 'javascript:void(0)';
+        item.className = `list-group-item list-group-item-action prompt-list-item text-light border-0 py-2 px-3 small d-flex justify-content-between align-items-center ${isActive}`;
+        item.style.background = 'transparent';
+        item.style.fontSize = '12.5px';
+        item.innerHTML = `
+          <span><i class="bi bi-star-fill text-warning me-2" style="font-size: 10px;"></i> ${p.name}</span>
+          <button class="btn btn-link btn-xs p-0 text-danger" onclick="deleteCustomPromptItem(${idx}, event)" title="刪除">
+            <i class="bi bi-trash"></i>
+          </button>
+        `;
+        item.onclick = (e) => {
+          if (e.target.closest('.btn')) return; // skip if delete button clicked
+          selectPromptTemplate(itemKey);
+        };
+        listEl.appendChild(item);
       });
-      
-      // Append placeholder choice to keep prompt editor clean
-      const opt = document.createElement('option');
-      opt.value = "empty";
-      opt.innerText = "➕ 自訂手動輸入...";
-      selector.appendChild(opt);
     }
 
-    function loadSelectedPromptTemplate() {
-      const selector = document.getElementById('promptTemplateSelector');
-      if (!selector) return;
-      const val = selector.value;
-      const deleteBtn = document.getElementById('btnDeleteCustomPrompt');
+    function selectPromptTemplate(key) {
+      selectedPromptKey = key;
       const promptInput = document.getElementById('unifiedAiPromptInput');
       
-      if (val.startsWith('default_')) {
-        const idx = parseInt(val.split('_')[1], 10);
-        promptInput.value = defaultPrompts[idx].content;
-        deleteBtn.style.display = 'none';
-      } else if (val.startsWith('custom_')) {
-        const idx = parseInt(val.split('_')[1], 10);
-        promptInput.value = customPrompts[idx].content;
-        deleteBtn.style.display = 'inline-block';
-      } else {
-        // empty option or manual input
-        deleteBtn.style.display = 'none';
+      if (key.startsWith('default_')) {
+        const idx = parseInt(key.split('_')[1], 10);
+        if (promptInput) promptInput.value = defaultPrompts[idx].content;
+      } else if (key.startsWith('custom_')) {
+        const idx = parseInt(key.split('_')[1], 10);
+        if (promptInput) promptInput.value = customPrompts[idx].content;
       }
+      
+      renderPromptTemplates();
       updateUnifiedCompiledContext();
     }
 
-    function deleteCurrentCustomPrompt() {
-      const selector = document.getElementById('promptTemplateSelector');
-      const val = selector.value;
-      if (val.startsWith('custom_')) {
-        const idx = parseInt(val.split('_')[1], 10);
-        if (confirm(`確定要刪除自訂提示詞「${customPrompts[idx].name}」嗎？`)) {
-          customPrompts.splice(idx, 1);
-          localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
-          renderPromptTemplates();
-          selector.value = 'default_0';
-          loadSelectedPromptTemplate();
+    function deleteCustomPromptItem(idx, event) {
+      event.stopPropagation();
+      const pName = customPrompts[idx].name;
+      if (confirm(`確定要刪除自訂提示詞「${pName}」嗎？`)) {
+        customPrompts.splice(idx, 1);
+        localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+        
+        if (selectedPromptKey === `custom_${idx}`) {
+          selectedPromptKey = 'default_0';
+        } else if (selectedPromptKey.startsWith('custom_')) {
+          const currentIdx = parseInt(selectedPromptKey.split('_')[1], 10);
+          if (currentIdx > idx) {
+            selectedPromptKey = `custom_${currentIdx - 1}`;
+          } else if (currentIdx === idx) {
+            selectedPromptKey = 'default_0';
+          }
         }
+        
+        selectPromptTemplate(selectedPromptKey);
       }
     }
 
@@ -3097,7 +3129,6 @@
         return;
       }
       
-      // Check for duplicates
       const isDuplicate = customPrompts.some(p => p.name === name) || defaultPrompts.some(p => p.name === name);
       if (isDuplicate) {
         alert('已存在同名的提示詞範本，請更換名稱！');
@@ -3107,12 +3138,8 @@
       customPrompts.push({ name, content });
       localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
       
-      renderPromptTemplates();
-      
-      // Auto select the newly created prompt
-      const selector = document.getElementById('promptTemplateSelector');
-      selector.value = `custom_${customPrompts.length - 1}`;
-      loadSelectedPromptTemplate();
+      selectedPromptKey = `custom_${customPrompts.length - 1}`;
+      selectPromptTemplate(selectedPromptKey);
       
       hideAddPromptForm();
       alert(`已成功儲存提示詞「${name}」！`);
