@@ -307,12 +307,53 @@ function jsonResponse(data, status) {
 function getBotDriveFolderId(ss, botAlias) {
   var sheet = ss.getSheetByName('bot_configs');
   var values = sheet.getDataRange().getValues();
+  var rowIndex = -1;
+  var folderId = '';
+  
   for (var i = 1; i < values.length; i++) {
     if (values[i][0] === botAlias) {
-      return values[i][3];
+      rowIndex = i + 1; // 1-indexed + skipping header
+      folderId = values[i][3];
+      break;
     }
   }
-  return '';
+  
+  if (rowIndex === -1) return ''; // Bot config not found
+  
+  // If the folder ID is blank, execute dynamic location following & auto-creation
+  if (!folderId || folderId === '') {
+    try {
+      // 1. Get the parent folder containing the active spreadsheet file
+      var currentFile = DriveApp.getFileById(ss.getId());
+      var parents = currentFile.getParents();
+      var parentFolder;
+      if (parents.hasNext()) {
+        parentFolder = parents.next();
+      } else {
+        parentFolder = DriveApp.getRootFolder();
+      }
+      
+      // 2. Search for or create the bot subfolder inside this parent folder
+      var subFolderName = 'Bot_' + botAlias;
+      var subFolders = parentFolder.getFoldersByName(subFolderName);
+      var targetFolder;
+      if (subFolders.hasNext()) {
+        targetFolder = subFolders.next();
+      } else {
+        // Inherits permissions automatically from the parent folder
+        targetFolder = parentFolder.createFolder(subFolderName);
+      }
+      
+      folderId = targetFolder.getId();
+      
+      // 3. Write the new folder ID back to bot_configs Sheet (4th column: associated_drive_folder_id)
+      sheet.getRange(rowIndex, 4).setValue(folderId);
+    } catch (e) {
+      Logger.log('Error creating/following folder: ' + e.message);
+    }
+  }
+  
+  return folderId;
 }
 
 function getBotConfigsMap(ss) {
