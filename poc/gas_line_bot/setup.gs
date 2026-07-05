@@ -70,13 +70,6 @@ function runSetup() {
     filesSheet.appendRow(filesHeaders);
   }
   
-  // 6. Setup time-driven trigger for processMediaQueue
-  try {
-    setupMediaWorkerTrigger();
-  } catch (err) {
-    Logger.log('Warning: Failed to setup trigger (requires ScriptApp permissions): ' + err.message);
-  }
-  
   Logger.log('Falo DB setup finished successfully!');
 }
 

@@ -692,6 +692,27 @@ function enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType,
     rawJson
   ];
   queueSheet.appendRow(row);
+
+  // Schedule a dynamic trigger to process the queue in 1 minute if not already scheduled
+  try {
+    var triggers = ScriptApp.getProjectTriggers();
+    var hasTrigger = false;
+    for (var i = 0; i < triggers.length; i++) {
+      if (triggers[i].getHandlerFunction() === 'processMediaQueue') {
+        hasTrigger = true;
+        break;
+      }
+    }
+    if (!hasTrigger) {
+      ScriptApp.newTrigger('processMediaQueue')
+        .timeBased()
+        .after(60 * 1000) // 1 minute (GAS minimum constraint)
+        .create();
+      Logger.log('Dynamic one-shot trigger scheduled for processMediaQueue.');
+    }
+  } catch (err) {
+    Logger.log('Failed to dynamically schedule processMediaQueue trigger: ' + err.message);
+  }
 }
 
 function findMediaQueueRowByMessageId_(sheet, messageId) {
@@ -853,6 +874,40 @@ function processMediaQueue() {
       updateChatEventMediaInfo_(messageId, '', '', errorText);
       Logger.log('Failed to save media for message ' + messageId + ': ' + errorText);
     }
+  }
+
+  // Dynamic Trigger Management: Check if there are still pending or retry files in the queue
+  try {
+    var freshValues = queueSheet.getDataRange().getValues();
+    var pendingCount = 0;
+    var statusColIdx = index.status;
+    for (var j = 1; j < freshValues.length; j++) {
+      var currentStatus = String(freshValues[j][statusColIdx] || '');
+      if (currentStatus === 'pending' || currentStatus === 'retry') {
+        pendingCount++;
+      }
+    }
+
+    // Always clear the current triggers to prevent duplicate runs
+    var triggers = ScriptApp.getProjectTriggers();
+    for (var k = 0; k < triggers.length; k++) {
+      if (triggers[k].getHandlerFunction() === 'processMediaQueue') {
+        ScriptApp.deleteTrigger(triggers[k]);
+      }
+    }
+
+    // If there are still pending files, schedule the next batch in 1 minute
+    if (pendingCount > 0) {
+      ScriptApp.newTrigger('processMediaQueue')
+        .timeBased()
+        .after(60 * 1000)
+        .create();
+      Logger.log('Dynamic queue processing: ' + pendingCount + ' items remaining. Next run scheduled in 1 minute.');
+    } else {
+      Logger.log('Dynamic queue processing: All pending media files processed. Trigger removed.');
+    }
+  } catch (err) {
+    Logger.log('Failed to manage dynamic trigger at the end of processMediaQueue: ' + err.message);
   }
 }
 
