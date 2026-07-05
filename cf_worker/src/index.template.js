@@ -277,6 +277,7 @@ export default {
           const geminiJson = await geminiResponse.json();
           try {
             aiResultText = geminiJson.candidates[0].content.parts[0].text;
+            globalThis.geminiLastUsage = geminiJson.usageMetadata || null;
           } catch (e) {
             throw new Error("Failed to parse response content from Gemini API JSON");
           }
@@ -287,7 +288,9 @@ export default {
           });
         }
 
-        return new Response(JSON.stringify({ ok: true, result: aiResultText }), {
+        const usagePayload = (provider === "gemini") ? globalThis.geminiLastUsage : null;
+
+        return new Response(JSON.stringify({ ok: true, result: aiResultText, usage: usagePayload }), {
           headers: {
             "content-type": "application/json;charset=UTF-8",
             "Access-Control-Allow-Origin": "*"

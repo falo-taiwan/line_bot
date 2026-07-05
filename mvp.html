@@ -719,6 +719,12 @@
                     <button class="btn btn-outline-info btn-xs py-0 px-2" onclick="downloadAiReport()" style="font-size: 10px; height: 24px;"><i class="bi bi-download"></i> 下載檔案</button>
                     <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="copyAiReport()" style="font-size: 10px; height: 24px;"><i class="bi bi-clipboard"></i> 複製報告</button>
                   </div>
+                  </div>
+                
+                <!-- Token Usage & Estimations -->
+                <div id="unifiedAiUsageStats" class="d-none alert alert-info py-2 px-3 mb-3 small" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.2); font-size: 11px;">
+                  <i class="bi bi-calculator"></i> <strong>📊 Token 消耗與成本預估：</strong>
+                  <span id="usageStatsDetails">計算中...</span>
                 </div>
                 
                 <!-- MD View -->
@@ -1948,6 +1954,7 @@
 
       // Show box, set loading status
       reportBox.classList.remove('d-none');
+      document.getElementById('unifiedAiUsageStats').classList.add('d-none');
       mdView.value = "AI 正在努力分析整合對話中，請稍候... (約需 5-15 秒)";
       htmlView.innerHTML = `
         <div class="text-center py-4">
@@ -1995,6 +2002,9 @@
           const parsedHtml = marked.parse(rawAiReportText);
           htmlView.innerHTML = `<div class="ai-report-markdown-content">${parsedHtml}</div>`;
           
+          // Render usage stats if available
+          displayTokenCosts(result.usage, model);
+          
           // Align format visibility
           setReportFormat(currentReportFormat);
           
@@ -2016,6 +2026,48 @@
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalText;
       }
+    }
+
+    // Calculate and display Gemini Token usage and cost estimations
+    function displayTokenCosts(usage, model) {
+      const statsEl = document.getElementById('unifiedAiUsageStats');
+      const detailsEl = document.getElementById('usageStatsDetails');
+      
+      if (!usage || !usage.promptTokenCount) {
+        statsEl.classList.add('d-none');
+        return;
+      }
+      
+      const inputTokens = usage.promptTokenCount || 0;
+      const outputTokens = usage.candidatesTokenCount || 0;
+      const totalTokens = usage.totalTokenCount || 0;
+      
+      // Define rates per 1M tokens
+      let inputRate = 0.075; // Default for Flash
+      let outputRate = 0.30;
+      let modelLabel = "Gemini Flash";
+      
+      if (model.includes('lite')) {
+        inputRate = 0.0375;
+        outputRate = 0.15;
+        modelLabel = "Gemini Flash-Lite";
+      } else if (model.includes('pro')) {
+        inputRate = 1.25;
+        outputRate = 5.00;
+        modelLabel = "Gemini Pro";
+      }
+      
+      const usdCost = (inputTokens / 1000000 * inputRate) + (outputTokens / 1000000 * outputRate);
+      const ntdCost = usdCost * 30;
+      
+      detailsEl.innerHTML = `
+        <span class="badge bg-primary me-1">${modelLabel}</span> 
+        輸入: <strong class="text-light">${inputTokens.toLocaleString()}</strong> tokens | 
+        輸出: <strong class="text-light">${outputTokens.toLocaleString()}</strong> tokens | 
+        總計: <strong class="text-light">${totalTokens.toLocaleString()}</strong> | 
+        預估成本: <strong class="text-warning" style="font-size: 12px;">NT$ ${ntdCost.toFixed(4)}</strong> (約 US$ ${usdCost.toFixed(5)})
+      `;
+      statsEl.classList.remove('d-none');
     }
 
     // Set active report format (md / html)
