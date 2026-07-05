@@ -3286,20 +3286,23 @@
       if (textareaPrompt && textareaPreview && typeof ResizeObserver !== 'undefined') {
         const observer = new ResizeObserver(entries => {
           if (isSyncingHeight) return;
-          isSyncingHeight = true;
           for (let entry of entries) {
-            const targetHeight = entry.contentRect.height + 'px';
-            if (entry.target === textareaPrompt) {
-              textareaPreview.style.height = targetHeight;
+            const newHeight = entry.target.offsetHeight;
+            if (newHeight <= 0) continue; // Skip hidden elements
+            
+            const otherTextarea = (entry.target === textareaPrompt) ? textareaPreview : textareaPrompt;
+            // Only sync if the height difference is significant (> 4px) to prevent circular feedback loops
+            if (Math.abs(otherTextarea.offsetHeight - newHeight) > 4) {
+              isSyncingHeight = true;
+              otherTextarea.style.height = newHeight + 'px';
+              currentPromptHeight = newHeight;
+              
               const label = document.getElementById('promptTextareasHeightLabel');
-              if (label) label.innerText = parseInt(targetHeight) + 'px';
-            } else if (entry.target === textareaPreview) {
-              textareaPrompt.style.height = targetHeight;
-              const label = document.getElementById('promptTextareasHeightLabel');
-              if (label) label.innerText = parseInt(targetHeight) + 'px';
+              if (label) label.innerText = newHeight + 'px';
+              localStorage.setItem('faloPromptHeight', newHeight);
+              isSyncingHeight = false;
             }
           }
-          isSyncingHeight = false;
         });
         observer.observe(textareaPrompt);
         observer.observe(textareaPreview);
