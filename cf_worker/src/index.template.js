@@ -188,6 +188,101 @@ export default {
       }
     }
 
+    // 4.5 Universal AI Analyze Route (supports Built-in Workers AI and custom Gemini Key)
+    if (path === "/api/ai/analyze" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const provider = body.provider || "builtin";
+        const prompt = body.prompt || "";
+        const customGeminiKey = body.gemini_key || "";
+
+        if (!prompt.trim()) {
+          return new Response(JSON.stringify({ ok: false, error: "Prompt context cannot be empty" }), {
+            status: 400,
+            headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+          });
+        }
+
+        let aiResultText = "";
+
+        if (provider === "builtin") {
+          if (!env.AI) {
+            return new Response(JSON.stringify({ ok: false, error: "Cloudflare Workers AI binding [ai] is missing in wrangler.toml!" }), {
+              status: 500,
+              headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+          // Call Workers AI with Llama 3.1
+          const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+            messages: [
+              { role: "system", content: "You are a helpful AI assistant. Please respond in Traditional Chinese (zh-TW)." },
+              { role: "user", content: prompt }
+            ]
+          });
+          
+          if (response && response.response) {
+            aiResultText = response.response;
+          } else {
+            throw new Error("Empty response from Workers AI model");
+          }
+        } else if (provider === "gemini") {
+          const apiKey = customGeminiKey.trim() || env.GEMINI_API_KEY;
+          if (!apiKey || apiKey === "AIzaSyxxxx") {
+            return new Response(JSON.stringify({ ok: false, error: "Gemini API key is not configured!" }), {
+              status: 400,
+              headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+          const geminiPayload = {
+            contents: [
+              {
+                parts: [
+                  { text: prompt }
+                ]
+              }
+            ]
+          };
+
+          const geminiResponse = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(geminiPayload)
+          });
+
+          if (!geminiResponse.ok) {
+            const errorText = await geminiResponse.text();
+            throw new Error(`Gemini API error (Status ${geminiResponse.status}): ${errorText}`);
+          }
+
+          const geminiJson = await geminiResponse.json();
+          try {
+            aiResultText = geminiJson.candidates[0].content.parts[0].text;
+          } catch (e) {
+            throw new Error("Failed to parse response content from Gemini API JSON");
+          }
+        } else {
+          return new Response(JSON.stringify({ ok: false, error: "Unsupported AI provider: " + provider }), {
+            status: 400,
+            headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+          });
+        }
+
+        return new Response(JSON.stringify({ ok: true, result: aiResultText }), {
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: err.message }), {
+          status: 500,
+          headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+    }
+
     // 5. LINE Webhook Proxy Route (converts GAS 302 Found to direct 200 OK for LINE verification)
     if ((path === "/webhook" || path === "/api/webhook") && request.method === "POST") {
       try {

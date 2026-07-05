@@ -8,3 +8,6 @@ compatibility_flags = [ "nodejs_compat" ]
 GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec"
 VIEWER_TOKEN = "falo_secure_token_12345"
 GEMINI_API_KEY = "AIzaSyxxxx"
+
+[ai]
+binding = "AI"
