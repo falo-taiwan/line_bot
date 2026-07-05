@@ -2,7 +2,7 @@
  * Setup.gs - Initialize Google Sheets tables for Falo IM v2.x
  */
 
-var MASTER_SPREADSHEET_ID = '1VWP34oZeUqcYdOfI042SDeHXNNhLKi2vQCYDzAOaDyo';
+var MASTER_SPREADSHEET_ID = '1DQScN8JrRrHiqtPoVeEPJQXC17GZP7GKFPiQdCbaVNI';
 
 function runSetup() {
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
