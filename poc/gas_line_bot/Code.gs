@@ -5,7 +5,7 @@
  * plus an optional Webhook receiver. All business logic is decoupled to Cloudflare.
  */
 
-var MASTER_SPREADSHEET_ID = '1DQScN8JrRrHiqtPoVeEPJQXC17GZP7GKFPiQdCbaVNI';
+var MASTER_SPREADSHEET_ID = '1_Pfzg81jyXP--08G-65auMSc_61tHt6182BGxfxVy0Q';
 var SECURITY_TOKEN = 'falo_secure_token_12345';
 var TIME_ZONE = 'Asia/Taipei';
 
