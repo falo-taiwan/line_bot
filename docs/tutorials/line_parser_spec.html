@@ -399,6 +399,21 @@
       <p>支援增量與覆蓋兩種同步資料庫方式。增量模式下，系統會查詢該對話的最大時間戳，自動過濾並僅寫入新收到的訊息，確保資料庫內容沒有重疊與重複。</p>
     </section>
 
+    <!-- FALO Analysis Basket Spec Section -->
+    <section>
+      <h2>六、 FALO 綜合分析購物車與上下文積木編譯機制 (v2.2)</h2>
+      <p>自 v2.2 版起，控制台導入了 <strong>「FALO 綜合分析購物車 (Analysis Context Basket)」</strong> 機制，實現多來源資料積木的隨選組合與排序。</p>
+      
+      <h3>1. 資料積木化 (Data Blocks Packaging)</h3>
+      <p>LINE、官方助手、KM 卡片底部均配備「存入分析清單」按鈕。點擊時，當前所勾選切片之資料（或文字內容）會立即冷凍並組裝成獨立的 Block 物件，追加存入全域清單 <code>analysisBasket</code> 中。</p>
+
+      <h3>2. 隨選啟用與上下排序</h3>
+      <p>積木清單中，使用者可單獨啟用/關閉某個積木。同時，可使用 <code>▲</code> 與 <code>▼</code> 按鈕自由搬移積木，AI 最終閱讀 Prompt 上下文的先後順序將嚴格按照使用者的自訂排序，大幅提升比對的準確性。</p>
+
+      <h3>3. 智慧編譯串接</h3>
+      <p>編譯器 <code>updateUnifiedCompiledContext</code> 會優先抓取購物車中已啟用的 Block 內容，依索引順序由上而下串接，並在各 Block 區段間插入 Markdown <code>---</code> 分割線，實現多來源上下文的智慧編譯與字數即時累加。</p>
+    </section>
+
   </main>
 </body>
 </html>

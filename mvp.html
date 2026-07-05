@@ -454,6 +454,12 @@
                   請先載入對話紀錄以產生日格清單
                 </div>
               </div>
+              <!-- Action buttons for LINE Slicer -->
+              <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
+                <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                  <i class="bi bi-cart-plus"></i> 📥 存入分析清單
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -517,6 +523,13 @@
                   請先選取官方帳號並載入對話以產生日格清單
                 </div>
               </div>
+              
+              <!-- Action buttons for Database Slicer -->
+              <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
+                <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 12px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
+                  <i class="bi bi-cart-plus"></i> 📥 將已選助手對話存入分析清單
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -544,6 +557,9 @@
                 <button class="btn btn-outline-info btn-sm" id="btnKmConvert" onclick="triggerKmHtmlConversion()">
                   <i class="bi bi-code-slash"></i> HTML 轉 Markdown
                 </button>
+                <button class="btn btn-outline-purple btn-sm" id="btnAddToBasketKm" onclick="addKmToBasket()">
+                  <i class="bi bi-cart-plus"></i> 📥 存入分析清單
+                </button>
                 <button class="btn btn-outline-secondary btn-sm" onclick="clearKmData()">
                   <i class="bi bi-trash"></i> 清除內容
                 </button>
@@ -563,6 +579,39 @@
                 <label class="form-label small fw-bold text-light mb-2">知識庫內文 (純文字 / Markdown):</label>
                 <textarea id="kmTextInput" class="form-control form-control-custom" rows="6" placeholder="請在此貼上或匯入內容..." oninput="handleKmTextInput()"></textarea>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Context Basket Card -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="glass-card" style="border-color: rgba(139, 92, 246, 0.2) !important;">
+          <div class="card-title-custom" style="color: #a78bfa;">
+            <i class="bi bi-cart3"></i> 📋 FALO 綜合分析購物車 (已選上下文清單)
+          </div>
+          
+          <div id="analysisBasketEmptyState" class="text-center py-4 text-secondary small">
+            <i class="bi bi-inbox display-6 d-block mb-2 text-muted"></i>
+            目前分析清單為空，請從上方 LINE、官方助手或知識庫勾選內容並點擊「存入分析清單」按鈕加入。
+          </div>
+          
+          <div id="analysisBasketContainer" class="d-none">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover table-sm align-middle small mb-0" style="background: transparent !important;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="width: 50px; padding: 8px;">啟用</th>
+                    <th style="width: 80px; padding: 8px;">類型</th>
+                    <th style="padding: 8px;">資料源描述</th>
+                    <th style="width: 100px; padding: 8px;">字數</th>
+                    <th style="width: 140px; padding: 8px; text-align: center;">排序/操作</th>
+                  </tr>
+                </thead>
+                <tbody id="analysisBasketTableBody"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -782,6 +831,7 @@
     // Global state for AI Analysis Reports
     let rawAiReportText = "";
     let currentReportFormat = "md";
+    let analysisBasket = [];
 
     // Auto load cached configs
     window.addEventListener('DOMContentLoaded', () => {
@@ -1754,64 +1804,93 @@
       let markdownParts = [];
       let totalLineMsgs = 0;
       let totalDbMsgs = 0;
-      
-      // 1. Process LINE segment
-      if (parsedChatLog && selectedDates.size > 0) {
-        markdownParts.push(`## 💬 LINE 歷史群組對話紀錄 - ${parsedChatLog.chatName || '未命名對話'}`);
-        markdownParts.push(`* **資料來源**: LINE 歷史匯出備份檔案`);
-        markdownParts.push(`* **選取天數**: ${selectedDates.size} 天`);
-        markdownParts.push('\n');
-        
-        const sortedSelected = Array.from(selectedDates).sort();
-        sortedSelected.forEach(d => {
-          const group = groupedByDate[d];
-          if (!group) return;
-          markdownParts.push(`### 📅 ${d}`);
-          group.messages.forEach(msg => {
-            markdownParts.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
-            totalLineMsgs++;
-          });
-          markdownParts.push('');
-        });
-        markdownParts.push('---\n');
-      }
-      
-      // 2. Process Database segment
-      if (dbParsedEvents && dbSelectedDates.size > 0) {
-        const selectEl = document.getElementById('dbChatsSelect');
-        const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
-        
-        markdownParts.push(`## 📱 官方助手對話紀錄 - ${chatInfo}`);
-        markdownParts.push(`* **資料來源**: Google Sheets chat_events 資料表`);
-        markdownParts.push(`* **選取天數**: ${dbSelectedDates.size} 天`);
-        markdownParts.push('\n');
-        
-        const sortedSelected = Array.from(dbSelectedDates).sort();
-        sortedSelected.forEach(d => {
-          const group = dbGroupedByDate[d];
-          if (!group) return;
-          markdownParts.push(`### 📅 ${d}`);
-          group.messages.forEach(msg => {
-            const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
-            markdownParts.push(`- **[${msg.time}] ${msg.sender}${roleLabel}**: ${msg.content}`);
-            totalDbMsgs++;
-          });
-          markdownParts.push('');
-        });
-        markdownParts.push('---\n');
-      }
-
-      // 3. Process KM segment
-      const kmInclude = document.getElementById('kmIncludeCheck').checked;
-      const kmText = document.getElementById('kmTextInput').value.trim();
       let hasKm = false;
-      if (kmInclude && kmText) {
-        markdownParts.push(`## 📚 知識庫參考資料 (KM)`);
-        markdownParts.push(`* **資料來源**: 知識庫文字導入器 (KM)`);
-        markdownParts.push('\n');
-        markdownParts.push(kmText);
-        markdownParts.push('\n---\n');
-        hasKm = true;
+      let statsStr = "";
+      
+      if (analysisBasket && analysisBasket.length > 0) {
+        // Build from Basket
+        let enabledCount = 0;
+        analysisBasket.forEach(item => {
+          if (item.enabled) {
+            markdownParts.push(item.content);
+            enabledCount++;
+            if (item.type === 'line') totalLineMsgs++;
+            if (item.type === 'db') totalDbMsgs++;
+            if (item.type === 'km') hasKm = true;
+          }
+        });
+        
+        statsStr = `購物車: 啟用 ${enabledCount}/${analysisBasket.length} 個區塊`;
+      } else {
+        // Fallback: Build from active slicers (LINE, DB, KM)
+        // 1. Process LINE segment
+        if (parsedChatLog && selectedDates.size > 0) {
+          let lineContent = [];
+          lineContent.push(`## 💬 LINE 歷史群組對話紀錄 - ${parsedChatLog.chatName || '未命名對話'}`);
+          lineContent.push(`* **資料來源**: LINE 歷史匯出備份檔案`);
+          lineContent.push(`* **選取天數**: ${selectedDates.size} 天`);
+          lineContent.push('\n');
+          
+          const sortedSelected = Array.from(selectedDates).sort();
+          sortedSelected.forEach(d => {
+            const group = groupedByDate[d];
+            if (!group) return;
+            lineContent.push(`### 📅 ${d}`);
+            group.messages.forEach(msg => {
+              lineContent.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
+              totalLineMsgs++;
+            });
+            lineContent.push('');
+          });
+          lineContent.push('---\n');
+          markdownParts.push(lineContent.join('\n'));
+        }
+        
+        // 2. Process Database segment
+        if (dbParsedEvents && dbSelectedDates.size > 0) {
+          let dbContent = [];
+          const selectEl = document.getElementById('dbChatsSelect');
+          const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+          
+          dbContent.push(`## 📱 官方助手對話紀錄 - ${chatInfo}`);
+          dbContent.push(`* **資料來源**: Google Sheets chat_events 資料表`);
+          dbContent.push(`* **選取天數**: ${dbSelectedDates.size} 天`);
+          dbContent.push('\n');
+          
+          const sortedSelected = Array.from(dbSelectedDates).sort();
+          sortedSelected.forEach(d => {
+            const group = dbGroupedByDate[d];
+            if (!group) return;
+            dbContent.push(`### 📅 ${d}`);
+            group.messages.forEach(msg => {
+              const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+              dbContent.push(`- **[${msg.time}] ${msg.sender}${roleLabel}**: ${msg.content}`);
+              totalDbMsgs++;
+            });
+            dbContent.push('');
+          });
+          dbContent.push('---\n');
+          markdownParts.push(dbContent.join('\n'));
+        }
+
+        // 3. Process KM segment
+        const kmInclude = document.getElementById('kmIncludeCheck').checked;
+        const kmText = document.getElementById('kmTextInput').value.trim();
+        if (kmInclude && kmText) {
+          let kmContent = [];
+          kmContent.push(`## 📚 知識庫參考資料 (KM)`);
+          kmContent.push(`* **資料來源**: 知識庫文字導入器 (KM)`);
+          kmContent.push('\n');
+          kmContent.push(kmText);
+          kmContent.push('\n---\n');
+          markdownParts.push(kmContent.join('\n'));
+          hasKm = true;
+        }
+        
+        statsStr = `LINE: ${selectedDates.size}天(${totalLineMsgs}筆) | 官方助手: ${dbSelectedDates.size}天(${totalDbMsgs}筆)`;
+        if (hasKm) {
+          statsStr += ` | 知識庫: 啟用`;
+        }
       }
       
       const dialogueText = markdownParts.join('\n');
@@ -1823,10 +1902,6 @@
       
       previewEl.value = finalContent;
       
-      let statsStr = `LINE: ${selectedDates.size}天(${totalLineMsgs}筆) | 官方助手: ${dbSelectedDates.size}天(${totalDbMsgs}筆)`;
-      if (hasKm) {
-        statsStr += ` | 知識庫: 啟用`;
-      }
       statsStr += ` | 總字數: ${finalContent.length}`;
       statsEl.innerText = statsStr;
     }
@@ -2269,6 +2344,210 @@
       } else if (!textVal && includeCheck.checked) {
         includeCheck.checked = false;
       }
+      updateUnifiedCompiledContext();
+    }
+
+    // ==========================================
+    // FALO Analysis Context Basket Logic
+    // ==========================================
+    function addSelectedLineToBasket() {
+      if (!parsedChatLog || selectedDates.size === 0) {
+        alert('請先載入 LINE 對話並勾選至少一天的對話紀錄！');
+        return;
+      }
+      
+      const chatName = parsedChatLog.chatName || '未命名對話';
+      const daysCount = selectedDates.size;
+      let totalLineMsgs = 0;
+      let lineContent = [];
+      
+      lineContent.push(`## 💬 LINE 歷史群組對話紀錄 - ${chatName}`);
+      lineContent.push(`* **資料來源**: LINE 歷史匯出備份檔案`);
+      lineContent.push(`* **選取天數**: ${daysCount} 天`);
+      lineContent.push('\n');
+      
+      const sortedSelected = Array.from(selectedDates).sort();
+      sortedSelected.forEach(d => {
+        const group = groupedByDate[d];
+        if (!group) return;
+        lineContent.push(`### 📅 ${d}`);
+        group.messages.forEach(msg => {
+          lineContent.push(`- **[${msg.time}] ${msg.sender}**: ${msg.content}`);
+          totalLineMsgs++;
+        });
+        lineContent.push('');
+      });
+      lineContent.push('---\n');
+      
+      const contentString = lineContent.join('\n');
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "line",
+        title: `💬 LINE - ${chatName}`,
+        info: `已選 ${daysCount} 天, 共 ${totalLineMsgs} 筆對話`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(`已成功將 ${chatName} (${daysCount} 天, ${totalLineMsgs} 筆對話) 存入分析清單！`);
+    }
+
+    function addSelectedDbToBasket() {
+      if (!dbParsedEvents || dbSelectedDates.size === 0) {
+        alert('請先選取官方助手對話並勾選至少一天的紀錄！');
+        return;
+      }
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+      const daysCount = dbSelectedDates.size;
+      let totalDbMsgs = 0;
+      let dbContent = [];
+      
+      dbContent.push(`## 📱 官方助手對話紀錄 - ${chatInfo}`);
+      dbContent.push(`* **資料來源**: Google Sheets chat_events 資料表`);
+      dbContent.push(`* **選取天數**: ${daysCount} 天`);
+      dbContent.push('\n');
+      
+      const sortedSelected = Array.from(dbSelectedDates).sort();
+      sortedSelected.forEach(d => {
+        const group = dbGroupedByDate[d];
+        if (!group) return;
+        dbContent.push(`### 📅 ${d}`);
+        group.messages.forEach(msg => {
+          const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+          dbContent.push(`- **[${msg.time}] ${msg.sender}${roleLabel}**: ${msg.content}`);
+          totalDbMsgs++;
+        });
+        dbContent.push('');
+      });
+      dbContent.push('---\n');
+      
+      const contentString = dbContent.join('\n');
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "db",
+        title: `📱 助手 - ${chatInfo}`,
+        info: `已選 ${daysCount} 天, 共 ${totalDbMsgs} 筆對話`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(`已成功將 ${chatInfo} (${daysCount} 天, ${totalDbMsgs} 筆對話) 存入分析清單！`);
+    }
+
+    function addKmToBasket() {
+      const kmText = document.getElementById('kmTextInput').value.trim();
+      if (!kmText) {
+        alert('請先在知識庫輸入框貼入或匯入文字內容！');
+        return;
+      }
+      
+      let kmContent = [];
+      kmContent.push(`## 📚 知識庫參考資料 (KM)`);
+      kmContent.push(`* **資料來源**: 知識庫文字導入器 (KM)`);
+      kmContent.push('\n');
+      kmContent.push(kmText);
+      kmContent.push('\n---\n');
+      
+      const contentString = kmContent.join('\n');
+      
+      analysisBasket.push({
+        id: "basket_item_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        type: "km",
+        title: `📚 知識庫 - 參考資料`,
+        info: `文字長度 ${kmText.length} 字`,
+        content: contentString,
+        charCount: contentString.length,
+        enabled: true
+      });
+      
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+      alert(`已成功將知識庫參考資料存入分析清單！`);
+    }
+
+    function renderBasketUI() {
+      const emptyState = document.getElementById('analysisBasketEmptyState');
+      const container = document.getElementById('analysisBasketContainer');
+      const tableBody = document.getElementById('analysisBasketTableBody');
+      
+      if (!analysisBasket || analysisBasket.length === 0) {
+        emptyState.classList.remove('d-none');
+        container.classList.add('d-none');
+        return;
+      }
+      
+      emptyState.classList.add('d-none');
+      container.classList.remove('d-none');
+      
+      let html = '';
+      analysisBasket.forEach((item, index) => {
+        const typeBadge = item.type === 'line' 
+          ? '<span class="badge bg-primary text-light">LINE</span>'
+          : item.type === 'db'
+            ? '<span class="badge bg-success text-light">助手</span>'
+            : '<span class="badge bg-purple text-light">知識庫</span>';
+            
+        const isChecked = item.enabled ? 'checked' : '';
+        
+        html += `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 8px;">
+              <input type="checkbox" class="form-check-input" ${isChecked} onchange="toggleBasketItem('${item.id}')" style="cursor: pointer;">
+            </td>
+            <td style="padding: 8px;">\${typeBadge}</td>
+            <td style="padding: 8px;">
+              <div class="fw-bold text-light">\${item.title}</div>
+              <div class="text-muted small">\${item.info}</div>
+            </td>
+            <td style="padding: 8px;" class="text-muted">\${item.charCount} 字</td>
+            <td style="padding: 8px; text-align: center;">
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, -1)" \${index === 0 ? 'disabled' : ''} title="上移">▲</button>
+                <button class="btn btn-outline-secondary btn-xs py-0" onclick="moveBasketItem(\${index}, 1)" \${index === analysisBasket.length - 1 ? 'disabled' : ''} title="下移">▼</button>
+                <button class="btn btn-outline-danger btn-xs py-0 ms-2" onclick="deleteBasketItem('\${item.id}')" title="刪除"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>
+          </tr>`;
+      });
+      
+      tableBody.innerHTML = html;
+    }
+
+    function toggleBasketItem(id) {
+      const item = analysisBasket.find(x => x.id === id);
+      if (item) {
+        item.enabled = !item.enabled;
+        updateUnifiedCompiledContext();
+        renderBasketUI();
+      }
+    }
+
+    function deleteBasketItem(id) {
+      analysisBasket = analysisBasket.filter(x => x.id !== id);
+      renderBasketUI();
+      updateUnifiedCompiledContext();
+    }
+
+    function moveBasketItem(index, direction) {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= analysisBasket.length) return;
+      
+      // Swap elements
+      const temp = analysisBasket[index];
+      analysisBasket[index] = analysisBasket[targetIndex];
+      analysisBasket[targetIndex] = temp;
+      
+      renderBasketUI();
       updateUnifiedCompiledContext();
     }
 
