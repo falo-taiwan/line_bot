@@ -1120,6 +1120,36 @@ const POC_DEMO_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
       <!-- Sidebar -->
       <div class="sidebar">
         
+        <!-- Database Gateway Connection Explorer -->
+        <div class="sidebar-section" id="sectionConnection">
+          <h2>大腦資料庫探索 (GAS Explorer)</h2>
+          <div class="d-flex flex-column gap-2 mt-2">
+            <label class="small text-muted" style="font-size: 11px;">GAS Web App URL:</label>
+            <input type="text" id="gasExplorerUrl" class="form-control form-control-sm" placeholder="貼入 GAS /exec 網址...">
+            <button class="btn btn-primary btn-sm fw-bold" style="background-color: var(--primary-color); border-color: var(--primary-color);" onclick="exploreGasConnection()">🔗 探索與連線</button>
+            
+            <!-- Connection diagnostics status panel -->
+            <div id="explorerStatusPanel" class="mt-2 p-2 rounded border bg-light d-none" style="font-size: 12px;">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted fw-bold">連線狀態:</span>
+                <span id="explorerBadge" class="badge bg-secondary">未知</span>
+              </div>
+              <div class="mb-1">
+                <span class="text-muted fw-bold">資料庫:</span>
+                <a id="explorerSheetLink" href="#" target="_blank" class="text-truncate d-block fw-bold" style="color: #0284c7; text-decoration: none; max-width: 100%;">未連接</a>
+              </div>
+              <div class="mb-1">
+                <span class="text-muted fw-bold">雲端資料夾:</span>
+                <a id="explorerFolderLink" href="#" target="_blank" class="text-truncate d-block fw-bold" style="color: #0284c7; text-decoration: none; max-width: 100%;">未連接</a>
+              </div>
+              <div class="mb-0">
+                <span class="text-muted fw-bold">啟用 Bots:</span>
+                <span id="explorerBotsList" class="fw-bold text-dark">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Source Selection -->
         <div class="sidebar-section" id="sectionSources">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1300,6 +1330,100 @@ const POC_DEMO_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
   <script>
     let currentStep = 0;
     const messagesContainer = document.getElementById('chatMessages');
+
+    // Auto-load cached GAS Explorer URL on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const cachedUrl = localStorage.getItem('gasExplorerUrl') || 'https://script.google.com/macros/s/AKfycbwoXAjRW4z01O5BR_6bAqf_Wx7Ev3P8Z-Pu3CV7Cj0iwnRo_vvd5Kn-FZbL-7zsXg2Urw/exec';
+      const inputEl = document.getElementById('gasExplorerUrl');
+      if (inputEl) {
+        inputEl.value = cachedUrl;
+        // Optionally run automatic discovery if there is a cached URL
+        if (cachedUrl) {
+          setTimeout(() => exploreGasConnection(true), 500);
+        }
+      }
+    });
+
+    async function exploreGasConnection(isAuto = false) {
+      const urlInput = document.getElementById('gasExplorerUrl');
+      const statusPanel = document.getElementById('explorerStatusPanel');
+      const badge = document.getElementById('explorerBadge');
+      const sheetLink = document.getElementById('explorerSheetLink');
+      const folderLink = document.getElementById('explorerFolderLink');
+      const botsList = document.getElementById('explorerBotsList');
+
+      if (!urlInput) return;
+      let url = urlInput.value.trim();
+      if (!url) {
+        if (!isAuto) alert('請先輸入 GAS Web App URL 網址！');
+        return;
+      }
+
+      // Automatically normalize the URL to execute action=info
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += '?action=info';
+      } else if (fetchUrl.indexOf('action=') === -1) {
+        fetchUrl += '&action=info';
+      }
+
+      statusPanel.classList.remove('d-none');
+      badge.className = 'badge bg-warning text-dark';
+      badge.innerText = '讀取中...';
+
+      try {
+        console.log("Fetching environment layout metadata from: " + fetchUrl);
+        const response = await fetch(fetchUrl);
+        if (!response.ok) {
+          throw new Error('HTTP 錯誤！狀態碼: ' + response.status);
+        }
+        const result = await response.json();
+        console.log("Environment Explorer response: ", result);
+        
+        if (result.ok && result.spreadsheet) {
+          // Cache successful URL
+          localStorage.setItem('gasExplorerUrl', url);
+          
+          badge.className = 'badge bg-success';
+          badge.innerText = '已連線';
+          
+          sheetLink.href = result.spreadsheet.url;
+          sheetLink.innerText = result.spreadsheet.name;
+          sheetLink.title = result.spreadsheet.id;
+
+          if (result.parentFolder) {
+            folderLink.href = result.parentFolder.url;
+            folderLink.innerText = result.parentFolder.name;
+            folderLink.title = result.parentFolder.id;
+          } else {
+            folderLink.href = '#';
+            folderLink.innerText = '無母資料夾';
+          }
+
+          if (result.bots && result.bots.length > 0) {
+            const aliases = result.bots.map(b => b.bot_alias).join(', ');
+            botsList.innerText = aliases;
+          } else {
+            botsList.innerText = '暫無 Bot';
+          }
+        } else {
+          throw new Error(result.error || '回傳格式異常');
+        }
+      } catch (error) {
+        console.error('Environment Explorer Error:', error);
+        badge.className = 'badge bg-danger';
+        badge.innerText = '連線失敗';
+        sheetLink.href = '#';
+        sheetLink.innerText = '連線失敗';
+        folderLink.href = '#';
+        folderLink.innerText = '連線失敗';
+        botsList.innerText = 'N/A';
+        
+        if (!isAuto) {
+          alert('探索連線失敗！請確認：\\n1. 網址是否正確\\n2. 是否在「訪客模式」或已授權帳號下運行以避免 Google 帳號 Session 衝突。');
+        }
+      }
+    }
 
     function switchPage(page) {
       document.getElementById('pageProduct').classList.remove('active');

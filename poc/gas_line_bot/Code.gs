@@ -28,6 +28,11 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
+  // Public metadata exploration action (does NOT require security token!)
+  if (action === 'info') {
+    return jsonResponse(getPublicEnvironmentInfo());
+  }
+
   // Simple token authentication for API requests
   if (token !== SECURITY_TOKEN) {
     return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
@@ -479,6 +484,74 @@ function getDiagnosticsData() {
     };
   } catch (err) {
     return { ok: false, error: err.message };
+  }
+}
+
+function getPublicEnvironmentInfo() {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    
+    // A. Spreadsheet Info
+    var ssName = ss.getName();
+    var ssUrl = ss.getUrl();
+    
+    // B. Sheets & Row Counts
+    var sheetsList = [];
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) {
+      var s = sheets[i];
+      sheetsList.push({
+        name: s.getName(),
+        rows: s.getLastRow()
+      });
+    }
+    
+    // C. Drive Folder Info
+    var currentFile = DriveApp.getFileById(MASTER_SPREADSHEET_ID);
+    var parents = currentFile.getParents();
+    var parentFolder = parents.hasNext() ? parents.next() : null;
+    var parentFolderInfo = parentFolder ? {
+      id: parentFolder.getId(),
+      name: parentFolder.getName(),
+      url: parentFolder.getUrl()
+    } : { id: 'root', name: 'My Drive Root', url: 'https://drive.google.com' };
+
+    // D. Bot Configurations (excluding line_channel_token for security!)
+    var configsList = [];
+    var configSheet = ss.getSheetByName('bot_configs');
+    if (configSheet) {
+      var vals = configSheet.getDataRange().getValues();
+      for (var i = 1; i < vals.length; i++) {
+        var subFolderId = vals[i][3];
+        var subFolderUrl = '';
+        if (subFolderId) {
+          try {
+            subFolderUrl = DriveApp.getFolderById(subFolderId).getUrl();
+          } catch(err) {}
+        }
+        
+        configsList.push({
+          bot_alias: vals[i][0],
+          bot_name: vals[i][1],
+          associated_drive_folder_id: subFolderId,
+          associated_drive_folder_url: subFolderUrl,
+          created_at: vals[i][4]
+        });
+      }
+    }
+
+    var scriptUrl = ScriptApp.getService().getUrl();
+
+    return {
+      ok: true,
+      spreadsheet: { id: MASTER_SPREADSHEET_ID, name: ssName, url: ssUrl },
+      sheets: sheetsList,
+      parentFolder: parentFolderInfo,
+      bots: configsList,
+      scriptUrl: scriptUrl
+    };
+  } catch (err) {
+    return { ok: false, error: err.toString() };
   }
 }
 
