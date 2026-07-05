@@ -70,7 +70,17 @@ function runSetup() {
     filesSheet.appendRow(filesHeaders);
   }
   
-  // 6. Initialize default script properties if not present
+  // 6. Setup chat_registry (Group Friendly Mapping Registry)
+  var registrySheet = ss.getSheetByName('chat_registry');
+  if (!registrySheet) {
+    registrySheet = ss.insertSheet('chat_registry');
+  }
+  if (registrySheet.getLastRow() === 0) {
+    var registryHeaders = ['chat_id', 'bot_alias', 'friendly_name', 'chat_type', 'updated_at'];
+    registrySheet.appendRow(registryHeaders);
+  }
+  
+  // 7. Initialize default script properties if not present
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty('MEDIA_WORKER_INTERVAL_MINUTES')) {
     props.setProperty('MEDIA_WORKER_INTERVAL_MINUTES', '1');

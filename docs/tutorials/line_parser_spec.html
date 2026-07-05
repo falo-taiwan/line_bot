@@ -380,6 +380,25 @@
 }</code></pre>
     </section>
 
+    <!-- Google Drive Restoration and Mapping Registry -->
+    <section>
+      <h2>五、 Google Drive 雲端架構隔離與 Mapping 機制 (v2.1)</h2>
+      <p>自 v2.1 版起，專案引入了嚴格的檔案結構隔離以及對話 Mapping 對照機制，以解決多個 LINE 帳號管理時的雜亂問題。</p>
+      
+      <h3>1. 三層隔離目錄架構</h3>
+      <ul>
+        <li><strong><code>exports/</code></strong>：存放使用者手動上傳的對話備份文字檔。控制台只掃描此資料夾。</li>
+        <li><strong><code>system_raw/Bot_[botAlias]/</code></strong>：Webhook 自動備份產生的 <code>raw_</code> 對話文字檔收納區。</li>
+        <li><strong><code>system_media/</code></strong>：Webhook 抓回的圖片、語音等系統附件。</li>
+      </ul>
+
+      <h3>2. 智慧名稱提取與對照註冊表 (Registry)</h3>
+      <p>GAS 調用 <code>list_files</code> 時，會自動讀取 <code>exports/</code> 底下各文字檔的首行提取群組名稱，並與試算表中的 <code>chat_registry</code> 對比，在控制台選單直接顯示好讀名稱（如 <code>FALO 核心研發群</code>），而非無意義的檔名。</p>
+
+      <h3>3. 增量對齊策略 (Incremental Sync)</h3>
+      <p>支援增量與覆蓋兩種同步資料庫方式。增量模式下，系統會查詢該對話的最大時間戳，自動過濾並僅寫入新收到的訊息，確保資料庫內容沒有重疊與重複。</p>
+    </section>
+
   </main>
 </body>
 </html>

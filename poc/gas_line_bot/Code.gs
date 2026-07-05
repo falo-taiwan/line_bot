@@ -90,7 +90,7 @@ function doGet(e) {
     }
   }
 
-  // Secure endpoint to list files inside the parent folder or media subfolder directly from URL
+  // Secure endpoint to list files inside the exports folder or system_media subfolder directly from URL
   if (action === 'list_files') {
     try {
       var filesList = [];
@@ -98,13 +98,41 @@ function doGet(e) {
       var parents = currentFile.getParents();
       var parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
       
-      var files = parentFolder.getFiles();
+      // Resolve exports folder
+      var exportsFolder;
+      var exportsSubFolders = parentFolder.getFoldersByName('exports');
+      if (exportsSubFolders.hasNext()) {
+        exportsFolder = exportsSubFolders.next();
+      } else {
+        exportsFolder = parentFolder.createFolder('exports');
+      }
+      
+      // Read Registry Maps for mapping chat IDs / filenames
+      var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+      ensureSetup(ss);
+      
+      var files = exportsFolder.getFiles();
       while (files.hasNext()) {
         var f = files.next();
-        if (f.getName().endsWith('.txt')) {
+        if (f.getName().endsWith('.txt') || f.getName().endsWith('.html')) {
+          // Attempt to extract friendly name by reading the first line of the file
+          var displayName = f.getName();
+          try {
+            var content = f.getBlob().getDataAsString();
+            var firstLine = content.split('\n')[0].trim();
+            if (firstLine.indexOf('[LINE]') === 0) {
+              displayName = firstLine.replace('[LINE]', '').trim();
+            } else if (firstLine.indexOf('<!DOCTYPE') !== 0 && firstLine.indexOf('<html') !== 0 && firstLine.length > 0 && firstLine.length < 50) {
+              displayName = firstLine;
+            }
+          } catch (e) {
+            // Fallback to filename
+          }
+          
           filesList.push({
             id: f.getId(),
             name: f.getName(),
+            displayName: displayName,
             size: f.getSize(),
             mime: f.getMimeType(),
             created: formatDateToTaipeiIso_(f.getDateCreated())
@@ -112,16 +140,18 @@ function doGet(e) {
         }
       }
       
-      var subFolders = parentFolder.getFoldersByName('media');
-      if (subFolders.hasNext()) {
-        var mediaFolder = subFolders.next();
+      // Also scan system_media folder if it contains parsed logs (compatibility helper)
+      var mediaFolders = parentFolder.getFoldersByName('system_media');
+      if (mediaFolders.hasNext()) {
+        var mediaFolder = mediaFolders.next();
         var mediaFiles = mediaFolder.getFiles();
         while (mediaFiles.hasNext()) {
           var mf = mediaFiles.next();
           if (mf.getName().endsWith('.txt')) {
             filesList.push({
               id: mf.getId(),
-              name: 'media/' + mf.getName(),
+              name: 'system_media/' + mf.getName(),
+              displayName: 'system_media/' + mf.getName(),
               size: mf.getSize(),
               mime: mf.getMimeType(),
               created: formatDateToTaipeiIso_(mf.getDateCreated())
@@ -275,6 +305,7 @@ function doPost(e) {
       var botAlias = payload.bot_alias;
       var rawText = payload.raw_text;
       var parsedEvents = payload.parsed_events || [];
+      var syncMode = payload.sync_mode || 'incremental'; // 'incremental' or 'overwrite'
 
       if (!chatId || !botAlias) {
         return jsonResponse({ ok: false, error: 'Missing chat_id or bot_alias' }, 400);
@@ -295,8 +326,57 @@ function doPost(e) {
         folder.createFile(filename, rawText);
       }
 
-      // Step 2: Append parsed events to chat_events Sheet tab in batch
       var sheet = ss.getSheetByName('chat_events');
+      
+      // Step 2: Handle Sync Mode (Overwrite vs Incremental)
+      if (syncMode === 'overwrite') {
+        var lastRow = sheet.getLastRow();
+        if (lastRow > 1) {
+          var range = sheet.getRange(2, 1, lastRow - 1, 13);
+          var values = range.getValues();
+          var filteredValues = values.filter(function(row) {
+            return row[2] !== chatId; // column 3 is chat_id
+          });
+          
+          sheet.getRange(2, 1, lastRow - 1, 13).clearContent();
+          if (filteredValues.length > 0) {
+            sheet.getRange(2, 1, filteredValues.length, 13).setValues(filteredValues);
+          }
+        }
+      } else {
+        // Incremental: Find max timestamp for this chatId
+        var maxTimestamp = '';
+        var lastRow = sheet.getLastRow();
+        if (lastRow > 1) {
+          var range = sheet.getRange(2, 1, lastRow - 1, 13);
+          var values = range.getValues();
+          var chatRows = values.filter(function(row) {
+            return row[2] === chatId;
+          });
+          
+          if (chatRows.length > 0) {
+            var times = chatRows.map(function(row) {
+              return new Date(row[4]).getTime(); // index 4 is captured_at
+            }).filter(function(t) {
+              return !isNaN(t);
+            });
+            if (times.length > 0) {
+              maxTimestamp = new Date(Math.max.apply(null, times)).toISOString();
+            }
+          }
+        }
+        
+        // Filter events
+        if (maxTimestamp && parsedEvents.length > 0) {
+          var cutTime = new Date(maxTimestamp).getTime();
+          parsedEvents = parsedEvents.filter(function(evt) {
+            var evtTime = new Date(evt.captured_at).getTime();
+            return isNaN(evtTime) || evtTime > cutTime;
+          });
+        }
+      }
+
+      // Step 3: Append parsed events to chat_events Sheet tab in batch
       if (parsedEvents.length > 0) {
         var startRow = sheet.getLastRow() + 1;
         var startId = startRow - 1; // Auto ID mock
@@ -312,11 +392,40 @@ function doPost(e) {
             evt.sender_role || 'client',
             evt.message_type || 'text',
             evt.text_content || '',
+            evt.media_file_id || '',
+            evt.media_file_url || '',
+            evt.media_error || '',
             evt.metadata_json || '{}'
           ];
         });
         
-        sheet.getRange(startRow, 1, values.length, 10).setValues(values);
+        sheet.getRange(startRow, 1, values.length, 13).setValues(values);
+      }
+
+      // Step 4: Register in chat_registry if not exists
+      var registrySheet = ss.getSheetByName('chat_registry');
+      if (registrySheet) {
+        var lastRegRow = registrySheet.getLastRow();
+        var regValues = lastRegRow > 1 ? registrySheet.getRange(2, 1, lastRegRow - 1, 5).getValues() : [];
+        var exists = false;
+        for (var i = 0; i < regValues.length; i++) {
+          if (regValues[i][0] === chatId) {
+            exists = true;
+            break;
+          }
+        }
+        
+        if (!exists) {
+          var friendlyName = payload.chat_name || ('未命名對話 (' + chatId.slice(0, 8) + ')');
+          var chatType = chatId.indexOf('C') === 0 ? '群組' : '個人';
+          registrySheet.appendRow([
+            chatId,
+            botAlias,
+            friendlyName,
+            chatType,
+            formatDateToTaipeiIso_()
+          ]);
+        }
       }
 
       return jsonResponse({ ok: true, saved_raw: true, saved_events_count: parsedEvents.length });
@@ -468,15 +577,24 @@ function getBotDriveFolderId(ss, botAlias) {
         parentFolder = DriveApp.getRootFolder();
       }
       
-      // 2. Search for or create the bot subfolder inside this parent folder
+      // Resolve system_raw parent folder first
+      var systemRawFolder;
+      var rawSubFolders = parentFolder.getFoldersByName('system_raw');
+      if (rawSubFolders.hasNext()) {
+        systemRawFolder = rawSubFolders.next();
+      } else {
+        systemRawFolder = parentFolder.createFolder('system_raw');
+      }
+      
+      // 2. Search for or create the bot subfolder inside system_raw folder
       var subFolderName = 'Bot_' + botAlias;
-      var subFolders = parentFolder.getFoldersByName(subFolderName);
+      var subFolders = systemRawFolder.getFoldersByName(subFolderName);
       var targetFolder;
       if (subFolders.hasNext()) {
         targetFolder = subFolders.next();
       } else {
-        // Inherits permissions automatically from the parent folder
-        targetFolder = parentFolder.createFolder(subFolderName);
+        // Inherits permissions automatically from system_raw
+        targetFolder = systemRawFolder.createFolder(subFolderName);
       }
       
       folderId = targetFolder.getId();
@@ -887,10 +1005,10 @@ function processMediaQueue() {
       
       blob.setName(filename);
       
-      // Resolve Google Drive Folder: designated subdirectory 'media' in the same directory as the Google Sheet
+      // Resolve Google Drive Folder: designated subdirectory 'system_media' in the same directory as the Google Sheet
       var ssFile = DriveApp.getFileById(ss.getId());
       var parentFolder = ssFile.getParents().hasNext() ? ssFile.getParents().next() : DriveApp.getRootFolder();
-      var subFolderName = 'media';
+      var subFolderName = 'system_media';
       var subFolders = parentFolder.getFoldersByName(subFolderName);
       var folder;
       if (subFolders.hasNext()) {

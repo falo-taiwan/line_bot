@@ -956,7 +956,8 @@
           let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
           result.files.forEach(f => {
             const kbSize = Math.round(f.size / 1024);
-            html += `<option value="${f.id}">${f.name} (${kbSize} KB)</option>`;
+            const label = f.displayName ? `${f.displayName} (${f.name} - ${kbSize} KB)` : `${f.name} (${kbSize} KB)`;
+            html += `<option value="${f.id}">${label}</option>`;
           });
           selectEl.innerHTML = html;
           loadBtn.disabled = false;

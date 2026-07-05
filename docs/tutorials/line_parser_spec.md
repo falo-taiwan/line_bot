@@ -81,3 +81,28 @@
   * **LINE Message Analyzer (JS)**: `backup/parsers/line-message-analyzer.zip`
   * **Linelog2py (Python)**: `backup/parsers/linelog2py.zip`
 * 當上游專案因 LINE 改版而更新解析正則表達式時，我們可以直接參考其最新的代碼修改，進行 Falo 的無痛熱修復。
+
+---
+
+## 5. Google Drive 雲端架構隔離與 Mapping 機制 (v2.1)
+
+為了優化人工作業體驗、降低人員與自動化系統在檔案存取上的混淆，自 v2.1 版起，我們在 Google Drive 目錄結構與資料庫中引入了嚴格的資料隔離與對照 Mapping 機制。
+
+### A. 雲端硬碟三層隔離目錄樹
+* **大腦根目錄**：僅存放 `📊 大腦主試算表 (Spreadsheet)` 本身，保持根目錄極度清爽。
+* **`exports/` (使用者對話匯出區)**：專用於使用者手動上傳的 LINE `.txt` 對話紀錄檔案。
+  * **程式邏輯**：控制台的檔案載入器路由 (`action=list_files`) 僅會掃描此資料夾。
+* **`system_raw/` (系統自動對話備份區)**：專用於 Webhook 接收到的即時備份。
+  * **目錄劃分**：底層依 Bot 別名建立子資料夾（如 `system_raw/Bot_standard/`）。
+* **`system_media/` (系統多媒體暫存區)**：專門儲存 Webhook 抓回的 LINE 群組圖片、音檔等。
+
+### B. 群組註冊與對話對照表 (`chat_registry`)
+在試算表中新增 `chat_registry` 分頁，用於維護 `chat_id` 到 `friendly_name`（好讀名稱）之映射：
+1. **成員與群組登記**：當接收到新群組對話時，系統自動將未登記之 `chat_id` 寫入註冊表。
+2. **前端好讀選單 (DisplayName)**：在 `list_files` 階段，GAS 會讀取備份文字檔的首行（例如 `[LINE] FALO 核心研發群`），並與 `chat_registry` 比對，自動在選單中呈現如 `💬 FALO 核心研發群 (鄭Force_LINE_2026.txt - 32 KB)` 的好讀名稱。
+
+### C. 增量對齊 (Incremental Sync)
+當重新上傳對話進行同步時，為了防止重複資料灌入：
+* **覆蓋模式**：刪除資料庫中該 `chat_id` 的所有歷史事件並重新寫入。
+* **增量模式**：系統先查詢資料庫中該對話的最大時間戳，過濾掉上傳檔案中的舊紀錄，**僅寫入時間戳大於資料庫已有紀錄之新對話**。
+
