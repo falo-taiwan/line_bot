@@ -24,7 +24,7 @@ function runSetup() {
       'FALO IM Bot Test',
       'QbCFELbDXoDLB5tZJizJiD6OeRiCIcN4E0nXxz/HjJp6sg0he35nc+jSmSrqGIWgAI0BfuL+5TmJwRyhPUDXSjIexSiNdxq7P1Ht8qL7XX7UAHv9RwStmqMIzp6iPObE/Ah2szC12NJ2FU1QfT23qQdB04t89/1O/w1cDnyilFU=',
       '1ciVjy5WiIZXnnURb4nyar-v3R31VL4aG',
-      new Date().toISOString()
+      formatDateToTaipeiIso_()
     ]
   ];
   defaultBots.forEach(function(bot) {

@@ -248,7 +248,7 @@ function doPost(e) {
             botAlias,
             chatId,
             evt.message_id || '',
-            evt.captured_at || new Date().toISOString(),
+            evt.captured_at || formatDateToTaipeiIso_(),
             evt.sender_name || 'Anonymous',
             evt.sender_role || 'client',
             evt.message_type || 'text',
@@ -338,7 +338,7 @@ function handleLineWebhook(webhookPayload) {
         matchedBot.bot_alias,
         chatId,
         message.id || '',
-        new Date(evt.timestamp).toISOString(),
+        formatDateToTaipeiIso_(evt.timestamp),
         senderName,
         'client', // webhook incoming message is always client role
         message.type || 'text',
@@ -631,7 +631,7 @@ function testDriveWrite() {
     var parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
     
     var fileName = 'falo_test_write.txt';
-    var testFile = parentFolder.createFile(fileName, 'Falo Write Permission Test. Created at: ' + new Date().toISOString());
+    var testFile = parentFolder.createFile(fileName, 'Falo Write Permission Test. Created at: ' + formatDateToTaipeiIso_());
     var fileId = testFile.getId();
     
     // Delete immediately to clean up
@@ -690,13 +690,13 @@ function enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType,
   }
   
   var row = [
-    new Date().toISOString(), // queued_at
+    formatDateToTaipeiIso_(), // queued_at
     messageId,
     messageType,
     botAlias,
     chatId,
     userId,
-    new Date(timestamp).toISOString(), // line_timestamp
+    formatDateToTaipeiIso_(timestamp), // line_timestamp
     'pending', // status
     0, // attempt_count
     '', // processing_started_at
@@ -779,7 +779,7 @@ function processMediaQueue() {
     if (attempts >= MEDIA_WORKER_MAX_ATTEMPTS) {
       updateQueueRow_(queueSheet, r + 1, index, {
         status: 'failed',
-        last_attempt_at: new Date().toISOString(),
+        last_attempt_at: formatDateToTaipeiIso_(),
         last_error: 'max attempts reached'
       });
       updateChatEventMediaInfo_(String(row[index.message_id]), '', '', 'failed: max attempts reached');
@@ -797,7 +797,7 @@ function processMediaQueue() {
     // Update status to processing
     updateQueueRow_(queueSheet, r + 1, index, {
       status: 'processing',
-      processing_started_at: new Date().toISOString(),
+      processing_started_at: formatDateToTaipeiIso_(),
       attempt_count: attempts + 1,
       last_error: ''
     });
@@ -849,7 +849,7 @@ function processMediaQueue() {
       var filesSheet = ss.getSheetByName('media_files');
       if (filesSheet) {
         filesSheet.appendRow([
-          new Date().toISOString(), // saved_at
+          formatDateToTaipeiIso_(), // saved_at
           messageId,
           messageType,
           filename,
@@ -860,14 +860,14 @@ function processMediaQueue() {
           botAlias,
           chatId,
           userId,
-          new Date(lineTimestamp).toISOString()
+          formatDateToTaipeiIso_(lineTimestamp)
         ]);
       }
       
       // Update media_queue status to saved
       updateQueueRow_(queueSheet, r + 1, index, {
         status: 'saved',
-        last_attempt_at: new Date().toISOString(),
+        last_attempt_at: formatDateToTaipeiIso_(),
         last_error: '',
         drive_file_id: fileId,
         drive_file_url: fileUrl
@@ -883,7 +883,7 @@ function processMediaQueue() {
       var nextStatus = attempts + 1 >= MEDIA_WORKER_MAX_ATTEMPTS ? 'failed' : 'retry';
       updateQueueRow_(queueSheet, r + 1, index, {
         status: nextStatus,
-        last_attempt_at: new Date().toISOString(),
+        last_attempt_at: formatDateToTaipeiIso_(),
         last_error: errorText
       });
       updateChatEventMediaInfo_(messageId, '', '', errorText);
@@ -969,7 +969,7 @@ function buildMediaFilename_(item, contentType) {
     extension = extensionFromFilename_(originalName) || extension;
   }
   var parts = [
-    formatDateForFilename_(new Date(item.line_timestamp ? Number(item.line_timestamp) : Date.now())),
+    formatDateForFilename_(item.line_timestamp ? new Date(item.line_timestamp) : new Date()),
     safeFilenamePart_(item.bot_alias || 'bot'),
     safeFilenamePart_(item.chat_id || 'unknown-source'),
     safeFilenamePart_(item.user_id || 'nouser'),
@@ -1107,4 +1107,9 @@ function testEnqueue() {
   Logger.log('Running testEnqueue...');
   enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType, timestamp, rawJson);
   Logger.log('testEnqueue finished.');
+}
+
+function formatDateToTaipeiIso_(date) {
+  var d = date ? new Date(date) : new Date();
+  return Utilities.formatDate(d, 'Asia/Taipei', "yyyy-MM-dd'T'HH:mm:ss.SSS+08:00");
 }
