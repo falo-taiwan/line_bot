@@ -1235,12 +1235,53 @@
         chatName = firstLine.replace("[LINE]", "").replace("的聊天記錄", "").replace("的聊天", "").trim();
       }
       
+      // Find export date or use current system date + 1 day
+      let maxAllowedDateObj = new Date();
+      maxAllowedDateObj.setDate(maxAllowedDateObj.getDate() + 1); // fallback tomorrow
+      
+      const exportDateRegex = /(?:儲存日期|Saved date)[：:\s]*(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})/;
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const match = lines[i].match(exportDateRegex);
+        if (match) {
+          const y = match[1];
+          const m = match[2].padStart(2, '0');
+          const d = match[3].padStart(2, '0');
+          const parsedExportDate = new Date(`${y}-${m}-${d}`);
+          if (!isNaN(parsedExportDate.getTime())) {
+            maxAllowedDateObj = parsedExportDate;
+            break;
+          }
+        }
+      }
+
       const messages = [];
       let currentDateStr = "2020-01-01";
+      let lastParsedDateObj = null;
       let isNextLineNewDate = false;
       
       const dateRegex = /^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})(?:日)?(?:\s*（[^）]+）|\s*\([^)]+\)|\s*星期[一二三四五六日]|\s*[a-zA-Z]+)?\s*$/;
       const msgRegex = /^((?:上午|下午)?\d{2}:\d{2})\t([^\t]+)\t(.*)$/;
+      
+      function isValidDateHeader(y, m, d) {
+        const year = parseInt(y, 10);
+        if (year < 2011) return false; // LINE launched in 2011
+        
+        const candidateStr = `${y}-${m}-${d}`;
+        const candidateDateObj = new Date(candidateStr);
+        if (isNaN(candidateDateObj.getTime())) return false;
+        
+        // 1. Exceeds export/system date check
+        if (maxAllowedDateObj && candidateDateObj > maxAllowedDateObj) {
+          return false;
+        }
+        
+        // 2. Progression check (Must be >= last parsed date)
+        if (lastParsedDateObj && candidateDateObj < lastParsedDateObj) {
+          return false;
+        }
+        
+        return true;
+      }
       
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
@@ -1256,9 +1297,13 @@
             const y = dateMatch[1];
             const m = dateMatch[2].padStart(2, '0');
             const d = dateMatch[3].padStart(2, '0');
-            currentDateStr = `${y}-${m}-${d}`;
-            isNextLineNewDate = false;
-            continue;
+            
+            if (isValidDateHeader(y, m, d)) {
+              currentDateStr = `${y}-${m}-${d}`;
+              lastParsedDateObj = new Date(currentDateStr);
+              isNextLineNewDate = false;
+              continue;
+            }
           }
         }
         
