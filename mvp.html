@@ -352,9 +352,9 @@
                 </div>
               </div>
               
-              <!-- Cloudflare Webhook Proxy details -->
+              <!-- LINE Webhook Endpoint details -->
               <div class="meta-item mt-3" style="border: 1px solid rgba(52, 211, 153, 0.2); background: rgba(16, 185, 129, 0.03);">
-                <div class="meta-label" style="color: #34d399;">LINE Webhook 代理端點 (請複製此網址)</div>
+                <div class="meta-label" style="color: #34d399;">LINE Webhook 接收端點 (請複製此網址)</div>
                 <div class="d-flex justify-content-between align-items-center">
                   <span id="cfWebhookEndpoint" class="meta-value text-emerald fw-bold text-break" style="font-size: 13px; font-family: monospace; color: #34d399; word-break: break-all;">
                     載入中...
@@ -1617,15 +1617,13 @@
     }
 
     // ==========================================
-    // Webhook Proxy Display Logic
+    // Webhook Endpoint Display Logic
     // ==========================================
     function updateWebhookDisplay() {
       const gasUrl = document.getElementById('gasUrlInput').value.trim();
-      const baseUrl = window.location.origin + '/api/webhook';
-      const finalUrl = gasUrl ? `${baseUrl}?gas=${encodeURIComponent(gasUrl)}` : baseUrl;
       const el = document.getElementById('cfWebhookEndpoint');
       if (el) {
-        el.innerText = finalUrl;
+        el.innerText = gasUrl || '尚未輸入 GAS Web App URL';
       }
     }
 
