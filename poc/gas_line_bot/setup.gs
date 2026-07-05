@@ -25,13 +25,6 @@ function runSetup() {
       'QbCFELbDXoDLB5tZJizJiD6OeRiCIcN4E0nXxz/HjJp6sg0he35nc+jSmSrqGIWgAI0BfuL+5TmJwRyhPUDXSjIexSiNdxq7P1Ht8qL7XX7UAHv9RwStmqMIzp6iPObE/Ah2szC12NJ2FU1QfT23qQdB04t89/1O/w1cDnyilFU=',
       '1ciVjy5WiIZXnnURb4nyar-v3R31VL4aG',
       new Date().toISOString()
-    ],
-    [
-      'gas',
-      'FALO IM Bot GAS Test',
-      'g4tFjr+oBbmqD0RF6Dst1jZCZ8XjKxZM6tl0T97pj4bel7/q/M3kPWKB2vYQBuH4GiMa1GU0hrM6XEEQz6fDq97VtJQfXIeGDzYwWaccrGKst/kQAw/+SpCnK5hW4OhQvSHJwkkQBqxK0QBdiZcUDgdB04t89/1O/w1cDnyilFU=',
-      '1YMudlXzJYuBgK3gtJt2sPAUvcOc3kQwC',
-      new Date().toISOString()
     ]
   ];
   defaultBots.forEach(function(bot) {
