@@ -1483,14 +1483,28 @@ authorizeRuntime
 
 參考來源：<https://developers.line.biz/en/reference/messaging-api/#get-content>
 
-如果瀏覽器或 curl 看到 Google 的「存取遭拒」，通常不是程式碼錯，而是 Web App 部署權限或首次授權尚未完成。處理方式：
+如果瀏覽器點擊 Web App 連結看到 Google 的「很抱歉，目前無法開啟這個檔案。請檢查網址並再試一次。」（Sorry, unable to open this file at this time）或是「存取遭拒」，通常不是程式碼錯誤，而是 Google 的帳號 Session 衝突或未完成 API 授權。
 
-1. 到 Apps Script 編輯器。
-2. Deploy -> Manage deployments。
-3. 確認 Web App 執行身分是部署者。
-4. 存取權限設為 Anyone。
-5. 重新部署新版本。
-6. 用瀏覽器開 `?api=setup`，讓部署帳號完成授權。
+#### 🚨 避坑與除錯指南 (Troubleshooting)
+
+##### 1. 多帳號 Session 衝突 (最常見的坑)
+* **現象**：在電腦或手機的常用瀏覽器中點開連結，會被自動重新導向並顯示「無法開啟檔案」，但透過 `curl` 等 API 請求或用沒有登入 Google 的訪客模式點開卻完全正常。
+* **原因**：因為瀏覽器同時登入多重 Google 帳號（例如個人 Gmail 與公司 Workspace 帳號），Google 會在網址中自動插入 `/u/1/` 或 `/u/0/` 進行識別。如果當下預設的 Session（如公司 Workspace 帳號）有安全限制，Google 門神會在「執行程式碼前」直接把連線掐斷，程式根本沒有執行的機會。
+* **解法**：
+  - 電腦端測試：使用 Chrome **「訪客模式 (Guest Profile)」** 或是開啟完全未登入 Google 的乾淨無痕視窗開啟連結。
+  - 網址手動對齊：若個人主要開發帳號是 `/u/0/`，在瀏覽器開啟時確保網址寫的是 `/u/0/s/...` 而非 `/u/1/s/...`。
+  - 行動端測試：避免直接在 LINE 聊天室內點開連結，應複製網址在乾淨的 Safari/Chrome 訪客頁面中打開。
+
+##### 2. 獨立專案 (Standalone) 與容器綁定 (Container-bound) 的權限牽連
+* **容器綁定限制**：若 Apps Script 專案是綁定在私有試算表（Sheet）內部，即使 Web App 設定為「所有人（Anyone）可存取」，只要該試算表本身沒有開啟「知道連結的任何人皆可檢視」共享，外部匿名使用者訪問網頁時，Google 就會連帶封鎖 Web App，直接顯示無法開啟檔案。
+* **安全性解法**：**強烈建議改用「獨立指令碼專案 (Standalone Project)」**！獨立專案與特定 Sheet 脫鉤，試算表可以保持 **100% 絕對私有（限制）**，而獨立專案的 Web App 依然可以被任何人匿名點開（其在背景會以開發人員的擁有者權限安全地用 `SpreadsheetApp.openById(ID)` 讀寫私有試算表）。
+
+##### 3. 首次部署與多服務授權
+* **原因**：如果程式碼中使用了 `DriveApp`（雲端硬碟）或 `UrlFetchApp`（外部連線），而擁有者在首次手動執行時（例如只跑了僅使用 `SpreadsheetApp` 的 `runSetup` 暖機）沒有完整授予這些權限，Web App 載入時就會因為伺服器端缺少授權而直接崩潰。
+* **解法**：
+  1. 在 `setup.gs` 中寫一個暖機函數 `authorizeAllScopes`，在其中主動呼叫 `DriveApp.getRootFolder()`、`SpreadsheetApp.openById(...)` 與 `UrlFetchApp.fetch(...)`。
+  2. 擁有者在 GAS 編輯器中手動執行一次 `authorizeAllScopes`，完成所有權限授予。
+  3. 進入 **Deploy -> Manage deployments**，編輯現有部署，選擇 **「建立新版本」 (New Version)**（執行身分設為「我本人」，誰可以存取設為「所有人」），然後按部署發布。
 
 ## v2.0 雲地架構與 Falo 核心產品線演進 (Claude Fable 評審意見)
 

@@ -994,7 +994,39 @@ https://script.google.com/macros/s/AKfycbxlGJBeITEwcXHRRoi1k2yZfbb-y1PkoNw61aABB
   <p>這個函式是授權暖機，不會直接啟動背景排程。它會碰到 <code>SpreadsheetApp</code>、<code>DriveApp</code> 與 <code>ScriptApp</code>，分別確認可以讀寫 Sheet、讀寫 Drive Folder，以及讀取 / 建立 Apps Script triggers。</p>
   <p>授權完成後，日常才透過監看頁按鈕控制：啟用媒體上傳、啟用 5 分鐘 trigger、手動處理媒體佇列。保留這個分層很重要：第一次授權是 Google 帳號安全流程；後續開關是系統管理流程。</p>
   <p>官方參考：LINE Messaging API 的「Get content」說明指出，媒體內容會在一段時間後自動刪除，且不保證保存時間。因此實務上不要只存 <code>messageId</code> 後很久才下載，應該盡快搬到自己的儲存空間。參考來源：<a href="https://developers.line.biz/en/reference/messaging-api/#get-content">LINE Messaging API - Get content</a>。</p>
-  <p>如果瀏覽器或 curl 看到 Google 的存取遭拒，通常不是程式碼錯，而是 Web App 部署權限或首次授權尚未完成。處理方式是到 Apps Script 的 Deploy -> Manage deployments，確認 Web App 執行身分是部署者、存取權限是 Anyone，重新部署新版本後，用瀏覽器開 <code>?api=setup</code> 完成授權。</p>
+  <p>如果瀏覽器點擊 Web App 連結看到 Google 的「很抱歉，目前無法開啟這個檔案。請檢查網址並再試一次。」（Sorry, unable to open this file at this time）或是「存取遭拒」，通常不是程式碼錯誤，而是 Google 的帳號 Session 衝突或未完成 API 授權。</p>
+  
+  <h4>🚨 避坑與除錯指南 (Troubleshooting)</h4>
+  <h5>1. 多帳號 Session 衝突 (最常見的坑)</h5>
+  <ul>
+    <li><strong>現象</strong>：在電腦或手機的常用瀏覽器中點開連結，會被自動重新導向並顯示「無法開啟檔案」，但透過 <code>curl</code> 等 API 請求或用沒有登入 Google 的訪客模式點開卻完全正常。</li>
+    <li><strong>原因</strong>：因為瀏覽器同時登入多重 Google 帳號（例如個人 Gmail 與公司 Workspace 帳號），Google 會在網址中自動插入 <code>/u/1/</code> 或 <code>/u/0/</code> 進行識別。如果當下預設的 Session（如公司 Workspace 帳號）有安全限制，Google 門神會在「執行程式碼前」直接把連線掐斷，程式根本沒有執行的機會。</li>
+    <li><strong>解法</strong>：
+      <ul>
+        <li>電腦端測試：使用 Chrome <strong>「訪客模式 (Guest Profile)」</strong> 或是開啟完全未登入 Google 的乾淨無痕視窗開啟連結。</li>
+        <li>網址手動對齊：若個人主要開發帳號是 <code>/u/0/</code>，在瀏覽器開啟時確保網址寫的是 <code>/u/0/s/...</code> 而非 <code>/u/1/s/...</code>。</li>
+        <li>行動端測試：避免直接在 LINE 聊天室內點開連結，應複製網址在乾淨的 Safari/Chrome 訪客頁面中打開。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h5>2. 獨立專案 (Standalone) 與容器綁定 (Container-bound) 的權限牽連</h5>
+  <ul>
+    <li><strong>容器綁定限制</strong>：若 Apps Script 專案是綁定在私有試算表（Sheet）內部，即使 Web App 設定為「所有人（Anyone）可存取」，只要該試算表本身沒有開啟「知道連結的任何人皆可檢視」共享，外部匿名使用者訪問網頁時，Google 就會連帶封鎖 Web App，直接顯示無法開啟檔案。</li>
+    <li><strong>安全性解法</strong>：<strong>強烈建議改用「獨立指令碼專案 (Standalone Project)」</strong>！獨立專案與特定 Sheet 脫鉤，試算表可以保持 <strong>100% 絕對私有（限制）</strong>，而獨立專案的 Web App 依然可以被任何人匿名點開（其在背景會以開發人員的擁有者權限安全地用 <code>SpreadsheetApp.openById(ID)</code> 讀寫私有試算表）。</li>
+  </ul>
+
+  <h5>3. 首次部署與多服務授權</h5>
+  <ul>
+    <li><strong>原因</strong>：如果程式碼中使用了 <code>DriveApp</code>（雲端硬碟）或 <code>UrlFetchApp</code>（外部連線），而擁有者在首次手動執行時（例如只跑了僅使用 <code>SpreadsheetApp</code> 的 <code>runSetup</code> 暖機）沒有完整授予這些權限，Web App 載入時就會因為伺服器端缺少授權而直接崩潰。</li>
+    <li><strong>解法</strong>：
+      <ol>
+        <li>在 <code>setup.gs</code> 中寫一個暖機函數 <code>authorizeAllScopes</code>，在其中主動呼叫 <code>DriveApp.getRootFolder()</code>、<code>SpreadsheetApp.openById(...)</code> 與 <code>UrlFetchApp.fetch(...)</code>。</li>
+        <li>擁有者在 GAS 編輯器中手動執行一次 <code>authorizeAllScopes</code>，完成所有權限授予。</li>
+        <li>進入 <strong>Deploy -> Manage deployments</strong>，編輯現有部署，選擇 <strong>「建立新版本」 (New Version)</strong>（執行身分設為「我本人」，誰可以存取設為「所有人」），然後按部署發布。</li>
+      </ol>
+    </li>
+  </ul>
   <p>實務提醒：Channel secret、Channel access token、Webhook token、Viewer token 不寫入教材主檔，也不寫入 <code>Code.gs</code>。它們應放在 Apps Script 的 Script Properties 或本機 <code>.env</code>。</p>
 
   <h2>v2.0 雲地架構與 Falo 核心產品線演進 (Claude Fable 評審意見)</h2>
