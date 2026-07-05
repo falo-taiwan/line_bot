@@ -2133,7 +2133,7 @@ const POC_DEMO_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
 </body>
 </html>
 `;
-const POC_V2_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
+const MVP_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -2150,7 +2150,7 @@ const POC_V2_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Falo IM v2.x 智慧助理主程式",
+    "name": "Falo IM v2.x MVP 智慧助理主程式",
     "author": {
       "@type": "Person",
       "name": "Attn x Force Cheng 2026/7/3"
@@ -2160,7 +2160,7 @@ const POC_V2_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
   }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Falo IM v2.x 智慧助理主程式</title>
+  <title>Falo IM v2.x MVP 智慧助理主程式</title>
   
   <!-- CSS: Bootstrap 5, Icons, Fonts -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -5883,8 +5883,8 @@ export default {
     if (path === "/poc-demo" || path === "/poc-demo.html") {
       return htmlResponse(POC_DEMO_HTML);
     }
-    if (path === "/poc-v2" || path === "/poc-v2.html") {
-      return htmlResponse(POC_V2_HTML);
+    if (path === "/mvp" || path === "/mvp.html") {
+      return htmlResponse(MVP_HTML);
     }
     if (path === "/product-intro" || path === "/product-intro.html") {
       return htmlResponse(PRODUCT_INTRO_HTML);

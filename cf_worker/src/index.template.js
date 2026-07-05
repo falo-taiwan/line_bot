@@ -1,6 +1,6 @@
 const INDEX_HTML = `__INDEX_HTML__`;
 const POC_DEMO_HTML = `__POC_DEMO_HTML__`;
-const POC_V2_HTML = `__POC_V2_HTML__`;
+const MVP_HTML = `__MVP_HTML__`;
 const PRODUCT_INTRO_HTML = `__PRODUCT_INTRO_HTML__`;
 const PRODUCT_ANALYSIS_HTML = `__PRODUCT_ANALYSIS_HTML__`;
 const LINE_PARSER_SPEC_HTML = `__LINE_PARSER_SPEC_HTML__`;
@@ -64,8 +64,8 @@ export default {
     if (path === "/poc-demo" || path === "/poc-demo.html") {
       return htmlResponse(POC_DEMO_HTML);
     }
-    if (path === "/poc-v2" || path === "/poc-v2.html") {
-      return htmlResponse(POC_V2_HTML);
+    if (path === "/mvp" || path === "/mvp.html") {
+      return htmlResponse(MVP_HTML);
     }
     if (path === "/product-intro" || path === "/product-intro.html") {
       return htmlResponse(PRODUCT_INTRO_HTML);
