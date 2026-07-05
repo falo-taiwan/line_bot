@@ -14,7 +14,16 @@ var MEDIA_QUEUE_SHEET_NAME = 'media_queue';
 var MEDIA_FILES_SHEET_NAME = 'media_files';
 var CONTENT_ENDPOINT = 'https://api-data.line.me/v2/bot/message/%s/content';
 var MEDIA_WORKER_FUNCTION = 'processMediaQueue';
-var MEDIA_WORKER_INTERVAL_MINUTES = 5;
+var MEDIA_WORKER_INTERVAL_MINUTES = (function() {
+  try {
+    var val = PropertiesService.getScriptProperties().getProperty('MEDIA_WORKER_INTERVAL_MINUTES');
+    if (val) {
+      var num = parseInt(val, 10);
+      if (!isNaN(num) && num > 0) return num;
+    }
+  } catch (e) {}
+  return 1; // default to 1 minute
+})();
 var MEDIA_WORKER_MAX_SECONDS = 240;
 var MEDIA_WORKER_MAX_FILES = 50;
 var MEDIA_WORKER_MAX_ATTEMPTS = 3;
@@ -706,9 +715,9 @@ function enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType,
     if (!hasTrigger) {
       ScriptApp.newTrigger('processMediaQueue')
         .timeBased()
-        .after(60 * 1000) // 1 minute (GAS minimum constraint)
+        .after(MEDIA_WORKER_INTERVAL_MINUTES * 60 * 1000)
         .create();
-      Logger.log('Dynamic one-shot trigger scheduled for processMediaQueue.');
+      Logger.log('Dynamic one-shot trigger scheduled for processMediaQueue in ' + MEDIA_WORKER_INTERVAL_MINUTES + ' minute(s).');
     }
   } catch (err) {
     Logger.log('Failed to dynamically schedule processMediaQueue trigger: ' + err.message);
@@ -896,13 +905,13 @@ function processMediaQueue() {
       }
     }
 
-    // If there are still pending files, schedule the next batch in 1 minute
+    // If there are still pending files, schedule the next batch
     if (pendingCount > 0) {
       ScriptApp.newTrigger('processMediaQueue')
         .timeBased()
-        .after(60 * 1000)
+        .after(MEDIA_WORKER_INTERVAL_MINUTES * 60 * 1000)
         .create();
-      Logger.log('Dynamic queue processing: ' + pendingCount + ' items remaining. Next run scheduled in 1 minute.');
+      Logger.log('Dynamic queue processing: ' + pendingCount + ' items remaining. Next run scheduled in ' + MEDIA_WORKER_INTERVAL_MINUTES + ' minute(s).');
     } else {
       Logger.log('Dynamic queue processing: All pending media files processed. Trigger removed.');
     }
