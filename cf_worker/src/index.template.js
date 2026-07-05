@@ -188,6 +188,55 @@ export default {
       }
     }
 
+    // 5. LINE Webhook Proxy Route (converts GAS 302 Found to direct 200 OK for LINE verification)
+    if ((path === "/webhook" || path === "/api/webhook") && request.method === "POST") {
+      try {
+        const bodyText = await request.text();
+        const signature = request.headers.get("X-Line-Signature") || "";
+
+        // Forward to GAS Web App URL
+        const gasUrl = new URL(env.GAS_WEB_APP_URL);
+        
+        const fetchOptions = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Line-Signature": signature
+          },
+          body: bodyText,
+          redirect: "manual" // Handle redirects manually to retain POST method and body!
+        };
+
+        let gasResponse = await fetch(gasUrl.toString(), fetchOptions);
+        
+        // Follow redirects manually if Google throws a 302 Found
+        let redirectCount = 0;
+        while ((gasResponse.status === 302 || gasResponse.status === 301 || gasResponse.status === 307 || gasResponse.status === 308) && redirectCount < 5) {
+          const redirectUrl = gasResponse.headers.get("Location");
+          if (!redirectUrl) break;
+          gasResponse = await fetch(redirectUrl, {
+            ...fetchOptions,
+            redirect: "manual"
+          });
+          redirectCount++;
+        }
+
+        const data = await gasResponse.text();
+        return new Response(data, {
+          status: 200, // Return a clean 200 OK back to LINE!
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: err.message }), {
+          status: 500,
+          headers: { "content-type": "application/json" }
+        });
+      }
+    }
+
     // CORS preflight requests
     if (request.method === "OPTIONS") {
       return new Response(null, {

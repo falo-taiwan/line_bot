@@ -38,7 +38,7 @@ function runSetup() {
   } else {
     // Only write headers if sheet is empty to prevent data wipe
     if (eventsSheet.getLastRow() === 0) {
-      var eventHeaders = ['id', 'bot_alias', 'chat_id', 'message_id', 'captured_at', 'sender_name', 'sender_role', 'message_type', 'text_content', 'metadata_json'];
+      var eventHeaders = ['id', 'bot_alias', 'chat_id', 'message_id', 'captured_at', 'sender_name', 'sender_role', 'message_type', 'text_content', 'media_file_id', 'media_file_url', 'media_error', 'metadata_json'];
       eventsSheet.appendRow(eventHeaders);
     }
   }
@@ -52,6 +52,33 @@ function runSetup() {
       var insightsHeaders = ['id', 'chat_id', 'analysis_type', 'time_range_start', 'time_range_end', 'summary_markdown', 'tasks_json', 'created_at'];
       insightsSheet.appendRow(insightsHeaders);
     }
+  }
+
+  // 4. Setup media_queue (Async Queue)
+  var queueSheet = ss.getSheetByName('media_queue');
+  if (!queueSheet) {
+    queueSheet = ss.insertSheet('media_queue');
+  }
+  if (queueSheet.getLastRow() === 0) {
+    var queueHeaders = ['queued_at', 'message_id', 'message_type', 'bot_alias', 'chat_id', 'user_id', 'line_timestamp', 'status', 'attempt_count', 'processing_started_at', 'last_attempt_at', 'last_error', 'drive_file_id', 'drive_file_url', 'raw_json'];
+    queueSheet.appendRow(queueHeaders);
+  }
+
+  // 5. Setup media_files (Downloaded Media Cache)
+  var filesSheet = ss.getSheetByName('media_files');
+  if (!filesSheet) {
+    filesSheet = ss.insertSheet('media_files');
+  }
+  if (filesSheet.getLastRow() === 0) {
+    var filesHeaders = ['saved_at', 'message_id', 'message_type', 'stored_file_name', 'mime_type', 'drive_file_id', 'drive_file_url', 'drive_folder_id', 'bot_alias', 'chat_id', 'user_id', 'line_timestamp'];
+    filesSheet.appendRow(filesHeaders);
+  }
+  
+  // 6. Setup time-driven trigger for processMediaQueue
+  try {
+    setupMediaWorkerTrigger();
+  } catch (err) {
+    Logger.log('Warning: Failed to setup trigger (requires ScriptApp permissions): ' + err.message);
   }
   
   Logger.log('Falo DB setup finished successfully!');

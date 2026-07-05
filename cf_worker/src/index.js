@@ -2395,6 +2395,19 @@ const MVP_HTML = `<!doctype html>
                   載入中...
                 </div>
               </div>
+              
+              <!-- Cloudflare Webhook Proxy details -->
+              <div class="meta-item mt-3" style="border: 1px solid rgba(52, 211, 153, 0.2); background: rgba(16, 185, 129, 0.03);">
+                <div class="meta-label" style="color: #34d399;">LINE Webhook 代理端點 (請複製此網址)</div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span id="cfWebhookEndpoint" class="meta-value text-emerald text-truncate fw-bold" style="font-size: 13px; font-family: monospace; color: #34d399;">
+                    載入中...
+                  </span>
+                  <button class="btn btn-outline-success btn-sm px-2 py-0 border-0" onclick="copyWebhookUrl()" title="複製網址" style="height: 22px; font-size: 11px;">
+                    <i class="bi bi-clipboard"></i> 複製
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2439,7 +2452,7 @@ const MVP_HTML = `<!doctype html>
                 <div class="accordion-body px-0 text-muted" style="font-size: 14px; line-height: 1.6;">
                   1. 點擊頻道分頁中的 <strong>\`Messaging API\`</strong>。<br>
                   2. 往下滾動找到 <strong>\`Webhook settings\`</strong>，點選 <strong>\`Edit\`</strong>。<br>
-                  3. 將右上方大腦環境狀態回報的<strong>「大腦 API 服務端點」</strong>完整複製，並貼入欄位中。<br>
+                  3. 複製右上方大腦環境狀態中綠色框標記的<strong>「LINE Webhook 代理端點」</strong>，並貼入欄位中。<br>
                   4. 點擊 <strong>\`Update\`</strong> 存檔。
                   <div class="mt-3 text-center p-4 border rounded bg-dark-subtle text-muted" style="border-style: dashed !important;">
                     <i class="bi bi-image me-1"></i> [請在此處貼上 Webhook URL 貼入與存檔設定截圖]
@@ -2503,11 +2516,32 @@ const MVP_HTML = `<!doctype html>
       document.getElementById('gasUrlInput').value = cachedUrl;
       document.getElementById('tokenInput').value = cachedToken;
       
+      // Calculate and display Cloudflare Webhook Endpoint URL
+      const webhookUrl = window.location.origin + '/webhook';
+      document.getElementById('cfWebhookEndpoint').innerText = webhookUrl;
+      
       if (cachedUrl) {
         // Automatically attempt silent connection on load
         testConnection(true);
       }
     });
+
+    function copyWebhookUrl() {
+      const urlText = document.getElementById('cfWebhookEndpoint').innerText;
+      navigator.clipboard.writeText(urlText).then(() => {
+        alert('已成功複製 Webhook 代理網址：\\n' + urlText);
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        // Fallback copy method
+        const tempInput = document.createElement('input');
+        tempInput.value = urlText;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('已複製 Webhook 代理網址：\\n' + urlText);
+      });
+    }
 
     async function testConnection(silent = false) {
       const urlInput = document.getElementById('gasUrlInput');
@@ -4799,6 +4833,55 @@ export default {
           }
         });
 
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: err.message }), {
+          status: 500,
+          headers: { "content-type": "application/json" }
+        });
+      }
+    }
+
+    // 5. LINE Webhook Proxy Route (converts GAS 302 Found to direct 200 OK for LINE verification)
+    if ((path === "/webhook" || path === "/api/webhook") && request.method === "POST") {
+      try {
+        const bodyText = await request.text();
+        const signature = request.headers.get("X-Line-Signature") || "";
+
+        // Forward to GAS Web App URL
+        const gasUrl = new URL(env.GAS_WEB_APP_URL);
+        
+        const fetchOptions = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Line-Signature": signature
+          },
+          body: bodyText,
+          redirect: "manual" // Handle redirects manually to retain POST method and body!
+        };
+
+        let gasResponse = await fetch(gasUrl.toString(), fetchOptions);
+        
+        // Follow redirects manually if Google throws a 302 Found
+        let redirectCount = 0;
+        while ((gasResponse.status === 302 || gasResponse.status === 301 || gasResponse.status === 307 || gasResponse.status === 308) && redirectCount < 5) {
+          const redirectUrl = gasResponse.headers.get("Location");
+          if (!redirectUrl) break;
+          gasResponse = await fetch(redirectUrl, {
+            ...fetchOptions,
+            redirect: "manual"
+          });
+          redirectCount++;
+        }
+
+        const data = await gasResponse.text();
+        return new Response(data, {
+          status: 200, // Return a clean 200 OK back to LINE!
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
       } catch (err) {
         return new Response(JSON.stringify({ ok: false, error: err.message }), {
           status: 500,

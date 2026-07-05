@@ -9,6 +9,18 @@ var MASTER_SPREADSHEET_ID = '1_Pfzg81jyXP--08G-65auMSc_61tHt6182BGxfxVy0Q';
 var SECURITY_TOKEN = 'falo_secure_token_12345';
 var TIME_ZONE = 'Asia/Taipei';
 
+// Media Queue Constants
+var MEDIA_QUEUE_SHEET_NAME = 'media_queue';
+var MEDIA_FILES_SHEET_NAME = 'media_files';
+var CONTENT_ENDPOINT = 'https://api-data.line.me/v2/bot/message/%s/content';
+var MEDIA_WORKER_FUNCTION = 'processMediaQueue';
+var MEDIA_WORKER_INTERVAL_MINUTES = 5;
+var MEDIA_WORKER_MAX_SECONDS = 240;
+var MEDIA_WORKER_MAX_FILES = 50;
+var MEDIA_WORKER_MAX_ATTEMPTS = 3;
+var MEDIA_QUEUE_HEADERS = ['queued_at', 'message_id', 'message_type', 'bot_alias', 'chat_id', 'user_id', 'line_timestamp', 'status', 'attempt_count', 'processing_started_at', 'last_attempt_at', 'last_error', 'drive_file_id', 'drive_file_url', 'raw_json'];
+var MEDIA_FILES_HEADERS = ['saved_at', 'message_id', 'message_type', 'stored_file_name', 'mime_type', 'drive_file_id', 'drive_file_url', 'drive_folder_id', 'bot_alias', 'chat_id', 'user_id', 'line_timestamp'];
+
 // ----------------------------------------------------
 // 1. HTTP GET ROUTER (Database Queries)
 // ----------------------------------------------------
@@ -264,10 +276,11 @@ function handleLineWebhook(webhookPayload) {
       }
     }
     
-    // Fallback to gas bot if not matched
+    // Fallback to standard bot if not matched
     if (!matchedBot) {
-      matchedBot = botConfigs['gas'] || { bot_alias: 'gas', bot_name: 'FALO IM Bot GAS Test', line_channel_token: '' };
+      matchedBot = botConfigs['standard'] || { bot_alias: 'standard', bot_name: 'FALO IM Bot Test', line_channel_token: '' };
     }
+
 
     var sheet = ss.getSheetByName('chat_events');
     var startRow = sheet.getLastRow() + 1;
@@ -294,6 +307,11 @@ function handleLineWebhook(webhookPayload) {
         if (profileName) senderName = profileName;
       }
 
+      var mediaError = '';
+      if (['image', 'video', 'audio', 'file'].indexOf(message.type) !== -1) {
+        mediaError = 'pending';
+      }
+
       valuesToAppend.push([
         startId + valuesToAppend.length, // id
         matchedBot.bot_alias,
@@ -304,12 +322,32 @@ function handleLineWebhook(webhookPayload) {
         'client', // webhook incoming message is always client role
         message.type || 'text',
         textContent,
+        '', // media_file_id
+        '', // media_file_url
+        mediaError, // media_error
         JSON.stringify(evt)
       ]);
     });
 
     if (valuesToAppend.length > 0) {
-      sheet.getRange(startRow, 1, valuesToAppend.length, 10).setValues(valuesToAppend);
+      sheet.getRange(startRow, 1, valuesToAppend.length, 13).setValues(valuesToAppend);
+
+      // Enqueue media files to media_queue
+      events.forEach(function(evt) {
+        if (evt.type !== 'message') return;
+        var message = evt.message || {};
+        if (['image', 'video', 'audio', 'file'].indexOf(message.type) !== -1) {
+          enqueueMediaIfNeeded_(
+            matchedBot.bot_alias,
+            chatId,
+            userId,
+            message.id,
+            message.type,
+            evt.timestamp,
+            JSON.stringify(evt)
+          );
+        }
+      });
     }
 
     return jsonResponse({ ok: true, logged_count: valuesToAppend.length });
@@ -620,4 +658,339 @@ function testLineApi(botAlias) {
   } catch (err) {
     return { ok: false, error: err.message };
   }
+}
+
+// ----------------------------------------------------
+// 8. ASYNC MEDIA QUEUE PROCESSOR & DRIVE UPLOADER
+// ----------------------------------------------------
+
+function enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType, timestamp, rawJson) {
+  var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  var queueSheet = ss.getSheetByName('media_queue');
+  if (!queueSheet) return;
+
+  // Check if already queued to prevent duplicate entries
+  if (findMediaQueueRowByMessageId_(queueSheet, messageId) > 0) {
+    return;
+  }
+  
+  var row = [
+    new Date().toISOString(), // queued_at
+    messageId,
+    messageType,
+    botAlias,
+    chatId,
+    userId,
+    new Date(timestamp).toISOString(), // line_timestamp
+    'pending', // status
+    0, // attempt_count
+    '', // processing_started_at
+    '', // last_attempt_at
+    '', // last_error
+    '', // drive_file_id
+    '', // drive_file_url
+    rawJson
+  ];
+  queueSheet.appendRow(row);
+}
+
+function findMediaQueueRowByMessageId_(sheet, messageId) {
+  var values = sheet.getDataRange().getValues();
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][1] === messageId) {
+      return i + 1; // 1-indexed row number
+    }
+  }
+  return -1;
+}
+
+function processMediaQueue() {
+  var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  var queueSheet = ss.getSheetByName('media_queue');
+  if (!queueSheet) {
+    Logger.log('media_queue sheet not found');
+    return;
+  }
+  var values = queueSheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    Logger.log('Queue is empty');
+    return;
+  }
+
+  var botConfigs = getBotConfigsMap(ss);
+  var headers = values[0].map(String);
+  var index = {};
+  for (var i = 0; i < headers.length; i++) {
+    index[headers[i]] = i;
+  }
+
+  var processedCount = 0;
+  
+  for (var r = 1; r < values.length; r++) {
+    if (processedCount >= MEDIA_WORKER_MAX_FILES) {
+      Logger.log('Max files reached');
+      break;
+    }
+    
+    var row = values[r];
+    var status = String(row[index.status] || '');
+    var attempts = Number(row[index.attempt_count] || 0);
+    
+    if (status !== 'pending' && status !== 'retry') {
+      continue;
+    }
+    
+    if (attempts >= MEDIA_WORKER_MAX_ATTEMPTS) {
+      updateQueueRow_(queueSheet, r + 1, index, {
+        status: 'failed',
+        last_attempt_at: new Date().toISOString(),
+        last_error: 'max attempts reached'
+      });
+      updateChatEventMediaInfo_(String(row[index.message_id]), '', '', 'failed: max attempts reached');
+      continue;
+    }
+
+    var messageId = String(row[index.message_id] || '');
+    var messageType = String(row[index.message_type] || 'media');
+    var botAlias = String(row[index.bot_alias] || 'standard');
+    var chatId = String(row[index.chat_id] || '');
+    var userId = String(row[index.user_id] || '');
+    var lineTimestamp = row[index.line_timestamp] || '';
+    var rawJson = String(row[index.raw_json] || '');
+    
+    // Update status to processing
+    updateQueueRow_(queueSheet, r + 1, index, {
+      status: 'processing',
+      processing_started_at: new Date().toISOString(),
+      attempt_count: attempts + 1,
+      last_error: ''
+    });
+    
+    processedCount++;
+    
+    try {
+      var matchedBot = botConfigs[botAlias];
+      if (!matchedBot || !matchedBot.line_channel_token) {
+        throw new Error('LINE channel token not found for bot: ' + botAlias);
+      }
+      
+      // Fetch file content from LINE Content API
+      var blob = fetchLineContentBlob_(messageId, matchedBot.line_channel_token);
+      var contentType = blob.getContentType() || 'application/octet-stream';
+      
+      // Build safe filename
+      var originalFileName = originalFilenameFromRawJson_(rawJson);
+      var filename = buildMediaFilename_({
+        line_timestamp: lineTimestamp,
+        bot_alias: botAlias,
+        chat_id: chatId,
+        user_id: userId,
+        message_type: messageType,
+        message_id: messageId,
+        original_file_name: originalFileName
+      }, contentType);
+      
+      blob.setName(filename);
+      
+      // Resolve Google Drive Folder: designated subdirectory 'media' in the same directory as the Google Sheet
+      var ssFile = DriveApp.getFileById(ss.getId());
+      var parentFolder = ssFile.getParents().hasNext() ? ssFile.getParents().next() : DriveApp.getRootFolder();
+      var subFolderName = 'media';
+      var subFolders = parentFolder.getFoldersByName(subFolderName);
+      var folder;
+      if (subFolders.hasNext()) {
+        folder = subFolders.next();
+      } else {
+        folder = parentFolder.createFolder(subFolderName);
+      }
+      
+      // Create file in Drive
+      var file = folder.createFile(blob);
+      var fileId = file.getId();
+      var fileUrl = file.getUrl();
+      
+      // Append to media_files sheet
+      var filesSheet = ss.getSheetByName('media_files');
+      if (filesSheet) {
+        filesSheet.appendRow([
+          new Date().toISOString(), // saved_at
+          messageId,
+          messageType,
+          filename,
+          contentType,
+          fileId,
+          fileUrl,
+          folder.getId(),
+          botAlias,
+          chatId,
+          userId,
+          new Date(lineTimestamp).toISOString()
+        ]);
+      }
+      
+      // Update media_queue status to saved
+      updateQueueRow_(queueSheet, r + 1, index, {
+        status: 'saved',
+        last_attempt_at: new Date().toISOString(),
+        last_error: '',
+        drive_file_id: fileId,
+        drive_file_url: fileUrl
+      });
+      
+      // Update chat_events row with URL and File ID
+      updateChatEventMediaInfo_(messageId, fileId, fileUrl, 'saved');
+      
+      Logger.log('Successfully saved media for message: ' + messageId);
+      
+    } catch (err) {
+      var errorText = String(err).slice(0, 500);
+      var nextStatus = attempts + 1 >= MEDIA_WORKER_MAX_ATTEMPTS ? 'failed' : 'retry';
+      updateQueueRow_(queueSheet, r + 1, index, {
+        status: nextStatus,
+        last_attempt_at: new Date().toISOString(),
+        last_error: errorText
+      });
+      updateChatEventMediaInfo_(messageId, '', '', errorText);
+      Logger.log('Failed to save media for message ' + messageId + ': ' + errorText);
+    }
+  }
+}
+
+function updateChatEventMediaInfo_(messageId, driveFileId, driveFileUrl, mediaError) {
+  var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('chat_events');
+  if (!sheet) return;
+  var values = sheet.getDataRange().getValues();
+  
+  // Find event row by message_id
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][3] === messageId) { // column 4 (D) is message_id
+      // Update media_file_id (column 10 / J), media_file_url (column 11 / K), media_error (column 12 / L)
+      sheet.getRange(i + 1, 10).setValue(driveFileId);
+      sheet.getRange(i + 1, 11).setValue(driveFileUrl);
+      sheet.getRange(i + 1, 12).setValue(mediaError);
+      break;
+    }
+  }
+}
+
+function fetchLineContentBlob_(messageId, accessToken) {
+  var response = UrlFetchApp.fetch('https://api-data.line.me/v2/bot/message/' + messageId + '/content', {
+    method: 'get',
+    headers: {Authorization: 'Bearer ' + accessToken},
+    muteHttpExceptions: true
+  });
+  var code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    throw new Error('LINE content API returned HTTP ' + code);
+  }
+  var blob = response.getBlob();
+  if (!blob || blob.getBytes().length === 0) {
+    throw new Error('LINE content API returned empty blob');
+  }
+  return blob;
+}
+
+function buildMediaFilename_(item, contentType) {
+  var originalName = item.original_file_name || '';
+  var originalBase = originalName ? stripFilenameExtension_(originalName) : '';
+  var extension = extensionForContentType_(contentType);
+  if (extension === '.bin') {
+    extension = extensionFromFilename_(originalName) || extension;
+  }
+  var parts = [
+    formatDateForFilename_(new Date(item.line_timestamp ? Number(item.line_timestamp) : Date.now())),
+    safeFilenamePart_(item.bot_alias || 'bot'),
+    safeFilenamePart_(item.chat_id || 'unknown-source'),
+    safeFilenamePart_(item.user_id || 'nouser'),
+    safeFilenamePart_(item.message_type || 'media')
+  ];
+  if (originalBase) {
+    parts.push(safeFilenamePart_(originalBase));
+  }
+  parts.push(
+    safeFilenamePart_(item.message_id || 'nomsg')
+  );
+  return parts.join('_') + extension;
+}
+
+function stripFilenameExtension_(filename) {
+  return String(filename || '').replace(/(\.[A-Za-z0-9]{1,12})$/, '');
+}
+
+function extensionFromFilename_(filename) {
+  var match = String(filename || '').match(/(\.[A-Za-z0-9]{1,12})$/);
+  return match ? match[1].toLowerCase() : '';
+}
+
+function extensionForContentType_(contentType) {
+  var map = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'video/mp4': '.mp4',
+    'audio/mpeg': '.mp3',
+    'audio/mp4': '.m4a',
+    'application/pdf': '.pdf',
+    'application/zip': '.zip',
+    'application/x-zip': '.zip',
+    'application/x-zip-compressed': '.zip',
+    'multipart/x-zip': '.zip',
+    'application/x-7z-compressed': '.7z',
+    'text/plain': '.txt',
+    'text/csv': '.csv',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx'
+  };
+  return map[String(contentType || '').split(';')[0]] || '.bin';
+}
+
+function originalFilenameFromRawJson_(rawJson) {
+  try {
+    var parsed = JSON.parse(rawJson || '{}');
+    var message = parsed && parsed.message ? parsed.message : {};
+    return message.fileName || message.file_name || '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function formatDateForFilename_(date) {
+  return Utilities.formatDate(date, TIME_ZONE, 'yyyyMMdd-HHmmss');
+}
+
+function safeFilenamePart_(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 32) || 'unknown';
+}
+
+function updateQueueRow_(sheet, rowNumber, index, patch) {
+  var headers = Object.keys(index);
+  var row = sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0];
+  Object.keys(patch).forEach(function(key) {
+    if (Object.prototype.hasOwnProperty.call(index, key)) {
+      row[index[key]] = patch[key];
+    }
+  });
+  sheet.getRange(rowNumber, 1, 1, headers.length).setValues([row]);
+}
+
+function setupMediaWorkerTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'processMediaQueue') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger('processMediaQueue')
+    .timeBased()
+    .everyMinutes(5)
+    .create();
+  Logger.log('Media worker time-driven trigger setup successfully (every 5 minutes).');
 }
