@@ -70,6 +70,12 @@ function runSetup() {
     filesSheet.appendRow(filesHeaders);
   }
   
+  // 6. Initialize default script properties if not present
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('MEDIA_WORKER_INTERVAL_MINUTES')) {
+    props.setProperty('MEDIA_WORKER_INTERVAL_MINUTES', '1');
+  }
+  
   Logger.log('Falo DB setup finished successfully!');
 }
 
