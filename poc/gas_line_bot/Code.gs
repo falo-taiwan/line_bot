@@ -13,6 +13,11 @@ var TIME_ZONE = 'Asia/Taipei';
 // 1. HTTP GET ROUTER (Database Queries)
 // ----------------------------------------------------
 function doGet(e) {
+  // Simple hello world test parameter to rule out HTMLService rendering issues
+  if (e.parameter.test === '1') {
+    return ContentService.createTextOutput("Hello World - API Connection is Working!");
+  }
+
   var action = e.parameter.action;
   var token = e.parameter.token;
 
