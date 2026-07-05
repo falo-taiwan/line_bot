@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Falo IM 快捷手機版</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-teal: #0ea5e9;
+      --primary-purple: #8b5cf6;
+      --bg-slate: #0f172a;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    body {
+      background-color: #05070f;
+      color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    
+    /* Mobile portrait viewport layout on desktop, full screen on mobile */
+    .mobile-container {
+      max-width: 500px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background-color: var(--bg-slate);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 16px 30px 16px;
+    }
+    
+    .header {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 16px;
+    }
+    
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
+    }
+    
+    .status-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: rgba(14, 165, 233, 0.1);
+      color: #38bdf8;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+    
+    .glass-box {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .card-title-custom {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .group-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin: 12px 0 6px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+    }
+    
+    .chat-checkbox-item {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .chat-checkbox-item:hover, .chat-checkbox-item:active {
+      border-color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.05);
+    }
+    
+    .chat-checkbox-item.selected {
+      border-color: var(--primary-teal) !important;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+    }
+    
+    .chat-checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-teal);
+      flex-shrink: 0;
+    }
+
+    /* LINE Simulation CSS */
+    .line-chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 20px;
+    }
+    
+    .chat-date-header {
+      text-align: center;
+      margin: 16px 0;
+    }
+    
+    .chat-date-badge {
+      background: rgba(0, 0, 0, 0.25);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+    
+    .chat-msg-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      max-width: 85%;
+    }
+    
+    .chat-msg-row.left-msg {
+      align-self: flex-start;
+    }
+    
+    .chat-msg-row.right-msg {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      max-width: 85%;
+    }
+    
+    .chat-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-msg-content-wrapper {
+      margin-left: 8px;
+      margin-right: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chat-sender-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 3px;
+    }
+    
+    .chat-bubble-container {
+      display: flex;
+      align-items: flex-end;
+    }
+    
+    .chat-bubble-left {
+      background: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 0 12px 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .chat-bubble-right {
+      background: #0d9488;
+      color: #ffffff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 12px 0 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+    }
+    
+    .chat-bubble-time {
+      font-size: 9px;
+      color: #64748b;
+      margin: 0 6px;
+      white-space: nowrap;
+    }
+    
+    .chat-system-msg {
+      align-self: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      margin: 8px 0;
+    }
+    
+    .preview-btn-mobile {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .preview-btn-mobile:hover, .preview-btn-mobile:active {
+      background: var(--primary-teal);
+      border-color: var(--primary-teal);
+      color: #ffffff;
+    }
+    
+    .badge-source {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .badge-db {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-file {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    
+    /* Segmented Time Range Controller */
+    .range-selector-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .range-pill {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .range-pill.active {
+      background: var(--primary-teal);
+      border-color: var(--primary-teal);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    }
+    
+    .form-control-custom {
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid var(--border-color) !important;
+      color: #f8fafc !important;
+      border-radius: 8px !important;
+    }
+    
+    .form-control-custom:focus {
+      border-color: var(--primary-teal) !important;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+    }
+    
+    .btn-purple {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      transition: all 0.2s !important;
+    }
+    
+    .btn-purple:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    .btn-purple:disabled {
+      background: #334155 !important;
+      box-shadow: none !important;
+      opacity: 0.6;
+    }
+    
+    #reportOutput pre {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    
+    #reportOutput .report-rendered {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    #reportOutput .report-rendered h1, #reportOutput .report-rendered h2, #reportOutput .report-rendered h3 {
+      color: #fbbf24;
+      font-weight: 700;
+      margin-top: 16px;
+    }
+    #reportOutput .report-rendered ul, #reportOutput .report-rendered ol {
+      padding-left: 20px;
+    }
+    
+    .collapsible-header {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      user-select: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .collapsible-header:hover, .collapsible-header:active {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .transition-transform {
+      transition: transform 0.2s;
+    }
+    .icon-rotated {
+      transform: rotate(-90deg);
+    }
+    .collapse-content {
+      padding-top: 4px;
+    }
+    .back-link {
+      font-size: 12px;
+      color: #64748b;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: #38bdf8;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .mobile-container > *:not(#reportCard),
+      #reportCard .card-title-custom,
+      .mt-auto {
+        display: none !important;
+      }
+      .mobile-container {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      #reportCard {
+        display: block !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      #reportOutput {
+        max-height: none !important;
+        overflow: visible !important;
+        color: #000000 !important;
+      }
+      #reportOutput .report-rendered {
+        color: #000000 !important;
+      }
+      #reportOutput .report-rendered h1, 
+      #reportOutput .report-rendered h2, 
+      #reportOutput .report-rendered h3 {
+        color: #000000 !important;
+        border-bottom: 1px solid #dddddd;
+        padding-bottom: 4px;
+      }
+    /* File Preview Modal Styles */
+    .preview-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1050;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    
+    .preview-content-box {
+      width: 100%;
+      max-width: 480px;
+      height: 85vh;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    
+    .preview-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(15, 23, 42, 0.4);
+    }
+    
+    .preview-scroll-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #090d16;
+      font-family: monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    
+    .preview-text-content {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .preview-line-loading-badge {
+      text-align: center;
+      font-size: 10px;
+      color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px dashed rgba(14, 165, 233, 0.2);
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 12px;
+    }
+    
+    /* Touch friendly preview icon styles */
+    .preview-icon-btn {
+      color: #64748b;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .preview-icon-btn:hover, .preview-icon-btn:active {
+      color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.1);
+      border-color: rgba(14, 165, 233, 0.2);
+    }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-container">
+    <!-- Header -->
+    <div class="header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-cpu-fill text-teal fs-4" style="color: var(--primary-teal);"></i>
+        <span class="logo-text">Falo IM Mobile</span>
+      </div>
+      <span class="status-badge" id="connStatus"><i class="bi bi-wifi"></i> 連線中...</span>
+    </div>
+
+    <!-- Step 1: Select Chats (Official Accounts + Uploaded Files) -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-chat-left-text-fill text-teal" style="color: var(--primary-teal);"></i>
+        1. 選擇對話資料來源 (可多選)
+      </div>
+      <div id="chatsListContainer" style="max-height: 220px; overflow-y: auto; padding-right: 4px;">
+        <div class="text-center text-muted py-3 small">正在載入雲端對話與檔案清單...</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Time Range Filter Presets -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-calendar-event text-warning"></i>
+        2. 篩選時間範圍
+      </div>
+      <div class="range-selector-row">
+        <div class="range-pill" id="pill_today" onclick="selectTimeRange('today')">今天</div>
+        <div class="range-pill active" id="pill_week" onclick="selectTimeRange('week')">本週</div>
+        <div class="range-pill" id="pill_month" onclick="selectTimeRange('month')">本月</div>
+        <div class="range-pill" id="pill_all" onclick="selectTimeRange('all')">全部</div>
+        <div class="range-pill" id="pill_custom" onclick="selectTimeRange('custom')">自訂天數</div>
+      </div>
+      
+      <!-- Custom Days Input (Hidden by default) -->
+      <div id="customDaysWrapper" class="mb-3" style="display: none;">
+        <label class="form-label text-muted small fw-bold mb-1">自訂篩選天數 (包含今天)</label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="customDaysInput" class="form-control form-control-custom text-center" value="3" min="1" max="180" onchange="autoSelectSourcesByTimeRange()" oninput="autoSelectSourcesByTimeRange()">
+          <span class="input-group-text bg-dark border-secondary text-light small">天內</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Prompt & Model -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-cpu-fill text-indigo" style="color: #8b5cf6;"></i>
+        3. 設定分析參數
+      </div>
+      
+      <!-- Model Provider Select -->
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label text-muted small fw-bold mb-1">模型來源</label>
+          <select id="modelProviderSelect" class="form-select form-control-custom" onchange="toggleMobileModelProvider()">
+            <option value="builtin" selected>☁️ 內建 AI (CF)</option>
+            <option value="gemini">✨ Google Gemini</option>
+          </select>
+        </div>
+        
+        <div class="col-6" id="builtinModelCol">
+          <label class="form-label text-muted small fw-bold mb-1">內建 AI 模型</label>
+          <select id="builtinModelSelect" class="form-select form-control-custom">
+            <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Llama 3.3 70B (進階高智能)</option>
+            <option value="@cf/mistralai/mistral-small-3.1-24b-instruct" selected>Mistral Small 24B (中型長文本)</option>
+            <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (輕量對話極速)</option>
+          </select>
+        </div>
+        
+        <div class="col-6" id="geminiModelCol" style="display: none;">
+          <label class="form-label text-muted small fw-bold mb-1">Gemini 模型</label>
+          <select id="geminiModelSelect" class="form-select form-control-custom">
+            <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
+            <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+            <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gemini Key Input -->
+      <div id="geminiKeyCol" class="mb-3" style="display: none;">
+        <label class="form-label text-muted small fw-bold mb-1"><i class="bi bi-key"></i> Gemini API Key (可選)</label>
+        <div class="d-flex gap-1">
+          <input type="password" id="geminiKeyInput" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
+          <button class="btn btn-outline-success btn-sm px-2" style="font-size: 11px; height: 32px;" onclick="saveMobileGeminiKey()"><i class="bi bi-save"></i> 儲存</button>
+        </div>
+      </div>
+
+      <!-- Prompt Input -->
+      <div class="mb-2">
+        <label class="form-label text-muted small fw-bold mb-1">分析指令 / 問題 (Prompt)</label>
+        <textarea id="promptInput" class="form-control form-control-custom" rows="3" placeholder="請輸入您想問 AI 的問題...">摘要最近的對話重點與代辦事項</textarea>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <button class="btn btn-purple w-100 mb-3" id="btnAnalyze" onclick="startMobileAnalysis()" disabled>
+      <i class="bi bi-lightning-fill"></i> ⚡ 開始 AI 分析
+    </button>
+
+    <!-- Step 4: Analysis Report -->
+    <div class="glass-box flex-grow-1 d-flex flex-column" id="reportCard" style="display: none !important;">
+      <div class="card-title-custom justify-content-between align-items-center">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-bar-graph-fill text-warning"></i> 4. 系統分析報告
+        </span>
+        <div class="d-flex align-items-center gap-1">
+          <!-- Font size controls -->
+          <div class="btn-group" role="group" style="height: 22px;">
+            <button class="btn btn-xs btn-outline-light py-0 px-2" style="font-size: 10px; line-height: 1.2;" onclick="adjustFontSize(-2)" title="縮小字體"><i class="bi bi-dash"></i>A</button>
+            <button class="btn btn-xs btn-outline-light py-0 px-2" style="font-size: 10px; line-height: 1.2;" onclick="adjustFontSize(2)" title="放大字體"><i class="bi bi-plus"></i>A</button>
+          </div>
+          <!-- Copy and PDF buttons -->
+          <button class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 11px; height: 22px; line-height: 1.8;" id="copyBtn" onclick="copyReport()"><i class="bi bi-clipboard"></i> 複製</button>
+          <button class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 11px; height: 22px; line-height: 1.8;" onclick="exportToPdf()"><i class="bi bi-file-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div id="reportOutput" class="flex-grow-1 overflow-y-auto" style="max-height: 350px;"></div>
+    </div>
+
+
+
+    <!-- Footer Links -->
+    <div class="mt-auto pt-3 text-center border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+      <a href="/mvp" class="back-link"><i class="bi bi-arrow-left"></i> 返回電腦版控制台</a>
+      <span class="text-muted" style="font-size: 11px;">Falo IM 3.03 © 2026</span>
+    </div>
+  </div>
+
+  <!-- JS: Bootstrap 5 Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- JS: Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <script>
+    let registeredChats = [];
+    let driveFiles = [];
+    let selectedTimeRangePreset = 'week'; // default week
+    let currentFontSize = 14;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAllSources();
+      
+      // Load saved font size preference
+      const savedSize = localStorage.getItem('faloReportFontSize');
+      if (savedSize) {
+        currentFontSize = parseInt(savedSize, 10);
+        const reportOutput = document.getElementById('reportOutput');
+        if (reportOutput) {
+          reportOutput.style.fontSize = currentFontSize + 'px';
+        }
+      }
+    });
+
+    function selectTimeRange(preset) {
+      selectedTimeRangePreset = preset;
+      
+      // Update pills UI
+      const presets = ['today', 'week', 'month', 'all', 'custom'];
+      presets.forEach(p => {
+        const pill = document.getElementById(`pill_${p}`);
+        if (p === preset) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+      
+      // Toggle custom days input wrapper
+      const wrapper = document.getElementById('customDaysWrapper');
+      if (preset === 'custom') {
+        wrapper.style.display = 'block';
+      } else {
+        wrapper.style.display = 'none';
+      }
+
+      // Auto check dialogue files according to selected time range boundary
+      autoSelectSourcesByTimeRange();
+    }
+
+    async function loadAllSources() {
+      const container = document.getElementById('chatsListContainer');
+      const connStatus = document.getElementById('connStatus');
+      
+      try {
+        // Parallel fetch for active chats list and uploaded drive files
+        const [chatsRes, filesRes] = await Promise.all([
+          fetch('/api/chats'),
+          fetch('/api/dialogue-files')
+        ]);
+        
+        if (!chatsRes.ok) throw new Error('Chats list HTTP ' + chatsRes.status);
+        if (!filesRes.ok) throw new Error('Files list HTTP ' + filesRes.status);
+        
+        const chatsJson = await chatsRes.json();
+        const filesJson = await filesRes.json();
+        
+        registeredChats = chatsJson.ok ? chatsJson.data : [];
+        driveFiles = filesJson.ok ? filesJson.files : [];
+        
+        if (registeredChats.length === 0 && driveFiles.length === 0) {
+          container.innerHTML = '<div class="text-center text-secondary py-3 small">（無對話資料庫或備份紀錄）</div>';
+          connStatus.innerHTML = '<i class="bi bi-wifi-off text-warning"></i> 無資料';
+          return;
+        }
+        
+        let html = '';
+        let chkIndex = 0;
+        
+        // A. Render Active Bot Chats
+        if (registeredChats.length > 0) {
+          html += `
+            <div class="group-header collapsible-header d-flex justify-content-between align-items-center" onclick="toggleGroupCollapse('group_db')">
+              <span><i class="bi bi-cpu-fill text-teal me-1"></i> 官方帳號即時對話 (${registeredChats.length})</span>
+              <i class="bi bi-chevron-down ms-auto transition-transform icon-rotated" id="icon_group_db"></i>
+            </div>
+            <div id="group_db" class="collapse-content" style="display: none;">
+          `;
+          registeredChats.forEach(c => {
+            const hasCustom = c.custom_name && c.custom_name !== c.default_name;
+            const labelName = hasCustom 
+              ? `${c.custom_name} <span class="text-muted" style="font-size:11px;">(${c.default_name})</span>` 
+              : c.default_name;
+            
+            html += `
+              <div class="chat-checkbox-item d-flex justify-content-between align-items-center" onclick="toggleCheckbox('chk_${chkIndex}')">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="flex-grow: 1;">
+                  <input type="checkbox" id="chk_${chkIndex}" data-type="db" data-bot-alias="${c.bot_alias}" data-chat-id="${c.chat_id}" data-display-name="${c.custom_name || c.default_name}" onclick="event.stopPropagation(); toggleAnalyzeBtnState();">
+                  <div class="text-truncate">
+                    <div class="fw-bold small text-light text-truncate">${labelName} <span class="badge-source badge-db ms-1">官方對話</span></div>
+                    <div class="text-muted" style="font-size:10px; font-family:monospace;">${c.bot_alias} | ${c.chat_id.slice(0, 12)}...</div>
+                  </div>
+                </div>
+                <!-- 👁️ Preview button -->
+                <button class="preview-btn-mobile ms-2" onclick="openDbChatPreview(event, '${c.chat_id}', '${c.bot_alias}', '${c.custom_name || c.default_name}')">
+                  <i class="bi bi-eye"></i> 預覽
+                </button>
+              </div>
+            `;
+            chkIndex++;
+          });
+          html += `</div>`;
+        }
+        
+        // B. Render Uploaded Backup Files
+        if (driveFiles.length > 0) {
+          html += `
+            <div class="group-header collapsible-header d-flex justify-content-between align-items-center" onclick="toggleGroupCollapse('group_file')">
+              <span><i class="bi bi-file-earmark-text-fill text-warning me-1"></i> 已上傳備份檔案 (${driveFiles.length})</span>
+              <i class="bi bi-chevron-down ms-auto transition-transform icon-rotated" id="icon_group_file"></i>
+            </div>
+            <div id="group_file" class="collapse-content" style="display: none;">
+          `;
+          driveFiles.forEach(f => {
+            html += `
+              <div class="chat-checkbox-item d-flex justify-content-between align-items-center" onclick="toggleCheckbox('chk_${chkIndex}')">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="flex-grow: 1;">
+                  <input type="checkbox" id="chk_${chkIndex}" data-type="file" data-file-id="${f.id}" data-created="${f.created}" data-display-name="${f.displayName}" onclick="event.stopPropagation(); toggleAnalyzeBtnState();">
+                  <div class="text-truncate">
+                    <div class="fw-bold small text-light text-truncate">${f.displayName} <span class="badge-source badge-file ms-1">備份檔案</span></div>
+                    <div class="text-muted" style="font-size:10px; font-family:monospace;">${(f.size / 1024).toFixed(1)} KB | ${f.created.substring(0, 16)}</div>
+                  </div>
+                </div>
+                <!-- 👁️ Preview button -->
+                <button class="preview-btn-mobile ms-2" onclick="openFilePreview(event, '${f.id}', '${f.displayName}')">
+                  <i class="bi bi-eye"></i> 預覽
+                </button>
+              </div>
+            `;
+            chkIndex++;
+          });
+          html += `</div>`;
+        }
+        
+        container.innerHTML = html;
+        connStatus.innerHTML = '<i class="bi bi-wifi text-success"></i> 已連線';
+        connStatus.className = 'status-badge text-success';
+        
+        // Initialize checkboxes as unchecked by default
+        toggleAnalyzeBtnState();
+        
+      } catch (err) {
+        console.error('Failed to load sources list:', err);
+        container.innerHTML = `<div class="text-center text-danger py-3 small">載入失敗: ${err.message}</div>`;
+        connStatus.innerHTML = '<i class="bi bi-x-circle text-danger"></i> 連線失敗';
+        connStatus.className = 'status-badge text-danger';
+      }
+    }
+
+    function toggleCheckbox(id) {
+      const chk = document.getElementById(id);
+      if (chk) {
+        chk.checked = !chk.checked;
+        toggleAnalyzeBtnState();
+      }
+    }
+
+    function toggleAnalyzeBtnState() {
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      const analyzeBtn = document.getElementById('btnAnalyze');
+      let checkedCount = 0;
+      checkboxes.forEach(cb => {
+        // Highlight parent card when checked
+        const card = cb.closest('.chat-checkbox-item');
+        if (card) {
+          if (cb.checked) {
+            card.classList.add('selected');
+          } else {
+            card.classList.remove('selected');
+          }
+        }
+        if (cb.checked) checkedCount++;
+      });
+      analyzeBtn.disabled = (checkedCount === 0);
+    }
+
+    // Auto select backup files if their creation/upload date falls inside selected time range
+    function autoSelectSourcesByTimeRange() {
+      const todayStr = getTaipeiDateString(new Date());
+      const todayMs = new Date(todayStr + 'T00:00:00+08:00').getTime();
+      
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        const type = cb.getAttribute('data-type');
+        if (type === 'file') {
+          const createdStr = cb.getAttribute('data-created'); // ISO string e.g. "2026-07-05T21:07:41..."
+          if (!createdStr) return;
+          
+          const fileDateStr = createdStr.substring(0, 10);
+          const fileMs = new Date(fileDateStr + 'T00:00:00+08:00').getTime();
+          
+          let shouldCheck = false;
+          if (selectedTimeRangePreset === 'today') {
+            shouldCheck = (fileDateStr === todayStr);
+          } else if (selectedTimeRangePreset === 'week') {
+            const weekAgoMs = todayMs - 6 * 24 * 60 * 60 * 1000;
+            shouldCheck = (fileMs >= weekAgoMs);
+          } else if (selectedTimeRangePreset === 'month') {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            const startOfMonthMs = new Date(`${currentYear}-${currentMonth}-01T00:00:00+08:00`).getTime();
+            shouldCheck = (fileMs >= startOfMonthMs);
+          } else if (selectedTimeRangePreset === 'custom') {
+            const days = parseInt(document.getElementById('customDaysInput').value || '3', 10);
+            const customAgoMs = todayMs - (days - 1) * 24 * 60 * 60 * 1000;
+            shouldCheck = (fileMs >= customAgoMs);
+          } else if (selectedTimeRangePreset === 'all') {
+            shouldCheck = true;
+          }
+          
+          cb.checked = shouldCheck;
+        } else if (type === 'db') {
+          // Do not check database chats by default
+          cb.checked = false;
+        }
+      });
+      toggleAnalyzeBtnState();
+    }
+
+    function getTaipeiDateString(date) {
+      const taipeiOffset = 8 * 60 * 60 * 1000;
+      const localTime = date.getTime();
+      const taipeiTime = new Date(localTime + taipeiOffset);
+      return taipeiTime.toISOString().split('T')[0];
+    }
+
+    // LINE chat log text parser implementing Falo Spec
+    function parseLineChatLog(text, filename = "backup.txt") {
+      const lines = text.split(/\r?\n/);
+      if (lines.length === 0) return [];
+      
+      let maxAllowedDateObj = new Date();
+      maxAllowedDateObj.setDate(maxAllowedDateObj.getDate() + 1); // tomorrow fallback
+      
+      const exportDateRegex = /(?:儲存日期|Saved date)[：:\s]*(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})/;
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const match = lines[i].match(exportDateRegex);
+        if (match) {
+          const y = match[1];
+          const m = match[2].padStart(2, '0');
+          const d = match[3].padStart(2, '0');
+          const parsedExportDate = new Date(`${y}-${m}-${d}`);
+          if (!isNaN(parsedExportDate.getTime())) {
+            maxAllowedDateObj = parsedExportDate;
+            break;
+          }
+        }
+      }
+
+      const messages = [];
+      let currentDateStr = "2020-01-01";
+      let lastParsedDateObj = null;
+      let isNextLineNewDate = false;
+      
+      const dateRegex = /^(\d{4})[/\-.年](\d{1,2})[/\-.月](\d{1,2})(?:日)?(?:\s*（[^）]+）|\s*\([^)]+\)|\s*星期[一二三四五六日]|\s*[a-zA-Z]+)?\s*$/;
+      const msgRegex = /^((?:上午|下午)?\d{2}:\d{2})\t([^\t]+)\t(.*)$/;
+      
+      function isValidDateHeader(y, m, d) {
+        const year = parseInt(y, 10);
+        if (year < 2011) return false;
+        
+        const candidateStr = `${y}-${m}-${d}`;
+        const candidateDateObj = new Date(candidateStr);
+        if (isNaN(candidateDateObj.getTime())) return false;
+        
+        if (maxAllowedDateObj && candidateDateObj > maxAllowedDateObj) return false;
+        if (lastParsedDateObj && candidateDateObj < lastParsedDateObj) return false;
+        return true;
+      }
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim() === "") {
+          isNextLineNewDate = true;
+          continue;
+        }
+        
+        if (isNextLineNewDate) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const y = dateMatch[1];
+            const m = dateMatch[2].padStart(2, '0');
+            const d = dateMatch[3].padStart(2, '0');
+            if (isValidDateHeader(y, m, d)) {
+              currentDateStr = `${y}-${m}-${d}`;
+              lastParsedDateObj = new Date(currentDateStr);
+              isNextLineNewDate = false;
+              continue;
+            }
+          }
+        }
+        
+        const msgMatch = line.match(msgRegex);
+        if (msgMatch) {
+          isNextLineNewDate = false;
+          const rawTime = msgMatch[1];
+          const sender = msgMatch[2];
+          const content = msgMatch[3];
+          
+          let hourMin = rawTime;
+          const isPm = rawTime.includes("下午");
+          const isAm = rawTime.includes("上午");
+          let cleanTime = rawTime.replace("下午", "").replace("上午", "").trim();
+          const timeParts = cleanTime.split(":");
+          if (timeParts.length === 2) {
+            let h = parseInt(timeParts[0]);
+            const m = timeParts[1];
+            if (isPm && h < 12) h += 12;
+            if (isAm && h === 12) h = 0;
+            hourMin = `${String(h).padStart(2, '0')}:${m}`;
+          }
+          
+          let type = "text";
+          if (content === "[圖片]" || content === "[Photo]") type = "image";
+          else if (content === "[貼圖]" || content === "[Sticker]") type = "sticker";
+          else if (content === "[檔案]" || content === "[File]") type = "file";
+          else if (content.startsWith("☎ 通話時間") || content.startsWith("☎ Call time")) type = "call";
+          else if (content.includes("unsent a message") || content.includes("收回訊息")) type = "unsent";
+          
+          messages.push({
+            date: currentDateStr,
+            time: hourMin,
+            sender: sender,
+            content: content,
+            type: type
+          });
+        } else {
+          if (messages.length > 0 && !line.startsWith("儲存日期：")) {
+            const lastMsg = messages[messages.length - 1];
+            lastMsg.content += "\n" + line;
+          }
+        }
+      }
+      return messages;
+    }
+
+    async function startMobileAnalysis() {
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      const selectedDb = [];
+      const selectedFiles = [];
+      
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          const type = cb.getAttribute('data-type');
+          const displayName = cb.getAttribute('data-display-name');
+          if (type === 'db') {
+            selectedDb.push({
+              botAlias: cb.getAttribute('data-bot-alias'),
+              chatId: cb.getAttribute('data-chat-id'),
+              displayName: displayName
+            });
+          } else if (type === 'file') {
+            selectedFiles.push({
+              fileId: cb.getAttribute('data-file-id'),
+              displayName: displayName
+            });
+          }
+        }
+      });
+
+      if (selectedDb.length === 0 && selectedFiles.length === 0) {
+        alert('請至少選擇一個資料來源！');
+        return;
+      }
+
+      // Double confirmation for All history to prevent token explosion
+      if (selectedTimeRangePreset === 'all') {
+        const confirmAll = confirm('⚠️ 您選擇了「全部歷史紀錄」！\n這將會抓取並分析對話的所有內容，載入與分析速度會較慢，且會消耗較多 AI Token。確定要繼續嗎？');
+        if (!confirmAll) return;
+      }
+
+      const promptText = document.getElementById('promptInput').value.trim();
+      if (!promptText) {
+        alert('請輸入分析指令！');
+        return;
+      }
+
+      const provider = document.getElementById('modelProviderSelect').value;
+      const model = (provider === 'builtin')
+        ? document.getElementById('builtinModelSelect').value
+        : document.getElementById('geminiModelSelect').value;
+        
+      const analyzeBtn = document.getElementById('btnAnalyze');
+      const reportCard = document.getElementById('reportCard');
+      const reportOutput = document.getElementById('reportOutput');
+      
+      const originalText = analyzeBtn.innerHTML;
+      analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 載入數據中...';
+      analyzeBtn.disabled = true;
+      
+      reportCard.style.setProperty('display', 'flex', 'important');
+      reportOutput.innerHTML = '<div class="text-center py-5 text-secondary"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>正在並行抓取與解析雲端對話數據...</div>';
+
+      try {
+        let allMessages = [];
+
+        // 1. Fetch DB Chat Events in Parallel
+        const dbPromises = selectedDb.map(item => {
+          return fetch(`/api/chat-events?chat_id=${item.chatId}&bot_alias=${item.botAlias}`)
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.json();
+            })
+            .then(resJson => {
+              if (resJson.ok && resJson.data) {
+                resJson.data.forEach(ev => {
+                  const timeVal = ev.captured_at ? new Date(ev.captured_at).getTime() : 0;
+                  allMessages.push({
+                    timestamp: timeVal,
+                    dateStr: ev.captured_at ? ev.captured_at.substring(0, 10) : '未知日期',
+                    timeStr: ev.captured_at ? ev.captured_at.substring(11, 16) : '00:00',
+                    sender: ev.sender_name || (ev.sender_role === 'host' ? '官方助手' : '使用者'),
+                    role: ev.sender_role,
+                    content: String(ev.text_content || (ev.message_type ? `[${ev.message_type}]` : '')),
+                    chatInfo: `官方:${item.displayName}`
+                  });
+                });
+              }
+            })
+            .catch(e => console.error(`Failed to fetch db events for ${item.chatId}`, e));
+        });
+
+        // 2. Fetch File Contents in Parallel & Parse
+        const filePromises = selectedFiles.map(item => {
+          return fetch(`/api/dialogue-content?file_id=${item.fileId}`)
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.text();
+            })
+            .then(textContent => {
+              const fileMsgs = parseLineChatLog(textContent, item.displayName);
+              fileMsgs.forEach(m => {
+                const timestampVal = new Date(`${m.date}T${m.time}:00+08:00`).getTime();
+                allMessages.push({
+                  timestamp: timestampVal,
+                  dateStr: m.date,
+                  timeStr: m.time,
+                  sender: m.sender,
+                  role: m.type === 'sticker' || m.type === 'image' || m.type === 'file' ? 'client' : '',
+                  content: String(m.content),
+                  chatInfo: `檔案:${item.displayName}`
+                });
+              });
+            })
+            .catch(e => console.error(`Failed to fetch file content for ${item.fileId}`, e));
+        });
+
+        await Promise.all([...dbPromises, ...filePromises]);
+
+        if (allMessages.length === 0) {
+          reportOutput.innerHTML = '<div class="text-center py-4 text-warning"><i class="bi bi-exclamation-triangle-fill"></i> 勾選的資料來源無任何對話紀錄！</div>';
+          return;
+        }
+
+        // 3. Sort Chronologically
+        allMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        // 4. Apply Time Range Filter Presets (Taipei Standard)
+        const todayStr = getTaipeiDateString(new Date());
+        const todayMs = new Date(todayStr + 'T00:00:00+08:00').getTime();
+        
+        let filteredMessages = allMessages;
+        let rangeLabel = '全部歷史';
+        
+        if (selectedTimeRangePreset === 'today') {
+          filteredMessages = allMessages.filter(m => m.dateStr === todayStr);
+          rangeLabel = `今天 (${todayStr})`;
+        } else if (selectedTimeRangePreset === 'week') {
+          const weekAgoMs = todayMs - 6 * 24 * 60 * 60 * 1000;
+          filteredMessages = allMessages.filter(m => m.timestamp >= weekAgoMs);
+          rangeLabel = '本週 (最近 7 天)';
+        } else if (selectedTimeRangePreset === 'month') {
+          const currentYear = new Date().getFullYear();
+          const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+          const startOfMonthMs = new Date(`${currentYear}-${currentMonth}-01T00:00:00+08:00`).getTime();
+          filteredMessages = allMessages.filter(m => m.timestamp >= startOfMonthMs);
+          rangeLabel = `本月 (${currentYear}-${currentMonth} 至今)`;
+        } else if (selectedTimeRangePreset === 'custom') {
+          const days = parseInt(document.getElementById('customDaysInput').value || '3', 10);
+          const customAgoMs = todayMs - (days - 1) * 24 * 60 * 60 * 1000;
+          filteredMessages = allMessages.filter(m => m.timestamp >= customAgoMs);
+          rangeLabel = `自訂天數 (最近 ${days} 天內)`;
+        }
+
+        if (filteredMessages.length === 0) {
+          reportOutput.innerHTML = `<div class="text-center py-4 text-warning"><i class="bi bi-exclamation-triangle-fill"></i> 選定時間範圍：<b>${rangeLabel}</b> 內查無任何對話訊息！</div>`;
+          return;
+        }
+
+        // 5. Format Context Text Block with clean date markdown segments (Falo SPEC)
+        let textContent = [];
+        textContent.push(`## 💬 Falo IM 手機版對話上下文 - 分析時間段：${rangeLabel}\n`);
+        let lastDate = "";
+        
+        filteredMessages.forEach(msg => {
+          if (msg.dateStr !== lastDate) {
+            textContent.push(`\n### 📅 日期: ${msg.dateStr}`);
+            lastDate = msg.dateStr;
+          }
+          const roleLabel = msg.role === 'host' ? '[官方助手]' : '[使用者]';
+          textContent.push(`- **[${msg.timeStr}] ${msg.sender}${roleLabel}**: ${msg.content}`);
+        });
+
+        const finalContext = textContent.join('\n');
+        
+        // 6. Call AI Analyze Route
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> AI 正在分析中...';
+        reportOutput.innerHTML = `<div class="text-center py-5 text-secondary"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>數據已過濾並編譯 (共 ${filteredMessages.length} 條)，正在呼叫 AI 模型進行分析...</div>`;
+        
+        const finalPrompt = `分析指令：\n${promptText}\n\n=== 整合對話內容 ===\n${finalContext}`;
+        
+        const aiBody = {
+          provider: provider,
+          prompt: finalPrompt,
+          model: model
+        };
+
+        if (provider === 'gemini') {
+          const cachedKey = localStorage.getItem('faloGeminiApiKey') || '';
+          if (cachedKey) {
+            aiBody.gemini_key = cachedKey;
+          }
+        }
+
+        const aiResponse = await fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(aiBody)
+        });
+
+        if (!aiResponse.ok) throw new Error('HTTP ' + aiResponse.status);
+        const aiResult = await aiResponse.json();
+
+        if (aiResult.ok && aiResult.result) {
+          const htmlContent = marked.parse(aiResult.result);
+          reportOutput.innerHTML = `<div class="report-rendered" style="font-size: ${currentFontSize}px;">${htmlContent}</div>`;
+          reportOutput.setAttribute('data-raw-report', aiResult.result);
+        } else {
+          throw new Error(aiResult.error || 'AI 無回應');
+        }
+      } catch (err) {
+        console.error('Failed to run AI analysis:', err);
+        reportOutput.innerHTML = `<div class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill"></i> 分析失敗: ${err.message}</div>`;
+      } finally {
+        analyzeBtn.innerHTML = originalText;
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    function copyReport() {
+      const reportOutput = document.getElementById('reportOutput');
+      const rawReport = reportOutput.getAttribute('data-raw-report');
+      if (!rawReport) return;
+      
+      navigator.clipboard.writeText(rawReport).then(() => {
+        const copyBtn = document.getElementById('copyBtn');
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> 已複製';
+        setTimeout(() => {
+          copyBtn.innerHTML = originalText;
+        }, 1500);
+      }).catch(err => {
+        alert('複製失敗: ' + err);
+      });
+    }
+
+    // Toggle between Builtin and Gemini model providers in mobile view
+    function toggleMobileModelProvider() {
+      const provider = document.getElementById('modelProviderSelect').value;
+      const builtinCol = document.getElementById('builtinModelCol');
+      const geminiCol = document.getElementById('geminiModelCol');
+      const geminiKeyCol = document.getElementById('geminiKeyCol');
+      
+      if (provider === 'builtin') {
+        builtinCol.style.display = 'block';
+        geminiCol.style.display = 'none';
+        geminiKeyCol.style.display = 'none';
+      } else {
+        builtinCol.style.display = 'none';
+        geminiCol.style.display = 'block';
+        geminiKeyCol.style.display = 'block';
+        
+        // Load cached key if exists
+        const cachedKey = localStorage.getItem('faloGeminiApiKey') || '';
+        document.getElementById('geminiKeyInput').value = cachedKey;
+      }
+    }
+
+    // Save Gemini Key to localStorage in mobile view
+    function saveMobileGeminiKey() {
+      const key = document.getElementById('geminiKeyInput').value.trim();
+      localStorage.setItem('faloGeminiApiKey', key);
+      alert(key ? 'Gemini API Key 已儲存至瀏覽器！' : 'Gemini API Key 已清除！');
+    }
+
+    // Toggle collapse/expand for database or file checklist groups
+    function toggleGroupCollapse(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById('icon_' + id);
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+        icon.classList.remove('icon-rotated');
+      } else {
+        el.style.display = 'none';
+        icon.classList.add('icon-rotated');
+      }
+    }
+
+    // Adjust analysis report text font size dynamically
+    function adjustFontSize(diff) {
+      currentFontSize = Math.max(10, Math.min(24, currentFontSize + diff));
+      const reportOutput = document.getElementById('reportOutput');
+      if (reportOutput) {
+        reportOutput.style.fontSize = currentFontSize + 'px';
+      }
+      localStorage.setItem('faloReportFontSize', currentFontSize);
+    }
+
+    // Export report to PDF via print dialog
+    function exportToPdf() {
+      const reportOutput = document.getElementById('reportOutput');
+      const rawReport = reportOutput.getAttribute('data-raw-report');
+      if (!rawReport) {
+        alert('無分析報告可匯出！');
+        return;
+      }
+      window.print();
+    }
+
+    // Unified Preview Launchers directing to standalone preview pages
+    function openFilePreview(evt, fileId, displayName) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      window.open(`/mobile/preview?file_id=${fileId}&displayName=${encodeURIComponent(displayName)}`, '_blank');
+    }
+
+    // Unified DB Chat Preview directing to standalone preview pages
+    function openDbChatPreview(evt, chatId, botAlias, displayName) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      window.open(`/mobile/preview?chat_id=${chatId}&bot_alias=${botAlias}&displayName=${encodeURIComponent(displayName)}`, '_blank');
+    }
+  </script>
+</body>
+</html>

@@ -2283,6 +2283,22 @@ const MVP_HTML = `<!doctype html>
       filter: brightness(1.1);
     }
 
+    .btn-outline-purple {
+      color: #c084fc !important;
+      border-color: #a78bfa !important;
+      background-color: rgba(139, 92, 246, 0.15) !important;
+      font-weight: 700 !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .btn-outline-purple:hover {
+      color: #ffffff !important;
+      background-color: #7c3aed !important;
+      border-color: #7c3aed !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4) !important;
+    }
+
     .badge-status {
       padding: 6px 12px;
       border-radius: 50px;
@@ -2434,6 +2450,24 @@ const MVP_HTML = `<!doctype html>
       background: rgba(255, 255, 255, 0.2) !important;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
     }
+
+    /* Prompt list style */
+    .prompt-list-item {
+      transition: background 0.15s ease, color 0.15s ease;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      text-decoration: none;
+    }
+    .prompt-list-item:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+    .prompt-list-item.active {
+      background: rgba(14, 165, 233, 0.15) !important;
+      color: #38bdf8 !important;
+      border-left: 3px solid #0ea5e9 !important;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -2443,9 +2477,12 @@ const MVP_HTML = `<!doctype html>
     <div class="container main-container py-0 d-flex justify-content-between align-items-center">
       <div class="navbar-brand-custom">
         <i class="bi bi-cpu-fill text-teal me-2" style="color: var(--primary-teal);"></i>
-        Falo IM v2.01 <span class="fw-light text-muted">|</span> MVP 控制台
+        Falo IM 3.03 <span class="fw-light text-muted">|</span> MVP 控制台
       </div>
-      <div>
+      <div class="d-flex align-items-center">
+        <a class="btn btn-sm btn-outline-purple me-3 fw-bold" href="/mobile" target="_blank" title="在新分頁開啟手機直立式快速控制台">
+          <i class="bi bi-phone"></i> 📱 手機專用版
+        </a>
         <span class="badge-status badge-offline" id="globalStatusBadge">未連線</span>
       </div>
     </div>
@@ -2573,12 +2610,21 @@ const MVP_HTML = `<!doctype html>
                 <!-- Tab: Drive Load -->
                 <div class="tab-pane fade show active" id="drive-panel" role="tabpanel">
                   <div class="d-flex gap-2">
-                    <select id="driveFilesSelect" class="form-select form-control-custom" style="flex: 1;">
+                    <select id="driveFilesSelect" class="form-select form-control-custom" style="flex: 1;" onchange="toggleDrivePreviewButton()">
                       <option value="">請先連線大腦以取得 Drive 檔案清單...</option>
                     </select>
                     <button class="btn btn-custom px-3" onclick="loadSelectedDriveFile()" id="btnLoadDriveFile" disabled>
                       <i class="bi bi-download"></i> 載入
                     </button>
+                    <button class="btn btn-outline-info px-2" onclick="previewSelectedDriveFile()" id="btnPreviewDriveFile" disabled title="預覽選取的雲端檔案內容">
+                      <i class="bi bi-eye"></i> 預覽
+                    </button>
+                    <button class="btn btn-outline-secondary px-2" onclick="openCloudFilesManager()" title="管理雲端備份檔案 (修改別名、刪除)">
+                      <i class="bi bi-gear"></i> 管理
+                    </button>
+                    <a class="btn btn-outline-success px-2" id="linkExportsFolder" href="https://drive.google.com" target="_blank" title="開啟 Google Drive 雲端備份資料夾">
+                      <i class="bi bi-folder-symlink"></i> 資料夾
+                    </a>
                   </div>
                   <div id="driveLoadStatus" class="small text-muted mt-2"></div>
                 </div>
@@ -2589,6 +2635,17 @@ const MVP_HTML = `<!doctype html>
                     <i class="bi bi-file-earmark-arrow-up display-6 text-teal mb-2 d-block" style="color: var(--primary-teal);"></i>
                     <span class="small text-light">拖曳 LINE 備份 \`.txt\` 檔案至此，或 <span class="text-teal fw-bold">點擊瀏覽檔案</span></span>
                     <input type="file" id="localFileInput" class="d-none" accept=".txt">
+                  </div>
+                  <!-- Upload to Cloud container -->
+                  <div id="localUploadContainer" class="mt-3 p-3 rounded border border-secondary" style="display: none; background: rgba(15, 23, 42, 0.4);">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div class="small text-light">
+                        <i class="bi bi-file-earmark-check text-success"></i> 已解析本機檔案：<span id="localFileNameSpan" class="fw-bold text-teal" style="color: var(--primary-teal);"></span>
+                      </div>
+                      <button class="btn btn-sm btn-outline-warning fw-bold" id="btnUploadLocalToCloud" onclick="uploadLocalFileToCloud()">
+                        <i class="bi bi-cloud-arrow-up"></i> ☁️ 上傳至雲端大腦
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2630,19 +2687,22 @@ const MVP_HTML = `<!doctype html>
               </div>
               <!-- Action buttons for LINE Slicer -->
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
-                <div class="input-group input-group-sm" style="max-width: 140px; height: 31px;">
-                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
-                  <input type="text" id="lineFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="LN" style="font-size: 12px;">
-                </div>
-                <div class="d-flex gap-1 flex-grow-1">
-                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 11px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
-                    <i class="bi bi-cart-plus"></i> 存入清單
-                  </button>
-                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtLineRange" onclick="exportSelectedLineToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="合併所選日期為單一 .txt 檔案下載">
+                <button class="btn btn-outline-purple btn-sm" id="btnAddToBasketLine" onclick="addSelectedLineToBasket()" style="font-size: 11px; font-weight: bold; height: 31px;">
+                  <i class="bi bi-cart-plus-fill"></i> 存入分析清單
+                </button>
+                <div class="d-flex align-items-center gap-1 flex-grow-1 justify-content-end">
+                  <div class="input-group input-group-sm" style="max-width: 160px; height: 31px;">
+                    <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">檔案名稱</span>
+                    <input type="text" id="lineFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="LN" style="font-size: 12px;">
+                  </div>
+                  <button class="btn btn-outline-info btn-sm" id="btnExportTxtLineRange" onclick="exportSelectedLineToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4); height: 31px;" title="合併所選日期為單一 .txt 檔案下載">
                     <i class="bi bi-file-earmark-arrow-down"></i> 區間匯出
                   </button>
-                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtLineEach" onclick="exportSelectedLineToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="所選日期個別下載為獨立的 .txt 檔案">
+                  <button class="btn btn-outline-info btn-sm" id="btnExportTxtLineEach" onclick="exportSelectedLineToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4); height: 31px;" title="所選日期個別下載為獨立的 .txt 檔案">
                     <i class="bi bi-files"></i> 逐筆匯出
+                  </button>
+                  <button class="btn btn-outline-warning btn-sm" onclick="previewSelectedLineExport()" style="font-size: 11px; font-weight: bold; border-color: rgba(245, 158, 11, 0.4); height: 31px;" title="在下載前預覽將要產生的匯出檔案內容">
+                    <i class="bi bi-eye"></i> 預覽匯出
                   </button>
                 </div>
               </div>
@@ -2666,11 +2726,17 @@ const MVP_HTML = `<!doctype html>
               <h5 class="small fw-bold text-light mb-3">1. 選擇官方帳號與對話群組</h5>
               
               <div class="mb-3 d-flex gap-2">
-                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;">
+                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;" onchange="handleDbChatsSelectChange()">
                   <option value="">請先建立系統連線以載入官方帳號列表...</option>
                 </select>
                 <button class="btn btn-custom px-3" onclick="loadDbChatEvents()" id="btnLoadDbChat" disabled>
                   <i class="bi bi-search"></i> 載入對話
+                </button>
+                <button class="btn btn-outline-info px-2" onclick="previewSelectedDbChat()" id="btnPreviewDbChat" disabled title="預覽選取的官方帳號備份檔案內容">
+                  <i class="bi bi-eye"></i> 預覽
+                </button>
+                <button class="btn btn-outline-secondary px-2" onclick="promptEditDbChatNickname()" id="btnEditDbChatNickname" disabled title="修改此官方帳號群組的自訂別名(暱稱)">
+                  <i class="bi bi-pencil"></i> 暱稱
                 </button>
               </div>
               <div id="dbEventsLoadStatus" class="small text-muted mb-4"></div>
@@ -2713,19 +2779,22 @@ const MVP_HTML = `<!doctype html>
               
               <!-- Action buttons for Database Slicer -->
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-secondary">
-                <div class="input-group input-group-sm" style="max-width: 140px; height: 31px;">
-                  <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">前綴</span>
-                  <input type="text" id="dbFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="DB" style="font-size: 12px;">
-                </div>
-                <div class="d-flex gap-1 flex-grow-1">
-                  <button class="btn btn-outline-purple btn-sm flex-grow-1" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 11px; font-weight: bold; border-color: rgba(139, 92, 246, 0.4);">
-                    <i class="bi bi-cart-plus"></i> 存入清單
-                  </button>
-                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtDbRange" onclick="exportSelectedDbToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="合併所選日期為單一 .txt 檔案下載">
+                <button class="btn btn-outline-purple btn-sm" id="btnAddToBasketDb" onclick="addSelectedDbToBasket()" style="font-size: 11px; font-weight: bold; height: 31px;">
+                  <i class="bi bi-cart-plus-fill"></i> 存入分析清單
+                </button>
+                <div class="d-flex align-items-center gap-1 flex-grow-1 justify-content-end">
+                  <div class="input-group input-group-sm" style="max-width: 160px; height: 31px;">
+                    <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 11px;">檔案名稱</span>
+                    <input type="text" id="dbFilePrefix" class="form-control form-control-custom text-light bg-dark border-secondary py-1" value="DB" style="font-size: 12px;">
+                  </div>
+                  <button class="btn btn-outline-info btn-sm" id="btnExportTxtDbRange" onclick="exportSelectedDbToTxt('range')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4); height: 31px;" title="合併所選日期為單一 .txt 檔案下載">
                     <i class="bi bi-file-earmark-arrow-down"></i> 區間匯出
                   </button>
-                  <button class="btn btn-outline-info btn-sm flex-grow-1" id="btnExportTxtDbEach" onclick="exportSelectedDbToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4);" title="所選日期個別下載為獨立的 .txt 檔案">
+                  <button class="btn btn-outline-info btn-sm" id="btnExportTxtDbEach" onclick="exportSelectedDbToTxt('each')" style="font-size: 11px; font-weight: bold; border-color: rgba(14, 165, 233, 0.4); height: 31px;" title="所選日期個別下載為獨立的 .txt 檔案">
                     <i class="bi bi-files"></i> 逐筆匯出
+                  </button>
+                  <button class="btn btn-outline-warning btn-sm" onclick="previewSelectedDbExport()" style="font-size: 11px; font-weight: bold; border-color: rgba(245, 158, 11, 0.4); height: 31px;" title="在下載前預覽將要產生的匯出檔案內容">
+                    <i class="bi bi-eye"></i> 預覽匯出
                   </button>
                 </div>
               </div>
@@ -2757,7 +2826,7 @@ const MVP_HTML = `<!doctype html>
                   <i class="bi bi-code-slash"></i> HTML 轉 Markdown
                 </button>
                 <button class="btn btn-outline-purple btn-sm" id="btnAddToBasketKm" onclick="addKmToBasket()">
-                  <i class="bi bi-cart-plus"></i> 📥 存入分析清單
+                  <i class="bi bi-cart-plus-fill"></i> 存入分析清單
                 </button>
                 <button class="btn btn-outline-secondary btn-sm" onclick="clearKmData()">
                   <i class="bi bi-trash"></i> 清除內容
@@ -2821,8 +2890,24 @@ const MVP_HTML = `<!doctype html>
     <div class="row mt-4">
       <div class="col-12">
         <div class="glass-card" style="border-color: rgba(52, 211, 153, 0.2) !important;">
-          <div class="card-title-custom" style="color: #34d399;">
-            <i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心
+          <div class="card-title-custom d-flex justify-content-between align-items-center flex-wrap gap-2" style="color: #34d399; min-height: 40px; padding-bottom: 8px;">
+            <div><i class="bi bi-robot"></i> 🤖 FALO 綜合 AI 分析中心</div>
+            <div class="d-flex align-items-center gap-3">
+              <!-- Font Size Control -->
+              <div class="d-flex align-items-center gap-1" style="font-size: 12px; font-weight: normal; color: var(--text-light);">
+                <span>字體:</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasFontSize(-1)" style="font-size: 11px; height: 22px; line-height: 1;">A-</button>
+                <span id="promptTextareaFontSizeLabel" style="min-width: 32px; text-align: center; display: inline-block;">13px</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasFontSize(1)" style="font-size: 11px; height: 22px; line-height: 1;">A+</button>
+              </div>
+              <!-- Height Control -->
+              <div class="d-flex align-items-center gap-1" style="font-size: 12px; font-weight: normal; color: var(--text-light);">
+                <span>高度:</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasHeight(-30)" style="font-size: 11px; height: 22px; line-height: 1;">H-</button>
+                <span id="promptTextareasHeightLabel" style="min-width: 42px; text-align: center; display: inline-block;">300px</span>
+                <button class="btn btn-outline-secondary btn-xs py-0 px-2 text-light border-secondary" onclick="adjustPromptTextareasHeight(30)" style="font-size: 11px; height: 22px; line-height: 1;">H+</button>
+              </div>
+            </div>
           </div>
           
           <div class="row g-4">
@@ -2832,8 +2917,62 @@ const MVP_HTML = `<!doctype html>
               
               <div class="mb-3">
                 <label class="form-label small fw-bold text-light">分析任務指令 (AI Prompt):</label>
-                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" rows="4" oninput="updateUnifiedCompiledContext()">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。
+                <textarea id="unifiedAiPromptInput" class="form-control form-control-custom" oninput="updateUnifiedCompiledContext()" style="height: 300px; font-size: 13px; resize: vertical;">請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。
 （提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）</textarea>
+              </div>
+
+              <!-- Prompt Manager Widget -->
+              <div class="p-3 rounded border border-secondary mb-3" style="background: rgba(30, 41, 59, 0.4);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small fw-bold text-light" style="font-size: 12px;"><i class="bi bi-bookmarks-fill text-info"></i> 💡 提示詞範本庫</span>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-outline-info btn-xs py-0 px-2" onclick="showAddPromptForm()" style="font-size: 11px;">新增</button>
+                    <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="document.getElementById('importPromptCsvInput').click()" style="font-size: 11px;">匯入 CSV</button>
+                    <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="exportPromptsToCsv()" style="font-size: 11px;">匯出 CSV</button>
+                    <input type="file" id="importPromptCsvInput" accept=".csv" class="d-none" onchange="importPromptsFromCsv(event)">
+                  </div>
+                </div>
+                
+                <!-- Presets list group -->
+                <div class="list-group border border-secondary mb-2" id="promptTemplateList" style="max-height: 220px; height: 180px; overflow-y: auto; background: rgba(15, 23, 42, 0.4); border-radius: 6px;">
+                  <!-- Populated dynamically -->
+                </div>
+
+                <!-- Add/Edit Inline Form (Hidden by default) -->
+                <div id="addPromptForm" class="border border-secondary p-3 rounded mb-2 d-none" style="background: rgba(15, 23, 42, 0.75);">
+                  <div class="mb-2">
+                    <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: bold;">提示詞名稱</label>
+                    <input type="text" id="newPromptName" class="form-control form-control-custom text-light py-1" style="font-size: 12px; height: 30px;" placeholder="例如: 客服滿意度檢測">
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label text-muted mb-1" style="font-size: 11px; font-weight: bold;">提示詞內容</label>
+                    <textarea id="newPromptContent" class="form-control form-control-custom text-light" rows="4" style="font-size: 12px;" placeholder="請輸入完整的 AI 提示詞指令..."></textarea>
+                  </div>
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-outline-secondary btn-sm py-1 px-3" onclick="hideAddPromptForm()" style="font-size: 11px;">取消</button>
+                    <button class="btn btn-info btn-sm py-1 px-3" onclick="saveNewPromptTemplate()" style="font-size: 11px; font-weight: bold;">儲存</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            
+            <!-- Right Column: Unified Markdown Preview & Report -->
+            <div class="col-lg-6">
+              <h5 class="small fw-bold text-light mb-3">2. 雙對話整合預覽與 AI 報告</h5>
+              
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label small fw-bold text-light mb-0">整合對話內容預覽 (Markdown):</label>
+                  <span id="unifiedPreviewStats" class="small text-muted" style="font-size: 11px;">LINE: 0天 | 官方助手: 0天 | 總字數: 0</span>
+                </div>
+                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選 the 對話內容..." style="height: 300px; font-size: 13px; resize: vertical;"></textarea>
+              </div>
+
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-custom flex-grow-1" id="btnCopyUnifiedContext" onclick="copyUnifiedCompiledContext()">
+                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
+                </button>
               </div>
 
               <!-- AI Provider & Model Select Row -->
@@ -2881,28 +3020,9 @@ const MVP_HTML = `<!doctype html>
                 </div>
               </div>
               
-              <button class="btn btn-emerald w-100 py-2 fw-bold" onclick="runUnifiedAiAnalysis()" id="btnUnifiedAnalyze" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+              <button class="btn btn-emerald w-100 py-2 fw-bold mb-3" onclick="runUnifiedAiAnalysis()" id="btnUnifiedAnalyze" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
                 <i class="bi bi-robot"></i> 🤖 執行 AI 綜合對話分析
               </button>
-            </div>
-            
-            <!-- Right Column: Unified Markdown Preview & Report -->
-            <div class="col-lg-6">
-              <h5 class="small fw-bold text-light mb-3">2. 雙對話整合預覽與 AI 報告</h5>
-              
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-light mb-0">整合對話內容預覽 (Markdown):</label>
-                  <span id="unifiedPreviewStats" class="small text-muted" style="font-size: 11px;">LINE: 0天 | 官方助手: 0天 | 總字數: 0</span>
-                </div>
-                <textarea id="unifiedCompiledContextPreview" class="form-control preview-textarea" rows="8" readonly placeholder="此處將自動整合上方 LINE 及官方助手勾選的對話內容..."></textarea>
-              </div>
-
-              <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-custom flex-grow-1" id="btnCopyUnifiedContext" onclick="copyUnifiedCompiledContext()">
-                  <i class="bi bi-clipboard-check"></i> 複製完整 Context (已併入對話)
-                </button>
-              </div>
 
               <!-- AI Output Report Container -->
               <div id="unifiedAiReportBox" class="mt-3 p-3 rounded bg-dark border border-secondary text-light d-none" style="background: rgba(15, 23, 42, 0.8) !important;">
@@ -3052,6 +3172,11 @@ const MVP_HTML = `<!doctype html>
       // Calculate and display Cloudflare Webhook Endpoint URL
       updateWebhookDisplay();
       
+      
+      // Initialize prompt templates
+      renderPromptTemplates();
+      selectPromptTemplate(selectedPromptKey);
+
       if (cachedUrl) {
         // Automatically attempt silent connection on load
         testConnection(true);
@@ -3210,21 +3335,242 @@ const MVP_HTML = `<!doctype html>
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const result = await response.json();
         
-        if (result.ok && result.files && result.files.length > 0) {
-          let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
-          result.files.forEach(f => {
-            const kbSize = Math.round(f.size / 1024);
-            const label = f.displayName ? \`\${f.displayName} (\${f.name} - \${kbSize} KB)\` : \`\${f.name} (\${kbSize} KB)\`;
-            html += \`<option value="\${f.id}">\${label}</option>\`;
-          });
-          selectEl.innerHTML = html;
-          loadBtn.disabled = false;
+        if (result.ok) {
+          // Cache files list
+          cachedDriveFiles = result.files || [];
+          
+          // Update exports folder link
+          if (result.exports_folder_url) {
+            const folderLink = document.getElementById('linkExportsFolder');
+            if (folderLink) folderLink.href = result.exports_folder_url;
+            const modalFolderLink = document.getElementById('modalExportsFolderLink');
+            if (modalFolderLink) modalFolderLink.href = result.exports_folder_url;
+          }
+          
+          if (result.files && result.files.length > 0) {
+            let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
+            result.files.forEach(f => {
+              const kbSize = Math.round(f.size / 1024);
+              const formattedDate = f.created ? f.created.substring(0, 16).replace('T', ' ') : '未知';
+              const label = f.isRegistered
+                ? \`\${f.displayName} (上傳: \${formattedDate}) [\${kbSize} KB]\`
+                : \`\${f.displayName} (更新: \${formattedDate}) [\${kbSize} KB]\`;
+              html += \`<option value="\${f.id}">\${label}</option>\`;
+            });
+            selectEl.innerHTML = html;
+            loadBtn.disabled = false;
+          } else {
+            selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
+          }
         } else {
           selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
         }
       } catch (err) {
         console.error('Failed to list files:', err);
         selectEl.innerHTML = \`<option value="">讀取失敗: \${err.message}</option>\`;
+      } finally {
+        toggleDrivePreviewButton();
+      }
+    }
+
+    // Global cache and handlers for cloud files manager
+    let cachedDriveFiles = [];
+
+    async function openCloudFilesManager() {
+      // Show Bootstrap Modal
+      const modalEl = document.getElementById('cloudFilesManagerModal');
+      if (!modalEl) return;
+      
+      const bsModal = new bootstrap.Modal(modalEl);
+      bsModal.show();
+      
+      await refreshManagerFilesList();
+    }
+
+    async function refreshManagerFilesList() {
+      const tableBody = document.getElementById('managerFilesTableBody');
+      if (!tableBody) return;
+      
+      tableBody.innerHTML = \`
+        <tr>
+          <td colspan="5" class="text-center py-4 text-secondary">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            正在載入雲端檔案列表...
+          </td>
+        </tr>
+      \`;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=list_files&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=list_files&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok && result.files && result.files.length > 0) {
+          cachedDriveFiles = result.files;
+          
+          // Update exports folder link in modal and header
+          if (result.exports_folder_url) {
+            const folderLink = document.getElementById('linkExportsFolder');
+            if (folderLink) folderLink.href = result.exports_folder_url;
+            const modalFolderLink = document.getElementById('modalExportsFolderLink');
+            if (modalFolderLink) modalFolderLink.href = result.exports_folder_url;
+          }
+          
+          let html = '';
+          result.files.forEach(f => {
+            const kbSize = Math.round(f.size / 1024);
+            const formattedDate = f.created ? f.created.substring(0, 16).replace('T', ' ') : '未知';
+            
+            // Determine display name vs original filename
+            const isReg = f.isRegistered;
+            const regBadge = isReg 
+              ? '<span class="badge bg-success bg-opacity-20 text-success ms-2" style="font-size: 10px;">已註冊別名</span>' 
+              : '<span class="badge bg-secondary bg-opacity-20 text-secondary ms-2" style="font-size: 10px;">未註冊</span>';
+            
+            html += \`
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td>
+                  <div class="d-flex align-items-center justify-content-between">
+                    <span class="fw-bold text-teal" style="color: var(--primary-teal);">\${f.displayName}</span>
+                    <button class="btn btn-sm btn-link text-muted p-0" onclick="promptRenameCloudFile('\${f.id}', '\${f.displayName.replace(/'/g, "\\\\'")}')" title="編輯別名">
+                      <i class="bi bi-pencil-square text-info"></i>
+                    </button>
+                  </div>
+                </td>
+                <td>
+                  <div class="text-truncate" style="max-width: 320px;" title="\${f.name}">
+                    <span class="text-light">\${f.name}</span>
+                    <div class="small text-muted" style="font-size: 11px;">ID: \${f.id} \${regBadge}</div>
+                  </div>
+                </td>
+                <td class="text-secondary">\${kbSize} KB</td>
+                <td class="text-secondary">\${formattedDate}</td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteCloudFile('\${f.id}', '\${f.displayName.replace(/'/g, "\\\\'")}')" title="將檔案移至垃圾桶並刪除資料庫紀錄">
+                    <i class="bi bi-trash3-fill"></i> 刪除
+                  </button>
+                </td>
+              </tr>
+            \`;
+          });
+          tableBody.innerHTML = html;
+        } else {
+          tableBody.innerHTML = \`
+            <tr>
+              <td colspan="5" class="text-center py-5 text-secondary">
+                <i class="bi bi-folder-x display-6 d-block mb-2 text-muted"></i>
+                沒有在 exports/ 資料夾下找到備份檔案
+              </td>
+            </tr>
+          \`;
+        }
+      } catch (err) {
+        tableBody.innerHTML = \`
+          <tr>
+            <td colspan="5" class="text-center py-4 text-danger">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> 讀取雲端列表失敗: \${err.message}
+            </td>
+          </tr>
+        \`;
+      }
+    }
+
+    // Prompts user for a new alias
+    window.promptRenameCloudFile = function(fileId, currentAlias) {
+      const newAlias = prompt(\`修改此雲端對話備份的顯示別名：\`, currentAlias);
+      if (newAlias === null) return; // Cancelled
+      if (!newAlias.trim()) {
+        alert('別名不能為空！');
+        return;
+      }
+      updateCloudFileAlias(fileId, newAlias.trim());
+    }
+
+    // Sends POST to update alias in dialogue_registry
+    async function updateCloudFileAlias(fileId, newAlias) {
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=update_dialogue_alias&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=update_dialogue_alias&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            file_id: fileId,
+            new_alias: newAlias
+          })
+        });
+        
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert('別名修改成功！');
+          // Refresh list inside modal
+          await refreshManagerFilesList();
+          // Also refresh main dropdown list
+          await refreshDriveFiles(url, token);
+        } else {
+          throw new Error(result.error || '修改失敗');
+        }
+      } catch (err) {
+        alert(\`修改別名失敗: \${err.message}\`);
+      }
+    }
+
+    // Sends POST to trash file and remove registry
+    window.deleteCloudFile = async function(fileId, displayName) {
+      const confirmDelete = confirm(\`確定要將「\${displayName}」從雲端硬碟中刪除嗎？\\\\n這會將實體檔案移至 Google Drive 垃圾桶，並清除資料庫關聯註冊，此操作將無法還原！\`);
+      if (!confirmDelete) return;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=delete_dialogue_file&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=delete_dialogue_file&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            file_id: fileId
+          })
+        });
+        
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert('檔案已成功刪除並解除註冊！');
+          // Refresh list inside modal
+          await refreshManagerFilesList();
+          // Also refresh main dropdown list
+          await refreshDriveFiles(url, token);
+        } else {
+          throw new Error(result.error || '刪除失敗');
+        }
+      } catch (err) {
+        alert(\`刪除檔案失敗: \${err.message}\`);
       }
     }
 
@@ -3274,6 +3620,166 @@ const MVP_HTML = `<!doctype html>
       }
     }
 
+    function toggleDrivePreviewButton() {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const previewBtn = document.getElementById('btnPreviewDriveFile');
+      if (selectEl && previewBtn) {
+        previewBtn.disabled = !selectEl.value;
+      }
+    }
+
+    async function previewSelectedDriveFile() {
+      const selectEl = document.getElementById('driveFilesSelect');
+      const fileId = selectEl.value;
+      const optionText = selectEl.options[selectEl.selectedIndex].text;
+      
+      if (!fileId) {
+        alert('請先選擇一個檔案！');
+        return;
+      }
+      
+      const previewBtn = document.getElementById('btnPreviewDriveFile');
+      const originalText = previewBtn.innerHTML;
+      previewBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      previewBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=get_file_content&file_id=\${fileId}&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=get_file_content&file_id=\${fileId}&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const text = await response.text();
+        
+        openPreviewWindow(\`雲端檔案預覽：\${optionText}\`, text);
+      } catch (err) {
+        alert(\`預覽讀取失敗: \${err.message}\`);
+      } finally {
+        previewBtn.innerHTML = originalText;
+        previewBtn.disabled = false;
+      }
+    }
+
+    function openPreviewWindow(title, content) {
+      const win = window.open("", "_blank", "width=900,height=750,scrollbars=yes,resizable=yes");
+      if (!win) {
+        alert("彈出視窗被瀏覽器封鎖，請允許此網頁的彈出視窗以進行預覽！");
+        return;
+      }
+      
+      win.document.write(\`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>\${title}</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+          <style>
+            body {
+              background-color: #0b0f19;
+              color: #f3f4f6;
+              font-family: system-ui, -apple-system, sans-serif;
+              padding: 20px;
+            }
+            pre {
+              background-color: #111827;
+              border: 1px solid #374151;
+              border-radius: 8px;
+              padding: 15px;
+              color: #f3f4f6;
+              font-family: monospace;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+              height: calc(100vh - 100px);
+              overflow-y: auto;
+              font-size: 13px;
+            }
+            .header-bar {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #1f2937;
+              padding-bottom: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar">
+            <h5 class="m-0 text-purple font-weight-bold" style="color: #a78bfa;"><i class="bi bi-file-earmark-text"></i> \${title}</h5>
+            <div>
+              <button class="btn btn-sm btn-outline-light me-2" id="copyBtn"><i class="bi bi-clipboard"></i> 複製內容</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="window.close()"><i class="bi bi-x-lg"></i> 關閉</button>
+            </div>
+          </div>
+          <pre id="contentContainer"></pre>
+        </body>
+        </html>
+      \`);
+      win.document.close();
+      
+      // Helper function to format and escape HTML for preview with custom syntax coloring
+      function formatPreviewHtml(text) {
+        const lines = text.split('\\n');
+        return lines.map(line => {
+          // Escape HTML characters to prevent XSS
+          const escaped = line
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+            
+          // Check if it's a date header line, e.g., 2026/07/05(週日) or 2021/6/19（週六）
+          if (/^\\d{4}[\\/\\-]\\d{1,2}[\\/\\-]\\d{1,2}\\s*(?:\\([^)]+\\)|（[^）]+）)?$/.test(escaped.trim())) {
+            return \`<span style="color: #fbbf24; font-weight: bold; font-size: 14px; display: inline-block; margin-top: 12px; margin-bottom: 4px;">\${escaped}</span>\`;
+          }
+          
+          // Check if it's the main file header, e.g., [LINE] ...
+          if (escaped.startsWith('[LINE]')) {
+            return \`<span style="color: #a78bfa; font-weight: bold; font-size: 15px; display: inline-block; margin-bottom: 5px;">\${escaped}</span>\`;
+          }
+          
+          // Check if it's the file metadata, e.g., 儲存日期：...
+          if (escaped.startsWith('儲存日期：')) {
+            return \`<span style="color: #9ca3af; font-style: italic; display: inline-block; margin-bottom: 10px;">\${escaped}</span>\`;
+          }
+          
+          // Otherwise, it's normal chat log text. Try formatting as timestamp + sender + message content
+          const parts = escaped.split('\\t');
+          if (parts.length >= 3) {
+            const time = parts[0];
+            const sender = parts[1];
+            const content = parts.slice(2).join('\\t');
+            return \`<span style="color: #6b7280; font-size: 11px;">\${time}</span>\\t<span style="color: #38bdf8; font-weight: 500;">\${sender}</span>\\t<span style="color: #f3f4f6;">\${content}</span>\`;
+          }
+          
+          return \`<span style="color: #f3f4f6;">\${escaped}</span>\`;
+        }).join('\\n');
+      }
+      
+      // Populate content and set up clipboard copy directly from parent context
+      try {
+        win.document.getElementById('contentContainer').innerHTML = formatPreviewHtml(content);
+        win.document.getElementById('copyBtn').onclick = function() {
+          win.navigator.clipboard.writeText(content).then(() => {
+            win.alert('已複製到剪貼簿！');
+          }).catch(err => {
+            win.alert('複製失敗: ' + err);
+          });
+        };
+      } catch (e) {
+        console.error('Failed to populate preview window:', e);
+      }
+    }
+
     // 3. Setup local file Drag & Drop
     const dropZone = document.getElementById('dropZone');
     const localInput = document.getElementById('localFileInput');
@@ -3308,6 +3814,9 @@ const MVP_HTML = `<!doctype html>
       }
     });
 
+    let lastLoadedLocalFileName = '';
+    let lastLoadedLocalFileContent = '';
+
     function handleLocalFile(file) {
       if (!file.name.endsWith('.txt')) {
         alert('請上傳 LINE 備份產生的 .txt 檔案格式！');
@@ -3317,10 +3826,96 @@ const MVP_HTML = `<!doctype html>
       const reader = new FileReader();
       reader.onload = function(e) {
         const text = e.target.result;
+        
+        lastLoadedLocalFileName = file.name;
+        lastLoadedLocalFileContent = text;
+        
         processRawText(text);
+        
+        document.getElementById('localFileNameSpan').textContent = file.name;
+        document.getElementById('localUploadContainer').style.display = 'block';
+        
         alert(\`本機載入成功！共解析出 \${parsedChatLog.messages.length} 筆對話記錄。\`);
       };
       reader.readAsText(file);
+    }
+
+    async function uploadLocalFileToCloud() {
+      if (!lastLoadedLocalFileName || !lastLoadedLocalFileContent) {
+        alert('無效的本機載入檔案內容，請先拖放或選擇本機文字檔！');
+        return;
+      }
+      
+      const chatName = parsedChatLog ? (parsedChatLog.chatName || '未命名對話') : '對話備份';
+      
+      // Format YYYYMMDD date suffix for suggestion alias
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const dateStr = \`\${yyyy}\${mm}\${dd}\`;
+      const defaultAlias = \`\${chatName}_\${dateStr}_備份\`;
+      
+      const alias = prompt('請輸入此對話備份在雲端大腦中的「顯示別名」：', defaultAlias);
+      if (alias === null) return; // User cancelled
+      
+      const uploadBtn = document.getElementById('btnUploadLocalToCloud');
+      const originalText = uploadBtn.innerHTML;
+      uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 上傳中...';
+      uploadBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=upload_file&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=upload_file&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            filename: lastLoadedLocalFileName,
+            alias: alias.trim() || lastLoadedLocalFileName,
+            content: lastLoadedLocalFileContent
+          })
+        });
+        
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert(\`上傳並註冊成功！\\n雲端別名：\${result.alias}\\n上傳時間：\${result.uploaded_at}\`);
+          
+          // Switch to Cloud sync panel
+          const driveTabBtn = document.querySelector('#slicerTabs button[data-bs-target="#drive-panel"]');
+          if (driveTabBtn) {
+            const bsTab = new bootstrap.Tab(driveTabBtn);
+            bsTab.show();
+          }
+          
+          // Refresh list and select the uploaded file
+          await refreshDriveFiles(url, token);
+          
+          const selectEl = document.getElementById('driveFilesSelect');
+          if (selectEl) {
+            selectEl.value = result.file_id;
+            toggleDrivePreviewButton();
+            // Load file content instantly so dates checklist is populated
+            loadSelectedDriveFile();
+          }
+        } else {
+          throw new Error(result.error || '上傳失敗');
+        }
+      } catch (err) {
+        alert(\`上傳失敗: \${err.message}\`);
+      } finally {
+        uploadBtn.innerHTML = originalText;
+        uploadBtn.disabled = false;
+      }
     }
 
     // 4. Process raw text and group
@@ -3666,6 +4261,13 @@ const MVP_HTML = `<!doctype html>
       
       document.getElementById('driveLoadStatus').innerText = '';
       document.getElementById('localFileInput').value = '';
+      
+      // Reset local file upload state
+      lastLoadedLocalFileName = '';
+      lastLoadedLocalFileContent = '';
+      const uploadContainer = document.getElementById('localUploadContainer');
+      if (uploadContainer) uploadContainer.style.display = 'none';
+      
       updateUnifiedCompiledContext();
     }
 
@@ -3699,7 +4301,11 @@ const MVP_HTML = `<!doctype html>
         if (result.ok && result.data && result.data.length > 0) {
           let html = '<option value="">-- 請選擇官方帳號 / 對話群組 --</option>';
           result.data.forEach(c => {
-            html += \`<option value="\${c.bot_alias}|\${c.chat_id}">助手: \${c.bot_alias} | 群組ID: \${c.chat_id}</option>\`;
+            const hasCustom = c.custom_name && c.custom_name !== c.default_name;
+            const labelName = hasCustom 
+              ? \`\${c.custom_name} (原名: \${c.default_name})\` 
+              : c.default_name;
+            html += \`<option value="\${c.bot_alias}|\${c.chat_id}" data-default-name="\${c.default_name.replace(/"/g, '&quot;')}" data-custom-name="\${c.custom_name.replace(/"/g, '&quot;')}">助手: \${c.bot_alias} | \${labelName}</option>\`;
           });
           selectEl.innerHTML = html;
           loadBtn.disabled = false;
@@ -3709,6 +4315,8 @@ const MVP_HTML = `<!doctype html>
       } catch (err) {
         console.error('Failed to list db chats:', err);
         selectEl.innerHTML = \`<option value="">讀取失敗: \${err.message}</option>\`;
+      } finally {
+        toggleDbPreviewButton();
       }
     }
 
@@ -3759,6 +4367,135 @@ const MVP_HTML = `<!doctype html>
         statusEl.innerText = \`載入失敗: \${err.message}\`;
       } finally {
         loadBtn.disabled = false;
+      }
+    }
+
+    function handleDbChatsSelectChange() {
+      toggleDbPreviewButton();
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
+      if (selectEl && nicknameBtn) {
+        nicknameBtn.disabled = !selectEl.value;
+      }
+    }
+
+    function toggleDbPreviewButton() {
+      const selectEl = document.getElementById('dbChatsSelect');
+      const previewBtn = document.getElementById('btnPreviewDbChat');
+      if (selectEl && previewBtn) {
+        previewBtn.disabled = !selectEl.value;
+      }
+    }
+
+    async function promptEditDbChatNickname() {
+      const selectEl = document.getElementById('dbChatsSelect');
+      const selectedVal = selectEl.value;
+      if (!selectedVal) {
+        alert('請先選擇官方帳號！');
+        return;
+      }
+      
+      const [botAlias, chatId] = selectedVal.split('|');
+      const selectedOption = selectEl.options[selectEl.selectedIndex];
+      const currentCustomName = selectedOption.getAttribute('data-custom-name') || '';
+      const currentDefaultName = selectedOption.getAttribute('data-default-name') || '';
+      
+      const newNickname = prompt(\`修改此官方帳號對話的自訂別名（暱稱）：\`, currentCustomName || currentDefaultName);
+      if (newNickname === null) return; // User cancelled
+      if (!newNickname.trim()) {
+        alert('暱稱不能為空！');
+        return;
+      }
+      
+      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
+      const originalText = nicknameBtn.innerHTML;
+      nicknameBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      nicknameBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=update_chat_nickname&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=update_chat_nickname&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            chat_id: chatId,
+            bot_alias: botAlias,
+            custom_name: newNickname.trim()
+          })
+        });
+        
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert('自訂別名修改成功！');
+          
+          // Update selected option data attributes locally instantly
+          selectedOption.setAttribute('data-custom-name', result.custom_name);
+          const hasCustom = result.custom_name !== currentDefaultName;
+          const labelName = hasCustom 
+            ? \`\${result.custom_name} (原名: \${currentDefaultName})\` 
+            : currentDefaultName;
+          
+          selectedOption.text = \`助手: \${botAlias} | \${labelName}\`;
+        } else {
+          throw new Error(result.error || '修改失敗');
+        }
+      } catch (err) {
+        alert(\`修改暱稱失敗: \${err.message}\`);
+      } finally {
+        nicknameBtn.innerHTML = originalText;
+        nicknameBtn.disabled = false;
+      }
+    }
+
+    async function previewSelectedDbChat() {
+      const selectEl = document.getElementById('dbChatsSelect');
+      const selectedVal = selectEl.value;
+      const optionText = selectEl.options[selectEl.selectedIndex].text;
+      
+      if (!selectedVal) {
+        alert('請先選擇官方帳號！');
+        return;
+      }
+      
+      const [botAlias, chatId] = selectedVal.split('|');
+      
+      const previewBtn = document.getElementById('btnPreviewDbChat');
+      const originalText = previewBtn.innerHTML;
+      previewBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      previewBtn.disabled = true;
+      
+      const url = document.getElementById('gasUrlInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+      
+      let fetchUrl = url;
+      if (fetchUrl.indexOf('?') === -1) {
+        fetchUrl += \`?action=get_raw_file&bot_alias=\${botAlias}&chat_id=\${chatId}&token=\${token}\`;
+      } else {
+        fetchUrl += \`&action=get_raw_file&bot_alias=\${botAlias}&chat_id=\${chatId}&token=\${token}\`;
+      }
+      
+      try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const text = await response.text();
+        
+        openPreviewWindow(\`雲端對話備份預覽：\${optionText}\`, text);
+      } catch (err) {
+        alert(\`預覽讀取失敗: \\\${err.message} (可能尚無上傳此對話的備份文字檔)\`);
+      } finally {
+        previewBtn.innerHTML = originalText;
+        previewBtn.disabled = false;
       }
     }
 
@@ -5033,6 +5770,453 @@ const MVP_HTML = `<!doctype html>
       }
     }
 
+    function previewSelectedLineExport() {
+      if (!parsedChatLog || selectedDates.size === 0) {
+        alert('請先載入 LINE 對話並勾選至少一天的對話紀錄！');
+        return;
+      }
+      
+      const chatName = parsedChatLog.chatName || '未命名對話';
+      const sortedSelected = Array.from(selectedDates).sort();
+      const prefix = document.getElementById('lineFilePrefix').value.trim() || 'LN';
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : \`\${minSelectedDate}_\${maxSelectedDate}\`;
+        
+      const filename = \`\${prefix}_\${chatName}_\${dateRangeStr}.txt\`;
+      
+      let textContent = [];
+      textContent.push(\`[LINE] \${chatName}的聊天記錄\`);
+      textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+      
+      sortedSelected.forEach(d => {
+        const group = groupedByDate[d];
+        if (!group) return;
+        
+        const dateObj = new Date(d);
+        const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+        const weekdayStr = weekdays[dateObj.getDay()];
+        
+        textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+        group.messages.forEach(msg => {
+          textContent.push(\`\${msg.time}\\t\${msg.sender}\\t\${msg.content}\`);
+        });
+        textContent.push('');
+      });
+      
+      openPreviewWindow(\`匯出檔案預覽：\${filename}\`, textContent.join('\\n'));
+    }
+
+    function previewSelectedDbExport() {
+      if (!dbParsedEvents || dbSelectedDates.size === 0) {
+        alert('請先選取官方助手對話並勾選至少一天的紀錄！');
+        return;
+      }
+      
+      const selectEl = document.getElementById('dbChatsSelect');
+      const chatInfo = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '官方帳號對話';
+      const sortedSelected = Array.from(dbSelectedDates).sort();
+      const prefix = document.getElementById('dbFilePrefix').value.trim() || 'DB';
+      
+      const minSelectedDate = sortedSelected[0];
+      const maxSelectedDate = sortedSelected[sortedSelected.length - 1];
+      const dateRangeStr = (minSelectedDate === maxSelectedDate) 
+        ? minSelectedDate 
+        : \`\${minSelectedDate}_\${maxSelectedDate}\`;
+        
+      const filename = \`\${prefix}_\${chatInfo}_\${dateRangeStr}.txt\`;
+      
+      let textContent = [];
+      textContent.push(\`[LINE] 官方助手對話 - \${chatInfo}\`);
+      textContent.push(\`儲存日期：\${new Date().toLocaleDateString('zh-TW')}\\n\`);
+      
+      sortedSelected.forEach(d => {
+        const group = dbGroupedByDate[d];
+        if (!group) return;
+        
+        const dateObj = new Date(d);
+        const weekdays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+        const weekdayStr = weekdays[dateObj.getDay()];
+        
+        textContent.push(\`\${d.replace(/-/g, '/')}(\${weekdayStr})\`);
+        group.messages.forEach(msg => {
+          const roleLabel = msg.role === "host" ? "[官方助手]" : "[使用者]";
+          textContent.push(\`\${msg.time}\\t\${msg.sender}\${roleLabel}\\t\${msg.content}\`);
+        });
+        textContent.push('');
+      });
+      
+      openPreviewWindow(\`匯出檔案預覽：\${filename}\`, textContent.join('\\n'));
+    }
+
+    // ==========================================
+    // FALO Prompt Template Manager Logic
+    // ==========================================
+     const defaultPrompts = [
+      {
+        name: "📌 預設: 對話摘要與待辦 (Falo Default)",
+        content: "請分析以下對話紀錄，摘要雙方討論重點、已達成的決議以及待辦事項 (Task, Owner, Due Date)。\\n（提示：請使用結構清晰的 Markdown 格式輸出，前端會自動將其渲染為 HTML 好讀版，請在輸出時同時考慮 MD 原始碼與 HTML 網頁版之閱讀美感，善用標題、粗體、清單與表格排版。）"
+      },
+      {
+        name: "🎯 任務待辦與專案里程碑稽核",
+        content: "請扮演專案經理 (PM)，徹底掃描以下對話：\\n1. 萃取出所有提及的具體工作任務 (Action Items)。\\n2. 明確標示出負責人 (Owner) 與預計完成時間 (Due Date)，若無明確指派則標記為「未指派」。\\n3. 梳理出目前專案的主要里程碑 (Milestones) 或是關鍵交期。\\n4. 請以表格形式整理待辦清單，並依急迫性由高到低排序。"
+      },
+      {
+        name: "🔍 客服回覆品質與滿意度檢測",
+        content: "請扮演客服主管，審查以下官方助手與客戶的對話：\\n1. 客服人員 (官方助手) 的回覆語氣是否專業禮貌、是否精確解答了客戶痛點？\\n2. 客戶是否展現焦慮、生氣或不耐煩等負面情緒？請給出客戶情緒溫度 (冷靜/急躁/憤怒)。\\n3. 標記出客服應對中是否有答非所問或超時回覆的情形。\\n4. 提供客服應對質檢分數 (0-100)，並給出 3 點具體的應對優化建議。"
+      },
+      {
+        name: "💡 銷售商機與用戶痛點需求挖掘",
+        content: "請扮演業務行銷總監，分析對話以挖掘商業機會：\\n1. 識別出哪些客戶在對話中表達了明確的購買意願、興趣或諮詢？\\n2. 整理出客戶目前面臨的最大「痛點需求」與「預算/考量點」。\\n3. 客戶對產品功能或服務條款有哪些疑問或抗拒點 (Objections)？\\n4. 建議業務經理後續的最佳跟進 (Follow-up) 行動方案。"
+      },
+      {
+        name: "⚠️ 爭議客訴與公關危機風險預警",
+        content: "請扮演風控法務官，審查對話中的潛在風險：\\n1. 掃描是否有包含可能引發「法律訴訟」、「客訴退款爭議」或「公關危機」的言論。\\n2. 評估當前危機等級 (紅燈-高危/黃燈-中危/綠燈-安全)。\\n3. 指出最關鍵的衝突對話片段與原因。\\n4. 提供一份緊急的緩和對策與標準公關回覆口徑 (Draft Response)。"
+      },
+      {
+        name: "🧠 團隊知識萃取與 FAQ 整理",
+        content: "請扮演知識庫管理員 (Knowledge Manager)，從歷史對話中提煉有價值的 FAQ：\\n1. 找出群組成員最常詢問的 3-5 個常規技術/商務問題。\\n2. 結合對話中專家或官方給出的正確解答，整理成清晰的「Q&A 常見問答對」。\\n3. 提取對話中提及的專業術語、流程步驟或操作規範。\\n4. 這些問答將用來擴充系統 RAG 知識庫，請確保內容正確、步驟詳實。"
+      },
+      {
+        name: "👥 成員參與度與活躍角色審計",
+        content: "請扮演組織行為專家，評估群組成員的互動動態：\\n1. 統計或分析誰是群組中的「意見領袖 (Leader)」、「技術解惑者」與「提問者」。\\n2. 有無成員長時間處於被邊緣化或回覆冷淡的狀態？\\n3. 評估團隊內部的協作默契與共識凝聚力。\\n4. 針對提升群組互動活躍度，給出管理者的建議。"
+      },
+      {
+        name: "📈 競品分析與客戶決策心智動向",
+        content: "請扮演市場研究經理，分析對話中客戶的決策考量：\\n1. 客戶在對話中是否有提及其他競品公司或替代方案？(如比較價格、規格、售後等)\\n2. 客戶對我們產品的品牌形象 (Brand Perception) 評價為何？\\n3. 客戶最終決定下單（或流失）的核心決策因子是什麼？\\n4. 提出我們相較於競品的核心優勢與應改進的弱點。"
+      },
+      {
+        name: "💬 情感傾向與團隊氛圍健康度量",
+        content: "請扮演心靈導師或 HR 關懷專員，分析這段期間 of 對話氛圍：\\n1. 判斷對話的整體基調 (樂觀支持、焦慮緊繃、冷淡敷衍、互推職責)。\\n2. 分析有無特定成員出現工作壓力過載、情緒瀕臨崩潰或溝通衝突的跡象？\\n3. 評估團隊目前的「心理安全感」指數 (高/中/低)。\\n4. 提供 HR 或主管如何介入關懷、舉辦團建或調整分工的具體建議。"
+      },
+      {
+        name: "📜 商業承諾與合約口頭協議稽核",
+        content: "請扮演稽核專員，追蹤對話中對外承諾的合規性：\\n1. 找出業務或客服在對話中對客戶做出的任何口頭承諾 (如特批折扣、加贈好禮、特定交期、客製化開發等)。\\n2. 檢查這些承諾是否符合公司常規合約規範，有無「過度承諾 (Over-promise)」風險？\\n3. 列出需要向主管呈報審批的特批項目清單。\\n4. 建議後續應如何在正式合約或報價單中落實這些承諾條款。"
+      }
+    ];
+
+    let customPrompts = [];
+    try {
+      customPrompts = JSON.parse(localStorage.getItem('faloCustomPrompts') || '[]');
+    } catch(e) {
+      customPrompts = [];
+    }
+
+    let selectedPromptKey = "default_0";
+
+    function renderPromptTemplates() {
+      const listEl = document.getElementById('promptTemplateList');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      
+      // Add default prompts
+      defaultPrompts.forEach((p, idx) => {
+        const itemKey = \`default_\${idx}\`;
+        const isActive = (selectedPromptKey === itemKey) ? 'active' : '';
+        
+        const item = document.createElement('a');
+        item.href = 'javascript:void(0)';
+        item.className = \`list-group-item list-group-item-action prompt-list-item text-light border-0 py-2 px-3 small \${isActive}\`;
+        item.style.background = 'transparent';
+        item.style.fontSize = '12.5px';
+        item.innerHTML = \`<i class="bi bi-file-earmark-text text-muted me-2"></i> \${p.name}\`;
+        item.onclick = () => selectPromptTemplate(itemKey);
+        listEl.appendChild(item);
+      });
+      
+      // Add custom prompts
+      customPrompts.forEach((p, idx) => {
+        const itemKey = \`custom_\${idx}\`;
+        const isActive = (selectedPromptKey === itemKey) ? 'active' : '';
+        
+        const item = document.createElement('a');
+        item.href = 'javascript:void(0)';
+        item.className = \`list-group-item list-group-item-action prompt-list-item text-light border-0 py-2 px-3 small d-flex justify-content-between align-items-center \${isActive}\`;
+        item.style.background = 'transparent';
+        item.style.fontSize = '12.5px';
+        item.innerHTML = \`
+          <span><i class="bi bi-star-fill text-warning me-2" style="font-size: 10px;"></i> \${p.name}</span>
+          <button class="btn btn-link btn-xs p-0 text-danger" onclick="deleteCustomPromptItem(\${idx}, event)" title="刪除">
+            <i class="bi bi-trash"></i>
+          </button>
+        \`;
+        item.onclick = (e) => {
+          if (e.target.closest('.btn')) return; // skip if delete button clicked
+          selectPromptTemplate(itemKey);
+        };
+        listEl.appendChild(item);
+      });
+    }
+
+    function selectPromptTemplate(key) {
+      selectedPromptKey = key;
+      const promptInput = document.getElementById('unifiedAiPromptInput');
+      
+      if (key.startsWith('default_')) {
+        const idx = parseInt(key.split('_')[1], 10);
+        if (promptInput) promptInput.value = defaultPrompts[idx].content;
+      } else if (key.startsWith('custom_')) {
+        const idx = parseInt(key.split('_')[1], 10);
+        if (promptInput) promptInput.value = customPrompts[idx].content;
+      }
+      
+      renderPromptTemplates();
+      updateUnifiedCompiledContext();
+    }
+
+    function deleteCustomPromptItem(idx, event) {
+      event.stopPropagation();
+      const pName = customPrompts[idx].name;
+      if (confirm(\`確定要刪除自訂提示詞「\${pName}」嗎？\`)) {
+        customPrompts.splice(idx, 1);
+        localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+        
+        if (selectedPromptKey === \`custom_\${idx}\`) {
+          selectedPromptKey = 'default_0';
+        } else if (selectedPromptKey.startsWith('custom_')) {
+          const currentIdx = parseInt(selectedPromptKey.split('_')[1], 10);
+          if (currentIdx > idx) {
+            selectedPromptKey = \`custom_\${currentIdx - 1}\`;
+          } else if (currentIdx === idx) {
+            selectedPromptKey = 'default_0';
+          }
+        }
+        
+        selectPromptTemplate(selectedPromptKey);
+      }
+    }
+
+    function showAddPromptForm() {
+      document.getElementById('addPromptForm').classList.remove('d-none');
+      document.getElementById('newPromptName').value = '';
+      document.getElementById('newPromptContent').value = '';
+      document.getElementById('newPromptName').focus();
+    }
+
+    function hideAddPromptForm() {
+      document.getElementById('addPromptForm').classList.add('d-none');
+    }
+
+    function saveNewPromptTemplate() {
+      const name = document.getElementById('newPromptName').value.trim();
+      const content = document.getElementById('newPromptContent').value.trim();
+      
+      if (!name || !content) {
+        alert('請填寫提示詞名稱與完整的提示詞內容！');
+        return;
+      }
+      
+      const isDuplicate = customPrompts.some(p => p.name === name) || defaultPrompts.some(p => p.name === name);
+      if (isDuplicate) {
+        alert('已存在同名的提示詞範本，請更換名稱！');
+        return;
+      }
+      
+      customPrompts.push({ name, content });
+      localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+      
+      selectedPromptKey = \`custom_\${customPrompts.length - 1}\`;
+      selectPromptTemplate(selectedPromptKey);
+      
+      hideAddPromptForm();
+      alert(\`已成功儲存提示詞「\${name}」！\`);
+    }
+
+    function exportPromptsToCsv() {
+      let csvContent = [];
+      csvContent.push("Name,Content");
+      
+      // Export all templates
+      const all = [...defaultPrompts, ...customPrompts];
+      all.forEach(p => {
+        const nameEscaped = '"' + p.name.replace(/"/g, '""') + '"';
+        const contentEscaped = '"' + p.content.replace(/"/g, '""') + '"';
+        csvContent.push(\`\${nameEscaped},\${contentEscaped}\`);
+      });
+      
+      const fullCsv = csvContent.join('\\n');
+      const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), fullCsv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', \`Falo_Prompts_Backup_\${new Date().toISOString().slice(0,10)}.csv\`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function parseCsvString(csvText) {
+      const lines = [];
+      let row = [""];
+      let inQuotes = false;
+      
+      for (let i = 0; i < csvText.length; i++) {
+        const c = csvText[i];
+        const next = csvText[i + 1];
+        
+        if (c === '"') {
+          if (inQuotes && next === '"') {
+            row[row.length - 1] += '"';
+            i++; // skip next quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          row.push("");
+        } else if ((c === '\\r' || c === '\\n') && !inQuotes) {
+          if (c === '\\r' && next === '\\n') {
+            i++; // skip LF
+          }
+          lines.push(row);
+          row = [""];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== "") {
+        lines.push(row);
+      }
+      return lines;
+    }
+
+    function importPromptsFromCsv(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = parseCsvString(text);
+        
+        if (rows.length < 2) {
+          alert('CSV 格式錯誤或無資料！');
+          return;
+        }
+        
+        const header = rows[0];
+        const nameIdx = header.findIndex(h => h.trim().toLowerCase() === 'name');
+        const contentIdx = header.findIndex(h => h.trim().toLowerCase() === 'content');
+        
+        if (nameIdx === -1 || contentIdx === -1) {
+          alert('CSV 標頭必須包含 "Name" 與 "Content" 兩個欄位名稱！');
+          return;
+        }
+        
+        let importedCount = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length <= Math.max(nameIdx, contentIdx)) continue;
+          
+          const name = row[nameIdx].trim();
+          const content = row[contentIdx].trim();
+          
+          if (name && content) {
+            const isDuplicate = customPrompts.some(p => p.name === name) || defaultPrompts.some(p => p.name === name);
+            if (!isDuplicate) {
+              customPrompts.push({ name, content });
+              importedCount++;
+            }
+          }
+        }
+        
+        if (importedCount > 0) {
+          localStorage.setItem('faloCustomPrompts', JSON.stringify(customPrompts));
+          renderPromptTemplates();
+          alert(\`成功匯入 \${importedCount} 個自訂提示詞！\`);
+        } else {
+          alert('未匯入任何新提示詞（可能名稱重複或檔案內容為空）。');
+        }
+        
+        event.target.value = '';
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    // ==========================================
+    // FALO Prompt Textareas Font-Size and Height Controllers
+    // ==========================================
+    let currentPromptFontSize = 13;
+    let currentPromptHeight = 300;
+    let isSyncingHeight = false;
+
+    function adjustPromptTextareasFontSize(delta) {
+      currentPromptFontSize = Math.max(10, Math.min(24, currentPromptFontSize + delta));
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      if (textareaPrompt) textareaPrompt.style.fontSize = currentPromptFontSize + 'px';
+      if (textareaPreview) textareaPreview.style.fontSize = currentPromptFontSize + 'px';
+      
+      const label = document.getElementById('promptTextareaFontSizeLabel');
+      if (label) label.innerText = currentPromptFontSize + 'px';
+      localStorage.setItem('faloPromptFontSize', currentPromptFontSize);
+    }
+
+    function adjustPromptTextareasHeight(delta) {
+      currentPromptHeight = Math.max(150, Math.min(1200, currentPromptHeight + delta));
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      isSyncingHeight = true;
+      if (textareaPrompt) textareaPrompt.style.height = currentPromptHeight + 'px';
+      if (textareaPreview) textareaPreview.style.height = currentPromptHeight + 'px';
+      isSyncingHeight = false;
+      
+      const label = document.getElementById('promptTextareasHeightLabel');
+      if (label) label.innerText = currentPromptHeight + 'px';
+      localStorage.setItem('faloPromptHeight', currentPromptHeight);
+    }
+
+    // Initialize ResizeObserver to synchronize native resize drags
+    window.addEventListener('DOMContentLoaded', () => {
+      // Load saved font size and height
+      const savedFontSize = localStorage.getItem('faloPromptFontSize');
+      if (savedFontSize) {
+        currentPromptFontSize = parseInt(savedFontSize, 10);
+        adjustPromptTextareasFontSize(0);
+      }
+      
+      const savedHeight = localStorage.getItem('faloPromptHeight');
+      if (savedHeight) {
+        currentPromptHeight = parseInt(savedHeight, 10);
+        adjustPromptTextareasHeight(0);
+      } else {
+        adjustPromptTextareasHeight(0); // Default 300px
+      }
+
+      const textareaPrompt = document.getElementById('unifiedAiPromptInput');
+      const textareaPreview = document.getElementById('unifiedCompiledContextPreview');
+      
+      if (textareaPrompt && textareaPreview && typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(entries => {
+          if (isSyncingHeight) return;
+          for (let entry of entries) {
+            const newHeight = entry.target.offsetHeight;
+            if (newHeight <= 0) continue; // Skip hidden elements
+            
+            const otherTextarea = (entry.target === textareaPrompt) ? textareaPreview : textareaPrompt;
+            // Only sync if the height difference is significant (> 4px) to prevent circular feedback loops
+            if (Math.abs(otherTextarea.offsetHeight - newHeight) > 4) {
+              isSyncingHeight = true;
+              otherTextarea.style.height = newHeight + 'px';
+              currentPromptHeight = newHeight;
+              
+              const label = document.getElementById('promptTextareasHeightLabel');
+              if (label) label.innerText = newHeight + 'px';
+              localStorage.setItem('faloPromptHeight', newHeight);
+              isSyncingHeight = false;
+            }
+          }
+        });
+        observer.observe(textareaPrompt);
+        observer.observe(textareaPreview);
+      }
+    });
+
     // Global event listener to add btn-clicked class for click visual feedback
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.btn');
@@ -5045,11 +6229,1382 @@ const MVP_HTML = `<!doctype html>
     });
   </script>
 
+  <!-- Modal: Cloud Files Manager -->
+  <div class="modal fade" id="cloudFilesManagerModal" tabindex="-1" aria-labelledby="cloudFilesManagerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content" style="background: #0f172a; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+        <div class="modal-header border-secondary border-opacity-20">
+          <h5 class="modal-title fw-bold text-teal d-flex align-items-center gap-2" id="cloudFilesManagerModalLabel" style="color: var(--primary-teal);">
+            <i class="bi bi-clouds-fill"></i> ☁️ 雲端備份檔案管理器
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <!-- Exports Folder Direct Link Alert -->
+          <div class="alert alert-info py-3 px-4 border border-info border-opacity-25 rounded mb-4" style="background: rgba(14, 165, 233, 0.1);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="text-light">
+                <i class="bi bi-folder-symlink-fill text-info me-2 fs-5"></i>
+                <span>Google Drive 雲端實體備份資料夾目錄：</span>
+              </div>
+              <a class="btn btn-sm btn-outline-info text-decoration-none fw-bold" id="modalExportsFolderLink" href="https://drive.google.com" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i> 在網頁中開啟 Google Drive 資料夾
+              </a>
+            </div>
+          </div>
+
+          <!-- Files Table -->
+          <div class="table-responsive border border-secondary border-opacity-20 rounded" style="max-height: 450px; overflow-y: auto; background: rgba(15, 23, 42, 0.6);">
+            <table class="table table-dark table-striped table-hover align-middle mb-0" style="font-size: 13px;">
+              <thead class="sticky-top" style="z-index: 10;">
+                <tr class="table-dark" style="border-bottom: 2px solid rgba(255, 255, 255, 0.1);">
+                  <th style="background: #1e293b; color: #a78bfa;">別名 (雙擊或點右側圖示編輯)</th>
+                  <th style="background: #1e293b; color: #9ca3af;">原始檔案名稱 / 雲端 ID</th>
+                  <th style="background: #1e293b; color: #9ca3af; width: 100px;">大小</th>
+                  <th style="background: #1e293b; color: #9ca3af; width: 160px;">上傳時間</th>
+                  <th style="background: #1e293b; color: #f43f5e; width: 120px;" class="text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="managerFilesTableBody">
+                <!-- Dynamically populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-20 p-3">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- JS: Marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- JS: Bootstrap 5 Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+`;
+const MOBILE_HTML = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Falo IM 快捷手機版</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-teal: #0ea5e9;
+      --primary-purple: #8b5cf6;
+      --bg-slate: #0f172a;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    body {
+      background-color: #05070f;
+      color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    
+    /* Mobile portrait viewport layout on desktop, full screen on mobile */
+    .mobile-container {
+      max-width: 500px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background-color: var(--bg-slate);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 16px 30px 16px;
+    }
+    
+    .header {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 16px;
+    }
+    
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
+    }
+    
+    .status-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: rgba(14, 165, 233, 0.1);
+      color: #38bdf8;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+    
+    .glass-box {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .card-title-custom {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .group-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin: 12px 0 6px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+    }
+    
+    .chat-checkbox-item {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .chat-checkbox-item:hover, .chat-checkbox-item:active {
+      border-color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.05);
+    }
+    
+    .chat-checkbox-item.selected {
+      border-color: var(--primary-teal) !important;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+    }
+    
+    .chat-checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-teal);
+      flex-shrink: 0;
+    }
+
+    /* LINE Simulation CSS */
+    .line-chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 20px;
+    }
+    
+    .chat-date-header {
+      text-align: center;
+      margin: 16px 0;
+    }
+    
+    .chat-date-badge {
+      background: rgba(0, 0, 0, 0.25);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+    
+    .chat-msg-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      max-width: 85%;
+    }
+    
+    .chat-msg-row.left-msg {
+      align-self: flex-start;
+    }
+    
+    .chat-msg-row.right-msg {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      max-width: 85%;
+    }
+    
+    .chat-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-msg-content-wrapper {
+      margin-left: 8px;
+      margin-right: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chat-sender-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 3px;
+    }
+    
+    .chat-bubble-container {
+      display: flex;
+      align-items: flex-end;
+    }
+    
+    .chat-bubble-left {
+      background: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 0 12px 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .chat-bubble-right {
+      background: #0d9488;
+      color: #ffffff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 12px 0 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+    }
+    
+    .chat-bubble-time {
+      font-size: 9px;
+      color: #64748b;
+      margin: 0 6px;
+      white-space: nowrap;
+    }
+    
+    .chat-system-msg {
+      align-self: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      margin: 8px 0;
+    }
+    
+    .preview-btn-mobile {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .preview-btn-mobile:hover, .preview-btn-mobile:active {
+      background: var(--primary-teal);
+      border-color: var(--primary-teal);
+      color: #ffffff;
+    }
+    
+    .badge-source {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .badge-db {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-file {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    
+    /* Segmented Time Range Controller */
+    .range-selector-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .range-pill {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .range-pill.active {
+      background: var(--primary-teal);
+      border-color: var(--primary-teal);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    }
+    
+    .form-control-custom {
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid var(--border-color) !important;
+      color: #f8fafc !important;
+      border-radius: 8px !important;
+    }
+    
+    .form-control-custom:focus {
+      border-color: var(--primary-teal) !important;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+    }
+    
+    .btn-purple {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      transition: all 0.2s !important;
+    }
+    
+    .btn-purple:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    .btn-purple:disabled {
+      background: #334155 !important;
+      box-shadow: none !important;
+      opacity: 0.6;
+    }
+    
+    #reportOutput pre {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    
+    #reportOutput .report-rendered {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    #reportOutput .report-rendered h1, #reportOutput .report-rendered h2, #reportOutput .report-rendered h3 {
+      color: #fbbf24;
+      font-weight: 700;
+      margin-top: 16px;
+    }
+    #reportOutput .report-rendered ul, #reportOutput .report-rendered ol {
+      padding-left: 20px;
+    }
+    
+    .collapsible-header {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      user-select: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .collapsible-header:hover, .collapsible-header:active {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .transition-transform {
+      transition: transform 0.2s;
+    }
+    .icon-rotated {
+      transform: rotate(-90deg);
+    }
+    .collapse-content {
+      padding-top: 4px;
+    }
+    .back-link {
+      font-size: 12px;
+      color: #64748b;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: #38bdf8;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .mobile-container > *:not(#reportCard),
+      #reportCard .card-title-custom,
+      .mt-auto {
+        display: none !important;
+      }
+      .mobile-container {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      #reportCard {
+        display: block !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      #reportOutput {
+        max-height: none !important;
+        overflow: visible !important;
+        color: #000000 !important;
+      }
+      #reportOutput .report-rendered {
+        color: #000000 !important;
+      }
+      #reportOutput .report-rendered h1, 
+      #reportOutput .report-rendered h2, 
+      #reportOutput .report-rendered h3 {
+        color: #000000 !important;
+        border-bottom: 1px solid #dddddd;
+        padding-bottom: 4px;
+      }
+    /* File Preview Modal Styles */
+    .preview-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1050;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    
+    .preview-content-box {
+      width: 100%;
+      max-width: 480px;
+      height: 85vh;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    
+    .preview-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(15, 23, 42, 0.4);
+    }
+    
+    .preview-scroll-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #090d16;
+      font-family: monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    
+    .preview-text-content {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .preview-line-loading-badge {
+      text-align: center;
+      font-size: 10px;
+      color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px dashed rgba(14, 165, 233, 0.2);
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 12px;
+    }
+    
+    /* Touch friendly preview icon styles */
+    .preview-icon-btn {
+      color: #64748b;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .preview-icon-btn:hover, .preview-icon-btn:active {
+      color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.1);
+      border-color: rgba(14, 165, 233, 0.2);
+    }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-container">
+    <!-- Header -->
+    <div class="header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-cpu-fill text-teal fs-4" style="color: var(--primary-teal);"></i>
+        <span class="logo-text">Falo IM Mobile</span>
+      </div>
+      <span class="status-badge" id="connStatus"><i class="bi bi-wifi"></i> 連線中...</span>
+    </div>
+
+    <!-- Step 1: Select Chats (Official Accounts + Uploaded Files) -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-chat-left-text-fill text-teal" style="color: var(--primary-teal);"></i>
+        1. 選擇對話資料來源 (可多選)
+      </div>
+      <div id="chatsListContainer" style="max-height: 220px; overflow-y: auto; padding-right: 4px;">
+        <div class="text-center text-muted py-3 small">正在載入雲端對話與檔案清單...</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Time Range Filter Presets -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-calendar-event text-warning"></i>
+        2. 篩選時間範圍
+      </div>
+      <div class="range-selector-row">
+        <div class="range-pill" id="pill_today" onclick="selectTimeRange('today')">今天</div>
+        <div class="range-pill active" id="pill_week" onclick="selectTimeRange('week')">本週</div>
+        <div class="range-pill" id="pill_month" onclick="selectTimeRange('month')">本月</div>
+        <div class="range-pill" id="pill_all" onclick="selectTimeRange('all')">全部</div>
+        <div class="range-pill" id="pill_custom" onclick="selectTimeRange('custom')">自訂天數</div>
+      </div>
+      
+      <!-- Custom Days Input (Hidden by default) -->
+      <div id="customDaysWrapper" class="mb-3" style="display: none;">
+        <label class="form-label text-muted small fw-bold mb-1">自訂篩選天數 (包含今天)</label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="customDaysInput" class="form-control form-control-custom text-center" value="3" min="1" max="180" onchange="autoSelectSourcesByTimeRange()" oninput="autoSelectSourcesByTimeRange()">
+          <span class="input-group-text bg-dark border-secondary text-light small">天內</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Prompt & Model -->
+    <div class="glass-box">
+      <div class="card-title-custom">
+        <i class="bi bi-cpu-fill text-indigo" style="color: #8b5cf6;"></i>
+        3. 設定分析參數
+      </div>
+      
+      <!-- Model Provider Select -->
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label text-muted small fw-bold mb-1">模型來源</label>
+          <select id="modelProviderSelect" class="form-select form-control-custom" onchange="toggleMobileModelProvider()">
+            <option value="builtin" selected>☁️ 內建 AI (CF)</option>
+            <option value="gemini">✨ Google Gemini</option>
+          </select>
+        </div>
+        
+        <div class="col-6" id="builtinModelCol">
+          <label class="form-label text-muted small fw-bold mb-1">內建 AI 模型</label>
+          <select id="builtinModelSelect" class="form-select form-control-custom">
+            <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Llama 3.3 70B (進階高智能)</option>
+            <option value="@cf/mistralai/mistral-small-3.1-24b-instruct" selected>Mistral Small 24B (中型長文本)</option>
+            <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (輕量對話極速)</option>
+          </select>
+        </div>
+        
+        <div class="col-6" id="geminiModelCol" style="display: none;">
+          <label class="form-label text-muted small fw-bold mb-1">Gemini 模型</label>
+          <select id="geminiModelSelect" class="form-select form-control-custom">
+            <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash-Lite (預設)</option>
+            <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+            <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gemini Key Input -->
+      <div id="geminiKeyCol" class="mb-3" style="display: none;">
+        <label class="form-label text-muted small fw-bold mb-1"><i class="bi bi-key"></i> Gemini API Key (可選)</label>
+        <div class="d-flex gap-1">
+          <input type="password" id="geminiKeyInput" class="form-control form-control-custom py-1 px-2" style="font-size: 12px; height: 32px;" placeholder="輸入 API Key">
+          <button class="btn btn-outline-success btn-sm px-2" style="font-size: 11px; height: 32px;" onclick="saveMobileGeminiKey()"><i class="bi bi-save"></i> 儲存</button>
+        </div>
+      </div>
+
+      <!-- Prompt Input -->
+      <div class="mb-2">
+        <label class="form-label text-muted small fw-bold mb-1">分析指令 / 問題 (Prompt)</label>
+        <textarea id="promptInput" class="form-control form-control-custom" rows="3" placeholder="請輸入您想問 AI 的問題...">摘要最近的對話重點與代辦事項</textarea>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <button class="btn btn-purple w-100 mb-3" id="btnAnalyze" onclick="startMobileAnalysis()" disabled>
+      <i class="bi bi-lightning-fill"></i> ⚡ 開始 AI 分析
+    </button>
+
+    <!-- Step 4: Analysis Report -->
+    <div class="glass-box flex-grow-1 d-flex flex-column" id="reportCard" style="display: none !important;">
+      <div class="card-title-custom justify-content-between align-items-center">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-bar-graph-fill text-warning"></i> 4. 系統分析報告
+        </span>
+        <div class="d-flex align-items-center gap-1">
+          <!-- Font size controls -->
+          <div class="btn-group" role="group" style="height: 22px;">
+            <button class="btn btn-xs btn-outline-light py-0 px-2" style="font-size: 10px; line-height: 1.2;" onclick="adjustFontSize(-2)" title="縮小字體"><i class="bi bi-dash"></i>A</button>
+            <button class="btn btn-xs btn-outline-light py-0 px-2" style="font-size: 10px; line-height: 1.2;" onclick="adjustFontSize(2)" title="放大字體"><i class="bi bi-plus"></i>A</button>
+          </div>
+          <!-- Copy and PDF buttons -->
+          <button class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 11px; height: 22px; line-height: 1.8;" id="copyBtn" onclick="copyReport()"><i class="bi bi-clipboard"></i> 複製</button>
+          <button class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 11px; height: 22px; line-height: 1.8;" onclick="exportToPdf()"><i class="bi bi-file-pdf"></i> PDF</button>
+        </div>
+      </div>
+      <div id="reportOutput" class="flex-grow-1 overflow-y-auto" style="max-height: 350px;"></div>
+    </div>
+
+
+
+    <!-- Footer Links -->
+    <div class="mt-auto pt-3 text-center border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+      <a href="/mvp" class="back-link"><i class="bi bi-arrow-left"></i> 返回電腦版控制台</a>
+      <span class="text-muted" style="font-size: 11px;">Falo IM 3.03 © 2026</span>
+    </div>
+  </div>
+
+  <!-- JS: Bootstrap 5 Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- JS: Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <script>
+    let registeredChats = [];
+    let driveFiles = [];
+    let selectedTimeRangePreset = 'week'; // default week
+    let currentFontSize = 14;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAllSources();
+      
+      // Load saved font size preference
+      const savedSize = localStorage.getItem('faloReportFontSize');
+      if (savedSize) {
+        currentFontSize = parseInt(savedSize, 10);
+        const reportOutput = document.getElementById('reportOutput');
+        if (reportOutput) {
+          reportOutput.style.fontSize = currentFontSize + 'px';
+        }
+      }
+    });
+
+    function selectTimeRange(preset) {
+      selectedTimeRangePreset = preset;
+      
+      // Update pills UI
+      const presets = ['today', 'week', 'month', 'all', 'custom'];
+      presets.forEach(p => {
+        const pill = document.getElementById(\`pill_\${p}\`);
+        if (p === preset) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+      
+      // Toggle custom days input wrapper
+      const wrapper = document.getElementById('customDaysWrapper');
+      if (preset === 'custom') {
+        wrapper.style.display = 'block';
+      } else {
+        wrapper.style.display = 'none';
+      }
+
+      // Auto check dialogue files according to selected time range boundary
+      autoSelectSourcesByTimeRange();
+    }
+
+    async function loadAllSources() {
+      const container = document.getElementById('chatsListContainer');
+      const connStatus = document.getElementById('connStatus');
+      
+      try {
+        // Parallel fetch for active chats list and uploaded drive files
+        const [chatsRes, filesRes] = await Promise.all([
+          fetch('/api/chats'),
+          fetch('/api/dialogue-files')
+        ]);
+        
+        if (!chatsRes.ok) throw new Error('Chats list HTTP ' + chatsRes.status);
+        if (!filesRes.ok) throw new Error('Files list HTTP ' + filesRes.status);
+        
+        const chatsJson = await chatsRes.json();
+        const filesJson = await filesRes.json();
+        
+        registeredChats = chatsJson.ok ? chatsJson.data : [];
+        driveFiles = filesJson.ok ? filesJson.files : [];
+        
+        if (registeredChats.length === 0 && driveFiles.length === 0) {
+          container.innerHTML = '<div class="text-center text-secondary py-3 small">（無對話資料庫或備份紀錄）</div>';
+          connStatus.innerHTML = '<i class="bi bi-wifi-off text-warning"></i> 無資料';
+          return;
+        }
+        
+        let html = '';
+        let chkIndex = 0;
+        
+        // A. Render Active Bot Chats
+        if (registeredChats.length > 0) {
+          html += \`
+            <div class="group-header collapsible-header d-flex justify-content-between align-items-center" onclick="toggleGroupCollapse('group_db')">
+              <span><i class="bi bi-cpu-fill text-teal me-1"></i> 官方帳號即時對話 (\${registeredChats.length})</span>
+              <i class="bi bi-chevron-down ms-auto transition-transform icon-rotated" id="icon_group_db"></i>
+            </div>
+            <div id="group_db" class="collapse-content" style="display: none;">
+          \`;
+          registeredChats.forEach(c => {
+            const hasCustom = c.custom_name && c.custom_name !== c.default_name;
+            const labelName = hasCustom 
+              ? \`\${c.custom_name} <span class="text-muted" style="font-size:11px;">(\${c.default_name})</span>\` 
+              : c.default_name;
+            
+            html += \`
+              <div class="chat-checkbox-item d-flex justify-content-between align-items-center" onclick="toggleCheckbox('chk_\${chkIndex}')">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="flex-grow: 1;">
+                  <input type="checkbox" id="chk_\${chkIndex}" data-type="db" data-bot-alias="\${c.bot_alias}" data-chat-id="\${c.chat_id}" data-display-name="\${c.custom_name || c.default_name}" onclick="event.stopPropagation(); toggleAnalyzeBtnState();">
+                  <div class="text-truncate">
+                    <div class="fw-bold small text-light text-truncate">\${labelName} <span class="badge-source badge-db ms-1">官方對話</span></div>
+                    <div class="text-muted" style="font-size:10px; font-family:monospace;">\${c.bot_alias} | \${c.chat_id.slice(0, 12)}...</div>
+                  </div>
+                </div>
+                <!-- 👁️ Preview button -->
+                <button class="preview-btn-mobile ms-2" onclick="openDbChatPreview(event, '\${c.chat_id}', '\${c.bot_alias}', '\${c.custom_name || c.default_name}')">
+                  <i class="bi bi-eye"></i> 預覽
+                </button>
+              </div>
+            \`;
+            chkIndex++;
+          });
+          html += \`</div>\`;
+        }
+        
+        // B. Render Uploaded Backup Files
+        if (driveFiles.length > 0) {
+          html += \`
+            <div class="group-header collapsible-header d-flex justify-content-between align-items-center" onclick="toggleGroupCollapse('group_file')">
+              <span><i class="bi bi-file-earmark-text-fill text-warning me-1"></i> 已上傳備份檔案 (\${driveFiles.length})</span>
+              <i class="bi bi-chevron-down ms-auto transition-transform icon-rotated" id="icon_group_file"></i>
+            </div>
+            <div id="group_file" class="collapse-content" style="display: none;">
+          \`;
+          driveFiles.forEach(f => {
+            html += \`
+              <div class="chat-checkbox-item d-flex justify-content-between align-items-center" onclick="toggleCheckbox('chk_\${chkIndex}')">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="flex-grow: 1;">
+                  <input type="checkbox" id="chk_\${chkIndex}" data-type="file" data-file-id="\${f.id}" data-created="\${f.created}" data-display-name="\${f.displayName}" onclick="event.stopPropagation(); toggleAnalyzeBtnState();">
+                  <div class="text-truncate">
+                    <div class="fw-bold small text-light text-truncate">\${f.displayName} <span class="badge-source badge-file ms-1">備份檔案</span></div>
+                    <div class="text-muted" style="font-size:10px; font-family:monospace;">\${(f.size / 1024).toFixed(1)} KB | \${f.created.substring(0, 16)}</div>
+                  </div>
+                </div>
+                <!-- 👁️ Preview button -->
+                <button class="preview-btn-mobile ms-2" onclick="openFilePreview(event, '\${f.id}', '\${f.displayName}')">
+                  <i class="bi bi-eye"></i> 預覽
+                </button>
+              </div>
+            \`;
+            chkIndex++;
+          });
+          html += \`</div>\`;
+        }
+        
+        container.innerHTML = html;
+        connStatus.innerHTML = '<i class="bi bi-wifi text-success"></i> 已連線';
+        connStatus.className = 'status-badge text-success';
+        
+        // Initialize checkboxes as unchecked by default
+        toggleAnalyzeBtnState();
+        
+      } catch (err) {
+        console.error('Failed to load sources list:', err);
+        container.innerHTML = \`<div class="text-center text-danger py-3 small">載入失敗: \${err.message}</div>\`;
+        connStatus.innerHTML = '<i class="bi bi-x-circle text-danger"></i> 連線失敗';
+        connStatus.className = 'status-badge text-danger';
+      }
+    }
+
+    function toggleCheckbox(id) {
+      const chk = document.getElementById(id);
+      if (chk) {
+        chk.checked = !chk.checked;
+        toggleAnalyzeBtnState();
+      }
+    }
+
+    function toggleAnalyzeBtnState() {
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      const analyzeBtn = document.getElementById('btnAnalyze');
+      let checkedCount = 0;
+      checkboxes.forEach(cb => {
+        // Highlight parent card when checked
+        const card = cb.closest('.chat-checkbox-item');
+        if (card) {
+          if (cb.checked) {
+            card.classList.add('selected');
+          } else {
+            card.classList.remove('selected');
+          }
+        }
+        if (cb.checked) checkedCount++;
+      });
+      analyzeBtn.disabled = (checkedCount === 0);
+    }
+
+    // Auto select backup files if their creation/upload date falls inside selected time range
+    function autoSelectSourcesByTimeRange() {
+      const todayStr = getTaipeiDateString(new Date());
+      const todayMs = new Date(todayStr + 'T00:00:00+08:00').getTime();
+      
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        const type = cb.getAttribute('data-type');
+        if (type === 'file') {
+          const createdStr = cb.getAttribute('data-created'); // ISO string e.g. "2026-07-05T21:07:41..."
+          if (!createdStr) return;
+          
+          const fileDateStr = createdStr.substring(0, 10);
+          const fileMs = new Date(fileDateStr + 'T00:00:00+08:00').getTime();
+          
+          let shouldCheck = false;
+          if (selectedTimeRangePreset === 'today') {
+            shouldCheck = (fileDateStr === todayStr);
+          } else if (selectedTimeRangePreset === 'week') {
+            const weekAgoMs = todayMs - 6 * 24 * 60 * 60 * 1000;
+            shouldCheck = (fileMs >= weekAgoMs);
+          } else if (selectedTimeRangePreset === 'month') {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            const startOfMonthMs = new Date(\`\${currentYear}-\${currentMonth}-01T00:00:00+08:00\`).getTime();
+            shouldCheck = (fileMs >= startOfMonthMs);
+          } else if (selectedTimeRangePreset === 'custom') {
+            const days = parseInt(document.getElementById('customDaysInput').value || '3', 10);
+            const customAgoMs = todayMs - (days - 1) * 24 * 60 * 60 * 1000;
+            shouldCheck = (fileMs >= customAgoMs);
+          } else if (selectedTimeRangePreset === 'all') {
+            shouldCheck = true;
+          }
+          
+          cb.checked = shouldCheck;
+        } else if (type === 'db') {
+          // Do not check database chats by default
+          cb.checked = false;
+        }
+      });
+      toggleAnalyzeBtnState();
+    }
+
+    function getTaipeiDateString(date) {
+      const taipeiOffset = 8 * 60 * 60 * 1000;
+      const localTime = date.getTime();
+      const taipeiTime = new Date(localTime + taipeiOffset);
+      return taipeiTime.toISOString().split('T')[0];
+    }
+
+    // LINE chat log text parser implementing Falo Spec
+    function parseLineChatLog(text, filename = "backup.txt") {
+      const lines = text.split(/\\r?\\n/);
+      if (lines.length === 0) return [];
+      
+      let maxAllowedDateObj = new Date();
+      maxAllowedDateObj.setDate(maxAllowedDateObj.getDate() + 1); // tomorrow fallback
+      
+      const exportDateRegex = /(?:儲存日期|Saved date)[：:\\s]*(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})/;
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const match = lines[i].match(exportDateRegex);
+        if (match) {
+          const y = match[1];
+          const m = match[2].padStart(2, '0');
+          const d = match[3].padStart(2, '0');
+          const parsedExportDate = new Date(\`\${y}-\${m}-\${d}\`);
+          if (!isNaN(parsedExportDate.getTime())) {
+            maxAllowedDateObj = parsedExportDate;
+            break;
+          }
+        }
+      }
+
+      const messages = [];
+      let currentDateStr = "2020-01-01";
+      let lastParsedDateObj = null;
+      let isNextLineNewDate = false;
+      
+      const dateRegex = /^(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})(?:日)?(?:\\s*（[^）]+）|\\s*\\([^)]+\\)|\\s*星期[一二三四五六日]|\\s*[a-zA-Z]+)?\\s*$/;
+      const msgRegex = /^((?:上午|下午)?\\d{2}:\\d{2})\\t([^\\t]+)\\t(.*)$/;
+      
+      function isValidDateHeader(y, m, d) {
+        const year = parseInt(y, 10);
+        if (year < 2011) return false;
+        
+        const candidateStr = \`\${y}-\${m}-\${d}\`;
+        const candidateDateObj = new Date(candidateStr);
+        if (isNaN(candidateDateObj.getTime())) return false;
+        
+        if (maxAllowedDateObj && candidateDateObj > maxAllowedDateObj) return false;
+        if (lastParsedDateObj && candidateDateObj < lastParsedDateObj) return false;
+        return true;
+      }
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim() === "") {
+          isNextLineNewDate = true;
+          continue;
+        }
+        
+        if (isNextLineNewDate) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const y = dateMatch[1];
+            const m = dateMatch[2].padStart(2, '0');
+            const d = dateMatch[3].padStart(2, '0');
+            if (isValidDateHeader(y, m, d)) {
+              currentDateStr = \`\${y}-\${m}-\${d}\`;
+              lastParsedDateObj = new Date(currentDateStr);
+              isNextLineNewDate = false;
+              continue;
+            }
+          }
+        }
+        
+        const msgMatch = line.match(msgRegex);
+        if (msgMatch) {
+          isNextLineNewDate = false;
+          const rawTime = msgMatch[1];
+          const sender = msgMatch[2];
+          const content = msgMatch[3];
+          
+          let hourMin = rawTime;
+          const isPm = rawTime.includes("下午");
+          const isAm = rawTime.includes("上午");
+          let cleanTime = rawTime.replace("下午", "").replace("上午", "").trim();
+          const timeParts = cleanTime.split(":");
+          if (timeParts.length === 2) {
+            let h = parseInt(timeParts[0]);
+            const m = timeParts[1];
+            if (isPm && h < 12) h += 12;
+            if (isAm && h === 12) h = 0;
+            hourMin = \`\${String(h).padStart(2, '0')}:\${m}\`;
+          }
+          
+          let type = "text";
+          if (content === "[圖片]" || content === "[Photo]") type = "image";
+          else if (content === "[貼圖]" || content === "[Sticker]") type = "sticker";
+          else if (content === "[檔案]" || content === "[File]") type = "file";
+          else if (content.startsWith("☎ 通話時間") || content.startsWith("☎ Call time")) type = "call";
+          else if (content.includes("unsent a message") || content.includes("收回訊息")) type = "unsent";
+          
+          messages.push({
+            date: currentDateStr,
+            time: hourMin,
+            sender: sender,
+            content: content,
+            type: type
+          });
+        } else {
+          if (messages.length > 0 && !line.startsWith("儲存日期：")) {
+            const lastMsg = messages[messages.length - 1];
+            lastMsg.content += "\\n" + line;
+          }
+        }
+      }
+      return messages;
+    }
+
+    async function startMobileAnalysis() {
+      const checkboxes = document.querySelectorAll('#chatsListContainer input[type="checkbox"]');
+      const selectedDb = [];
+      const selectedFiles = [];
+      
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          const type = cb.getAttribute('data-type');
+          const displayName = cb.getAttribute('data-display-name');
+          if (type === 'db') {
+            selectedDb.push({
+              botAlias: cb.getAttribute('data-bot-alias'),
+              chatId: cb.getAttribute('data-chat-id'),
+              displayName: displayName
+            });
+          } else if (type === 'file') {
+            selectedFiles.push({
+              fileId: cb.getAttribute('data-file-id'),
+              displayName: displayName
+            });
+          }
+        }
+      });
+
+      if (selectedDb.length === 0 && selectedFiles.length === 0) {
+        alert('請至少選擇一個資料來源！');
+        return;
+      }
+
+      // Double confirmation for All history to prevent token explosion
+      if (selectedTimeRangePreset === 'all') {
+        const confirmAll = confirm('⚠️ 您選擇了「全部歷史紀錄」！\\n這將會抓取並分析對話的所有內容，載入與分析速度會較慢，且會消耗較多 AI Token。確定要繼續嗎？');
+        if (!confirmAll) return;
+      }
+
+      const promptText = document.getElementById('promptInput').value.trim();
+      if (!promptText) {
+        alert('請輸入分析指令！');
+        return;
+      }
+
+      const provider = document.getElementById('modelProviderSelect').value;
+      const model = (provider === 'builtin')
+        ? document.getElementById('builtinModelSelect').value
+        : document.getElementById('geminiModelSelect').value;
+        
+      const analyzeBtn = document.getElementById('btnAnalyze');
+      const reportCard = document.getElementById('reportCard');
+      const reportOutput = document.getElementById('reportOutput');
+      
+      const originalText = analyzeBtn.innerHTML;
+      analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 載入數據中...';
+      analyzeBtn.disabled = true;
+      
+      reportCard.style.setProperty('display', 'flex', 'important');
+      reportOutput.innerHTML = '<div class="text-center py-5 text-secondary"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>正在並行抓取與解析雲端對話數據...</div>';
+
+      try {
+        let allMessages = [];
+
+        // 1. Fetch DB Chat Events in Parallel
+        const dbPromises = selectedDb.map(item => {
+          return fetch(\`/api/chat-events?chat_id=\${item.chatId}&bot_alias=\${item.botAlias}\`)
+            .then(res => {
+              if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+              return res.json();
+            })
+            .then(resJson => {
+              if (resJson.ok && resJson.data) {
+                resJson.data.forEach(ev => {
+                  const timeVal = ev.captured_at ? new Date(ev.captured_at).getTime() : 0;
+                  allMessages.push({
+                    timestamp: timeVal,
+                    dateStr: ev.captured_at ? ev.captured_at.substring(0, 10) : '未知日期',
+                    timeStr: ev.captured_at ? ev.captured_at.substring(11, 16) : '00:00',
+                    sender: ev.sender_name || (ev.sender_role === 'host' ? '官方助手' : '使用者'),
+                    role: ev.sender_role,
+                    content: String(ev.text_content || (ev.message_type ? \`[\${ev.message_type}]\` : '')),
+                    chatInfo: \`官方:\${item.displayName}\`
+                  });
+                });
+              }
+            })
+            .catch(e => console.error(\`Failed to fetch db events for \${item.chatId}\`, e));
+        });
+
+        // 2. Fetch File Contents in Parallel & Parse
+        const filePromises = selectedFiles.map(item => {
+          return fetch(\`/api/dialogue-content?file_id=\${item.fileId}\`)
+            .then(res => {
+              if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+              return res.text();
+            })
+            .then(textContent => {
+              const fileMsgs = parseLineChatLog(textContent, item.displayName);
+              fileMsgs.forEach(m => {
+                const timestampVal = new Date(\`\${m.date}T\${m.time}:00+08:00\`).getTime();
+                allMessages.push({
+                  timestamp: timestampVal,
+                  dateStr: m.date,
+                  timeStr: m.time,
+                  sender: m.sender,
+                  role: m.type === 'sticker' || m.type === 'image' || m.type === 'file' ? 'client' : '',
+                  content: String(m.content),
+                  chatInfo: \`檔案:\${item.displayName}\`
+                });
+              });
+            })
+            .catch(e => console.error(\`Failed to fetch file content for \${item.fileId}\`, e));
+        });
+
+        await Promise.all([...dbPromises, ...filePromises]);
+
+        if (allMessages.length === 0) {
+          reportOutput.innerHTML = '<div class="text-center py-4 text-warning"><i class="bi bi-exclamation-triangle-fill"></i> 勾選的資料來源無任何對話紀錄！</div>';
+          return;
+        }
+
+        // 3. Sort Chronologically
+        allMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        // 4. Apply Time Range Filter Presets (Taipei Standard)
+        const todayStr = getTaipeiDateString(new Date());
+        const todayMs = new Date(todayStr + 'T00:00:00+08:00').getTime();
+        
+        let filteredMessages = allMessages;
+        let rangeLabel = '全部歷史';
+        
+        if (selectedTimeRangePreset === 'today') {
+          filteredMessages = allMessages.filter(m => m.dateStr === todayStr);
+          rangeLabel = \`今天 (\${todayStr})\`;
+        } else if (selectedTimeRangePreset === 'week') {
+          const weekAgoMs = todayMs - 6 * 24 * 60 * 60 * 1000;
+          filteredMessages = allMessages.filter(m => m.timestamp >= weekAgoMs);
+          rangeLabel = '本週 (最近 7 天)';
+        } else if (selectedTimeRangePreset === 'month') {
+          const currentYear = new Date().getFullYear();
+          const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+          const startOfMonthMs = new Date(\`\${currentYear}-\${currentMonth}-01T00:00:00+08:00\`).getTime();
+          filteredMessages = allMessages.filter(m => m.timestamp >= startOfMonthMs);
+          rangeLabel = \`本月 (\${currentYear}-\${currentMonth} 至今)\`;
+        } else if (selectedTimeRangePreset === 'custom') {
+          const days = parseInt(document.getElementById('customDaysInput').value || '3', 10);
+          const customAgoMs = todayMs - (days - 1) * 24 * 60 * 60 * 1000;
+          filteredMessages = allMessages.filter(m => m.timestamp >= customAgoMs);
+          rangeLabel = \`自訂天數 (最近 \${days} 天內)\`;
+        }
+
+        if (filteredMessages.length === 0) {
+          reportOutput.innerHTML = \`<div class="text-center py-4 text-warning"><i class="bi bi-exclamation-triangle-fill"></i> 選定時間範圍：<b>\${rangeLabel}</b> 內查無任何對話訊息！</div>\`;
+          return;
+        }
+
+        // 5. Format Context Text Block with clean date markdown segments (Falo SPEC)
+        let textContent = [];
+        textContent.push(\`## 💬 Falo IM 手機版對話上下文 - 分析時間段：\${rangeLabel}\\n\`);
+        let lastDate = "";
+        
+        filteredMessages.forEach(msg => {
+          if (msg.dateStr !== lastDate) {
+            textContent.push(\`\\n### 📅 日期: \${msg.dateStr}\`);
+            lastDate = msg.dateStr;
+          }
+          const roleLabel = msg.role === 'host' ? '[官方助手]' : '[使用者]';
+          textContent.push(\`- **[\${msg.timeStr}] \${msg.sender}\${roleLabel}**: \${msg.content}\`);
+        });
+
+        const finalContext = textContent.join('\\n');
+        
+        // 6. Call AI Analyze Route
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> AI 正在分析中...';
+        reportOutput.innerHTML = \`<div class="text-center py-5 text-secondary"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>數據已過濾並編譯 (共 \${filteredMessages.length} 條)，正在呼叫 AI 模型進行分析...</div>\`;
+        
+        const finalPrompt = \`分析指令：\\n\${promptText}\\n\\n=== 整合對話內容 ===\\n\${finalContext}\`;
+        
+        const aiBody = {
+          provider: provider,
+          prompt: finalPrompt,
+          model: model
+        };
+
+        if (provider === 'gemini') {
+          const cachedKey = localStorage.getItem('faloGeminiApiKey') || '';
+          if (cachedKey) {
+            aiBody.gemini_key = cachedKey;
+          }
+        }
+
+        const aiResponse = await fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(aiBody)
+        });
+
+        if (!aiResponse.ok) throw new Error('HTTP ' + aiResponse.status);
+        const aiResult = await aiResponse.json();
+
+        if (aiResult.ok && aiResult.result) {
+          const htmlContent = marked.parse(aiResult.result);
+          reportOutput.innerHTML = \`<div class="report-rendered" style="font-size: \${currentFontSize}px;">\${htmlContent}</div>\`;
+          reportOutput.setAttribute('data-raw-report', aiResult.result);
+        } else {
+          throw new Error(aiResult.error || 'AI 無回應');
+        }
+      } catch (err) {
+        console.error('Failed to run AI analysis:', err);
+        reportOutput.innerHTML = \`<div class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill"></i> 分析失敗: \${err.message}</div>\`;
+      } finally {
+        analyzeBtn.innerHTML = originalText;
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    function copyReport() {
+      const reportOutput = document.getElementById('reportOutput');
+      const rawReport = reportOutput.getAttribute('data-raw-report');
+      if (!rawReport) return;
+      
+      navigator.clipboard.writeText(rawReport).then(() => {
+        const copyBtn = document.getElementById('copyBtn');
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> 已複製';
+        setTimeout(() => {
+          copyBtn.innerHTML = originalText;
+        }, 1500);
+      }).catch(err => {
+        alert('複製失敗: ' + err);
+      });
+    }
+
+    // Toggle between Builtin and Gemini model providers in mobile view
+    function toggleMobileModelProvider() {
+      const provider = document.getElementById('modelProviderSelect').value;
+      const builtinCol = document.getElementById('builtinModelCol');
+      const geminiCol = document.getElementById('geminiModelCol');
+      const geminiKeyCol = document.getElementById('geminiKeyCol');
+      
+      if (provider === 'builtin') {
+        builtinCol.style.display = 'block';
+        geminiCol.style.display = 'none';
+        geminiKeyCol.style.display = 'none';
+      } else {
+        builtinCol.style.display = 'none';
+        geminiCol.style.display = 'block';
+        geminiKeyCol.style.display = 'block';
+        
+        // Load cached key if exists
+        const cachedKey = localStorage.getItem('faloGeminiApiKey') || '';
+        document.getElementById('geminiKeyInput').value = cachedKey;
+      }
+    }
+
+    // Save Gemini Key to localStorage in mobile view
+    function saveMobileGeminiKey() {
+      const key = document.getElementById('geminiKeyInput').value.trim();
+      localStorage.setItem('faloGeminiApiKey', key);
+      alert(key ? 'Gemini API Key 已儲存至瀏覽器！' : 'Gemini API Key 已清除！');
+    }
+
+    // Toggle collapse/expand for database or file checklist groups
+    function toggleGroupCollapse(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById('icon_' + id);
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+        icon.classList.remove('icon-rotated');
+      } else {
+        el.style.display = 'none';
+        icon.classList.add('icon-rotated');
+      }
+    }
+
+    // Adjust analysis report text font size dynamically
+    function adjustFontSize(diff) {
+      currentFontSize = Math.max(10, Math.min(24, currentFontSize + diff));
+      const reportOutput = document.getElementById('reportOutput');
+      if (reportOutput) {
+        reportOutput.style.fontSize = currentFontSize + 'px';
+      }
+      localStorage.setItem('faloReportFontSize', currentFontSize);
+    }
+
+    // Export report to PDF via print dialog
+    function exportToPdf() {
+      const reportOutput = document.getElementById('reportOutput');
+      const rawReport = reportOutput.getAttribute('data-raw-report');
+      if (!rawReport) {
+        alert('無分析報告可匯出！');
+        return;
+      }
+      window.print();
+    }
+
+    // Unified Preview Launchers directing to standalone preview pages
+    function openFilePreview(evt, fileId, displayName) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      window.open(\`/mobile/preview?file_id=\${fileId}&displayName=\${encodeURIComponent(displayName)}\`, '_blank');
+    }
+
+    // Unified DB Chat Preview directing to standalone preview pages
+    function openDbChatPreview(evt, chatId, botAlias, displayName) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      window.open(\`/mobile/preview?chat_id=\${chatId}&bot_alias=\${botAlias}&displayName=\${encodeURIComponent(displayName)}\`, '_blank');
+    }
+  </script>
 </body>
 </html>
 `;
@@ -5417,6 +7972,21 @@ const PRODUCT_INTRO_HTML = `<!-- 天勳 x Force Cheng 2026/7/3 -->
               您的瀏覽器不支援 HTML5 影片播放。
             </video>
             <div class="small text-muted mt-2">📺 企業進階版（20萬版）功能操作全自動展示影片</div>
+          </div>
+          
+          <!-- Mobile Features Highlights Callout (v3.04) -->
+          <div class="card p-3 my-4" style="border-left: 5px solid #0284c7; background-color: #f0f9ff; border-radius: 8px;">
+            <h5 class="fw-bold" style="color: #0369a1;"><i class="bi bi-phone-fill"></i> 📱 Falo IM v3.04 行動端革命性亮點升級</h5>
+            <p class="mb-2" style="font-size: 14px; color: var(--text-dark);">
+              專為企業高階決策者與老闆設計的手機專屬操作體驗，全面優化觸控、閱讀與稽核效率：
+            </p>
+            <ul style="font-size: 13px; padding-left: 20px;" class="mb-0">
+              <li class="mb-2"><strong>💬 模擬 LINE 對話氣泡預覽 (Standalone WebView Preview)</strong>：點選對話或備份即可在 LINE 內開獨立的浮動預覽視窗。AI 自動解析並渲染為擬真 LINE 泡泡聊天室（包含彩色頭像、時間、置中日期線），使審查對話像讀日常聊天般親切。</li>
+              <li class="mb-2"><strong>🔄 逆向無限滾動與定位錨定</strong>：預覽自動跳至最底端顯示最新對話，往上滑動時無縫延遲載入歷史資料，且視角保持穩定無跳動。</li>
+              <li class="mb-2"><strong>📁 預設折疊清爽面板</strong>：官方即時對話與備份檔案群組預設折疊，為手機小螢幕留出最大空間。</li>
+              <li class="mb-2"><strong>🔍 報告區字體自主縮放</strong>：首創報告區獨立 \`A-\` / \`A+\` 縮放按鈕，僅微調 AI 報告字級並自動儲存偏好，不影響其他版面。</li>
+              <li class="mb-0"><strong>📄 乾淨高保真 PDF 匯出</strong>：支援一鍵列印 PDF，系統自動剔除控制台選項，僅保留乾淨且排版精美的 Markdown 分析報告本體。</li>
+            </ul>
           </div>
           </div>
 
@@ -7107,6 +9677,572 @@ print(result)</code></pre>
 </body>
 </html>
 `;
+const MOBILE_PREVIEW_HTML = `<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LINE 對話預覽 | Falo IM</title>
+  <!-- CSS: Bootstrap 5, Icons, Google Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --primary-teal: #0ea5e9;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    body {
+      background: var(--bg-dark);
+      color: #f1f5f9;
+      font-family: 'Inter', -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Sticky Header */
+    .preview-header {
+      padding: 12px 16px;
+      background: rgba(30, 41, 59, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    
+    .back-btn {
+      color: #e2e8f0;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    
+    .back-btn:active, .back-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Scroll Body */
+    .preview-scroll-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #090d16;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* LINE Simulation CSS */
+    .line-chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 40px;
+    }
+    
+    .chat-date-header {
+      text-align: center;
+      margin: 16px 0;
+    }
+    
+    .chat-date-badge {
+      background: rgba(0, 0, 0, 0.25);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+    
+    .chat-msg-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      max-width: 85%;
+    }
+    
+    .chat-msg-row.left-msg {
+      align-self: flex-start;
+    }
+    
+    .chat-msg-row.right-msg {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      max-width: 85%;
+    }
+    
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-msg-content-wrapper {
+      margin-left: 8px;
+      margin-right: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chat-sender-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+    
+    .chat-bubble-container {
+      display: flex;
+      align-items: flex-end;
+    }
+    
+    .chat-bubble-left {
+      background: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 0 12px 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .chat-bubble-right {
+      background: #0d9488;
+      color: #ffffff;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 12px 0 12px 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+    }
+    
+    .chat-bubble-time {
+      font-size: 9px;
+      color: #64748b;
+      margin: 0 6px;
+      white-space: nowrap;
+    }
+    
+    .chat-system-msg {
+      align-self: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      margin: 8px 0;
+    }
+    
+    .preview-line-loading-badge {
+      text-align: center;
+      font-size: 11px;
+      color: var(--primary-teal);
+      background: rgba(14, 165, 233, 0.08);
+      border: 1px dashed rgba(14, 165, 233, 0.2);
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <div class="preview-header">
+    <a href="/mobile" class="back-btn"><i class="bi bi-chevron-left"></i> 返回</a>
+    <div class="text-center text-truncate flex-grow-1 mx-2">
+      <div class="fw-bold text-truncate" style="font-size: 15px;" id="previewTitle">載入中...</div>
+      <div class="text-muted" style="font-size: 10px;" id="previewStats">已載入 0 / 0 筆</div>
+    </div>
+    <div style="width: 60px;"></div> <!-- placeholder to center title -->
+  </div>
+
+  <!-- Scroll Body -->
+  <div id="previewScrollBody" class="preview-scroll-body" onscroll="handlePreviewScroll()">
+    <div id="previewLoadingSpinner" class="text-center my-auto py-5 text-secondary">
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>正在下載對話紀錄並解析中...
+    </div>
+    <div id="previewTextContent"></div>
+  </div>
+
+  <script>
+    let previewFullMessages = [];
+    let previewLoadedStartIndex = 0;
+    let previewLoadedEndIndex = 0;
+    let isPreviewLoadingMore = false;
+    const PREVIEW_PAGE_SIZE = 100;
+
+    function getSenderColor(name) {
+      if (!name) return '#64748b';
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const colors = ['#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#009688', '#4caf50', '#ff9800', '#795548', '#0ea5e9', '#8b5cf6'];
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Line log parser from Spec
+    function parseLineChatLog(text, filename = "backup.txt") {
+      const lines = text.split(/\\r?\\n/);
+      if (lines.length === 0) return [];
+      
+      let maxAllowedDateObj = new Date();
+      maxAllowedDateObj.setDate(maxAllowedDateObj.getDate() + 1);
+      
+      const exportDateRegex = /(?:儲存日期|Saved date)[：:\\s]*(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})/;
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const match = lines[i].match(exportDateRegex);
+        if (match) {
+          const y = match[1];
+          const m = match[2].padStart(2, '0');
+          const d = match[3].padStart(2, '0');
+          const parsedExportDate = new Date(\`\${y}-\${m}-\${d}\`);
+          if (!isNaN(parsedExportDate.getTime())) {
+            maxAllowedDateObj = parsedExportDate;
+            break;
+          }
+        }
+      }
+
+      const messages = [];
+      let currentDateStr = "2020-01-01";
+      let lastParsedDateObj = null;
+      let isNextLineNewDate = false;
+      
+      const dateRegex = /^(\\d{4})[/\\-.年](\\d{1,2})[/\\-.月](\\d{1,2})(?:日)?(?:\\s*（[^）]+）|\\s*\\([^)]+\\)|\\s*星期[一二三四五六日]|\\s*[a-zA-Z]+)?\\s*$/;
+      const msgRegex = /^((?:上午|下午)?\\d{2}:\\d{2})\\t([^\\t]+)\\t(.*)$/;
+      
+      function isValidDateHeader(y, m, d) {
+        const year = parseInt(y, 10);
+        if (year < 2011) return false;
+        const candidateStr = \`\${y}-\${m}-\${d}\`;
+        const candidateDateObj = new Date(candidateStr);
+        if (isNaN(candidateDateObj.getTime())) return false;
+        if (maxAllowedDateObj && candidateDateObj > maxAllowedDateObj) return false;
+        if (lastParsedDateObj && candidateDateObj < lastParsedDateObj) return false;
+        return true;
+      }
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim() === "") {
+          isNextLineNewDate = true;
+          continue;
+        }
+        
+        if (isNextLineNewDate) {
+          const dateMatch = line.match(dateRegex);
+          if (dateMatch) {
+            const y = dateMatch[1];
+            const m = dateMatch[2].padStart(2, '0');
+            const d = dateMatch[3].padStart(2, '0');
+            if (isValidDateHeader(y, m, d)) {
+              currentDateStr = \`\${y}-\${m}-\${d}\`;
+              lastParsedDateObj = new Date(currentDateStr);
+              isNextLineNewDate = false;
+              continue;
+            }
+          }
+        }
+        
+        const msgMatch = line.match(msgRegex);
+        if (msgMatch) {
+          isNextLineNewDate = false;
+          const rawTime = msgMatch[1];
+          const sender = msgMatch[2];
+          const content = msgMatch[3];
+          
+          let hourMin = rawTime;
+          const isPm = rawTime.includes("下午");
+          const isAm = rawTime.includes("上午");
+          let cleanTime = rawTime.replace("下午", "").replace("上午", "").trim();
+          const timeParts = cleanTime.split(":");
+          if (timeParts.length === 2) {
+            let h = parseInt(timeParts[0]);
+            const m = timeParts[1];
+            if (isPm && h < 12) h += 12;
+            if (isAm && h === 12) h = 0;
+            hourMin = \`\${String(h).padStart(2, '0')}:\${m}\`;
+          }
+          
+          let type = "text";
+          if (content === "[圖片]" || content === "[Photo]") type = "image";
+          else if (content === "[貼圖]" || content === "[Sticker]") type = "sticker";
+          else if (content === "[檔案]" || content === "[File]") type = "file";
+          else if (content.startsWith("☎ 通話時間") || content.startsWith("☎ Call time")) type = "call";
+          else if (content.includes("unsent a message") || content.includes("收回訊息")) type = "unsent";
+          
+          messages.push({
+            date: currentDateStr,
+            time: hourMin,
+            sender: sender,
+            content: content,
+            type: type
+          });
+        } else {
+          if (messages.length > 0 && !line.startsWith("儲存日期：")) {
+            const lastMsg = messages[messages.length - 1];
+            lastMsg.content += "\\n" + line;
+          }
+        }
+      }
+      return messages;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fileId = urlParams.get('file_id');
+      const chatId = urlParams.get('chat_id');
+      const botAlias = urlParams.get('bot_alias');
+      const displayName = urlParams.get('displayName') || '對話預覽';
+      
+      document.getElementById('previewTitle').innerText = displayName;
+      
+      if (fileId) {
+        loadFilePreview(fileId, displayName);
+      } else if (chatId && botAlias) {
+        loadDbPreview(chatId, botAlias, displayName);
+      } else {
+        document.getElementById('previewLoadingSpinner').style.display = 'none';
+        document.getElementById('previewTextContent').innerHTML = "<div class='text-center py-5 text-muted'>缺少有效的預覽參數</div>";
+      }
+    });
+
+    async function loadFilePreview(fileId, displayName) {
+      const spinner = document.getElementById('previewLoadingSpinner');
+      const content = document.getElementById('previewTextContent');
+      
+      try {
+        const res = await fetch(\`/api/dialogue-content?file_id=\${fileId}\`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        
+        const parsedList = parseLineChatLog(text, displayName);
+        previewFullMessages = parsedList.map(m => ({
+          date: m.date,
+          time: m.time,
+          sender: m.sender,
+          content: m.content,
+          role: m.type === 'sticker' || m.type === 'image' || m.type === 'file' ? 'client' : ''
+        }));
+        
+        spinner.style.display = "none";
+        
+        const total = previewFullMessages.length;
+        if (total === 0) {
+          content.innerHTML = "<div class='text-center py-5 text-muted'>此檔案無任何有效對話內容</div>";
+          return;
+        }
+        
+        previewLoadedStartIndex = Math.max(0, total - PREVIEW_PAGE_SIZE);
+        previewLoadedEndIndex = total;
+        
+        renderPreviewChunk(false);
+      } catch (err) {
+        console.error(err);
+        spinner.style.display = "none";
+        content.innerHTML = \`<div class='text-center py-5 text-danger'><i class='bi bi-exclamation-triangle-fill'></i> 載入失敗: \${err.message}</div>\`;
+      }
+    }
+
+    async function loadDbPreview(chatId, botAlias, displayName) {
+      const spinner = document.getElementById('previewLoadingSpinner');
+      const content = document.getElementById('previewTextContent');
+      
+      try {
+        const res = await fetch(\`/api/chat-events?chat_id=\${chatId}&bot_alias=\${botAlias}\`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const resJson = await res.json();
+        
+        if (!resJson.ok || !resJson.data) throw new Error(resJson.error || '無對話紀錄');
+        
+        resJson.data.sort((a, b) => {
+          const tA = a.captured_at ? new Date(a.captured_at).getTime() : 0;
+          const tB = b.captured_at ? new Date(b.captured_at).getTime() : 0;
+          return tA - tB;
+        });
+        
+        previewFullMessages = resJson.data.map(ev => ({
+          date: ev.captured_at ? ev.captured_at.substring(0, 10) : '未知日期',
+          time: ev.captured_at ? ev.captured_at.substring(11, 16) : '00:00',
+          sender: ev.sender_name || (ev.sender_role === 'host' ? '官方助手' : '使用者'),
+          content: ev.text_content || \`[\${ev.message_type || '訊息'}]\`,
+          role: ev.sender_role
+        }));
+        
+        spinner.style.display = "none";
+        
+        const total = previewFullMessages.length;
+        if (total === 0) {
+          content.innerHTML = "<div class='text-center py-5 text-muted'>此對話無任何歷史紀錄</div>";
+          return;
+        }
+        
+        previewLoadedStartIndex = Math.max(0, total - PREVIEW_PAGE_SIZE);
+        previewLoadedEndIndex = total;
+        
+        renderPreviewChunk(false);
+      } catch (err) {
+        console.error(err);
+        spinner.style.display = "none";
+        content.innerHTML = \`<div class='text-center py-5 text-danger'><i class='bi bi-exclamation-triangle-fill'></i> 載入失敗: \${err.message}</div>\`;
+      }
+    }
+
+    function renderPreviewChunk(isPrepend = false) {
+      const content = document.getElementById('previewTextContent');
+      const stats = document.getElementById('previewStats');
+      const scrollBody = document.getElementById('previewScrollBody');
+      
+      const chunk = previewFullMessages.slice(previewLoadedStartIndex, previewLoadedEndIndex);
+      
+      let html = '<div class="line-chat-container">';
+      let lastDate = "";
+      
+      chunk.forEach(msg => {
+        if (msg.date !== lastDate) {
+          html += \`
+            <div class="chat-date-header">
+              <span class="chat-date-badge">— \${msg.date} —</span>
+            </div>
+          \`;
+          lastDate = msg.date;
+        }
+        
+        if (msg.content === '[圖片]' || msg.content === '[貼圖]' || msg.content === '[檔案]' || msg.content.startsWith('☎ 通話')) {
+          html += \`<div class="chat-system-msg">\${msg.sender}: \${escapeHtml(msg.content)}</div>\`;
+          return;
+        }
+        
+        const isRight = (msg.role === 'host');
+        if (isRight) {
+          html += \`
+            <div class="chat-msg-row right-msg">
+              <div class="chat-msg-content-wrapper">
+                <div class="chat-bubble-container">
+                  <span class="chat-bubble-time">\${msg.time}</span>
+                  <div class="chat-bubble-right">\${escapeHtml(msg.content)}</div>
+                </div>
+              </div>
+            </div>
+          \`;
+        } else {
+          const initials = msg.sender ? msg.sender.substring(0, 1) : '?';
+          const avatarColor = getSenderColor(msg.sender);
+          html += \`
+            <div class="chat-msg-row left-msg">
+              <div class="chat-avatar" style="background: \${avatarColor}">\${initials}</div>
+              <div class="chat-msg-content-wrapper">
+                <div class="chat-sender-name">\${msg.sender}</div>
+                <div class="chat-bubble-container">
+                  <div class="chat-bubble-left">\${escapeHtml(msg.content)}</div>
+                  <span class="chat-bubble-time">\${msg.time}</span>
+                </div>
+              </div>
+            </div>
+          \`;
+        }
+      });
+      html += '</div>';
+      
+      const total = previewFullMessages.length;
+      const loadedCount = total - previewLoadedStartIndex;
+      stats.innerText = \`已載入最新 \${loadedCount} / \${total} 筆 (\${((loadedCount/total)*100).toFixed(0)}%)\`;
+      
+      if (isPrepend) {
+        const oldScrollHeight = scrollBody.scrollHeight;
+        const oldScrollTop = scrollBody.scrollTop;
+        
+        const oldBadge = document.getElementById('loadingMoreBadge');
+        if (oldBadge) oldBadge.remove();
+        
+        let loaderHtml = "";
+        if (previewLoadedStartIndex > 0) {
+          loaderHtml = \`<div id="loadingMoreBadge" class="preview-line-loading-badge"><span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;" role="status"></span>往下滑動載入更早的對話...</div>\`;
+        }
+        
+        content.innerHTML = loaderHtml + html;
+        scrollBody.scrollTop = oldScrollTop + (scrollBody.scrollHeight - oldScrollHeight);
+      } else {
+        let loaderHtml = "";
+        if (previewLoadedStartIndex > 0) {
+          loaderHtml = \`<div id="loadingMoreBadge" class="preview-line-loading-badge"><span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;" role="status"></span>往下滑動載入更早的對話...</div>\`;
+        }
+        content.innerHTML = loaderHtml + html;
+        
+        setTimeout(() => {
+          scrollBody.scrollTop = scrollBody.scrollHeight;
+        }, 50);
+      }
+    }
+
+    function handlePreviewScroll() {
+      const scrollBody = document.getElementById('previewScrollBody');
+      
+      if (scrollBody.scrollTop <= 10 && previewLoadedStartIndex > 0 && !isPreviewLoadingMore) {
+        isPreviewLoadingMore = true;
+        
+        const badge = document.getElementById('loadingMoreBadge');
+        if (badge) {
+          badge.innerHTML = \`<span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;" role="status"></span>正在載入歷史對話...\`;
+        }
+        
+        setTimeout(() => {
+          previewLoadedStartIndex = Math.max(0, previewLoadedStartIndex - PREVIEW_PAGE_SIZE);
+          renderPreviewChunk(true);
+          isPreviewLoadingMore = false;
+        }, 300);
+      }
+    }
+  </script>
+</body>
+</html>
+`;
 
 export default {
   async fetch(request, env, ctx) {
@@ -7181,6 +10317,12 @@ export default {
     if (path === "/google-sheets-access-methods" || path === "/google-sheets-access-methods.html") {
       return htmlResponse(GOOGLE_SHEETS_ACCESS_METHODS_HTML);
     }
+    if (path === "/mobile" || path === "/mobile.html") {
+      return htmlResponse(MOBILE_HTML);
+    }
+    if (path === "/mobile/preview" || path === "/mobile/preview.html") {
+      return htmlResponse(MOBILE_PREVIEW_HTML);
+    }
 
     // 2. API Proxy Routes
     if (path === "/api/chats") {
@@ -7195,6 +10337,18 @@ export default {
       const params = new URLSearchParams(url.search);
       params.set("action", "query");
       params.set("table", "chat_events");
+      return proxyToGas(params);
+    }
+
+    if (path === "/api/dialogue-files") {
+      const params = new URLSearchParams();
+      params.set("action", "list_files");
+      return proxyToGas(params);
+    }
+
+    if (path === "/api/dialogue-content") {
+      const params = new URLSearchParams(url.search);
+      params.set("action", "get_file_content");
       return proxyToGas(params);
     }
 

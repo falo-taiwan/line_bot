@@ -1,10 +1,12 @@
 const INDEX_HTML = `__INDEX_HTML__`;
 const POC_DEMO_HTML = `__POC_DEMO_HTML__`;
 const MVP_HTML = `__MVP_HTML__`;
+const MOBILE_HTML = `__MOBILE_HTML__`;
 const PRODUCT_INTRO_HTML = `__PRODUCT_INTRO_HTML__`;
 const PRODUCT_ANALYSIS_HTML = `__PRODUCT_ANALYSIS_HTML__`;
 const LINE_PARSER_SPEC_HTML = `__LINE_PARSER_SPEC_HTML__`;
 const GOOGLE_SHEETS_ACCESS_METHODS_HTML = `__GOOGLE_SHEETS_ACCESS_METHODS_HTML__`;
+const MOBILE_PREVIEW_HTML = `__MOBILE_PREVIEW_HTML__`;
 
 export default {
   async fetch(request, env, ctx) {
@@ -79,6 +81,12 @@ export default {
     if (path === "/google-sheets-access-methods" || path === "/google-sheets-access-methods.html") {
       return htmlResponse(GOOGLE_SHEETS_ACCESS_METHODS_HTML);
     }
+    if (path === "/mobile" || path === "/mobile.html") {
+      return htmlResponse(MOBILE_HTML);
+    }
+    if (path === "/mobile/preview" || path === "/mobile/preview.html") {
+      return htmlResponse(MOBILE_PREVIEW_HTML);
+    }
 
     // 2. API Proxy Routes
     if (path === "/api/chats") {
@@ -93,6 +101,18 @@ export default {
       const params = new URLSearchParams(url.search);
       params.set("action", "query");
       params.set("table", "chat_events");
+      return proxyToGas(params);
+    }
+
+    if (path === "/api/dialogue-files") {
+      const params = new URLSearchParams();
+      params.set("action", "list_files");
+      return proxyToGas(params);
+    }
+
+    if (path === "/api/dialogue-content") {
+      const params = new URLSearchParams(url.search);
+      params.set("action", "get_file_content");
       return proxyToGas(params);
     }
 

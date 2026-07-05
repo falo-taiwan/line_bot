@@ -342,12 +342,9 @@
     <div class="container main-container py-0 d-flex justify-content-between align-items-center">
       <div class="navbar-brand-custom">
         <i class="bi bi-cpu-fill text-teal me-2" style="color: var(--primary-teal);"></i>
-        Falo IM 3.03 <span class="fw-light text-muted">|</span> MVP 控制台
+        Falo IM 3.01 <span class="fw-light text-muted">|</span> MVP 控制台
       </div>
-      <div class="d-flex align-items-center">
-        <a class="btn btn-sm btn-outline-purple me-3 fw-bold" href="/mobile" target="_blank" title="在新分頁開啟手機直立式快速控制台">
-          <i class="bi bi-phone"></i> 📱 手機專用版
-        </a>
+      <div>
         <span class="badge-status badge-offline" id="globalStatusBadge">未連線</span>
       </div>
     </div>
@@ -478,18 +475,12 @@
                     <select id="driveFilesSelect" class="form-select form-control-custom" style="flex: 1;" onchange="toggleDrivePreviewButton()">
                       <option value="">請先連線大腦以取得 Drive 檔案清單...</option>
                     </select>
-                    <button class="btn btn-custom px-3" onclick="loadSelectedDriveFile()" id="btnLoadDriveFile" disabled>
-                      <i class="bi bi-download"></i> 載入
-                    </button>
                     <button class="btn btn-outline-info px-2" onclick="previewSelectedDriveFile()" id="btnPreviewDriveFile" disabled title="預覽選取的雲端檔案內容">
                       <i class="bi bi-eye"></i> 預覽
                     </button>
-                    <button class="btn btn-outline-secondary px-2" onclick="openCloudFilesManager()" title="管理雲端備份檔案 (修改別名、刪除)">
-                      <i class="bi bi-gear"></i> 管理
+                    <button class="btn btn-custom px-3" onclick="loadSelectedDriveFile()" id="btnLoadDriveFile" disabled>
+                      <i class="bi bi-download"></i> 載入
                     </button>
-                    <a class="btn btn-outline-success px-2" id="linkExportsFolder" href="https://drive.google.com" target="_blank" title="開啟 Google Drive 雲端備份資料夾">
-                      <i class="bi bi-folder-symlink"></i> 資料夾
-                    </a>
                   </div>
                   <div id="driveLoadStatus" class="small text-muted mt-2"></div>
                 </div>
@@ -500,17 +491,6 @@
                     <i class="bi bi-file-earmark-arrow-up display-6 text-teal mb-2 d-block" style="color: var(--primary-teal);"></i>
                     <span class="small text-light">拖曳 LINE 備份 `.txt` 檔案至此，或 <span class="text-teal fw-bold">點擊瀏覽檔案</span></span>
                     <input type="file" id="localFileInput" class="d-none" accept=".txt">
-                  </div>
-                  <!-- Upload to Cloud container -->
-                  <div id="localUploadContainer" class="mt-3 p-3 rounded border border-secondary" style="display: none; background: rgba(15, 23, 42, 0.4);">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                      <div class="small text-light">
-                        <i class="bi bi-file-earmark-check text-success"></i> 已解析本機檔案：<span id="localFileNameSpan" class="fw-bold text-teal" style="color: var(--primary-teal);"></span>
-                      </div>
-                      <button class="btn btn-sm btn-outline-warning fw-bold" id="btnUploadLocalToCloud" onclick="uploadLocalFileToCloud()">
-                        <i class="bi bi-cloud-arrow-up"></i> ☁️ 上傳至雲端大腦
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -591,17 +571,14 @@
               <h5 class="small fw-bold text-light mb-3">1. 選擇官方帳號與對話群組</h5>
               
               <div class="mb-3 d-flex gap-2">
-                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;" onchange="handleDbChatsSelectChange()">
+                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;" onchange="toggleDbPreviewButton()">
                   <option value="">請先建立系統連線以載入官方帳號列表...</option>
                 </select>
-                <button class="btn btn-custom px-3" onclick="loadDbChatEvents()" id="btnLoadDbChat" disabled>
-                  <i class="bi bi-search"></i> 載入對話
-                </button>
                 <button class="btn btn-outline-info px-2" onclick="previewSelectedDbChat()" id="btnPreviewDbChat" disabled title="預覽選取的官方帳號備份檔案內容">
                   <i class="bi bi-eye"></i> 預覽
                 </button>
-                <button class="btn btn-outline-secondary px-2" onclick="promptEditDbChatNickname()" id="btnEditDbChatNickname" disabled title="修改此官方帳號群組的自訂別名(暱稱)">
-                  <i class="bi bi-pencil"></i> 暱稱
+                <button class="btn btn-custom px-3" onclick="loadDbChatEvents()" id="btnLoadDbChat" disabled>
+                  <i class="bi bi-search"></i> 載入對話
                 </button>
               </div>
               <div id="dbEventsLoadStatus" class="small text-muted mb-4"></div>
@@ -1200,33 +1177,15 @@
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const result = await response.json();
         
-        if (result.ok) {
-          // Cache files list
-          cachedDriveFiles = result.files || [];
-          
-          // Update exports folder link
-          if (result.exports_folder_url) {
-            const folderLink = document.getElementById('linkExportsFolder');
-            if (folderLink) folderLink.href = result.exports_folder_url;
-            const modalFolderLink = document.getElementById('modalExportsFolderLink');
-            if (modalFolderLink) modalFolderLink.href = result.exports_folder_url;
-          }
-          
-          if (result.files && result.files.length > 0) {
-            let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
-            result.files.forEach(f => {
-              const kbSize = Math.round(f.size / 1024);
-              const formattedDate = f.created ? f.created.substring(0, 16).replace('T', ' ') : '未知';
-              const label = f.isRegistered
-                ? `${f.displayName} (上傳: ${formattedDate}) [${kbSize} KB]`
-                : `${f.displayName} (更新: ${formattedDate}) [${kbSize} KB]`;
-              html += `<option value="${f.id}">${label}</option>`;
-            });
-            selectEl.innerHTML = html;
-            loadBtn.disabled = false;
-          } else {
-            selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
-          }
+        if (result.ok && result.files && result.files.length > 0) {
+          let html = '<option value="">-- 請選擇 Drive 文字檔 --</option>';
+          result.files.forEach(f => {
+            const kbSize = Math.round(f.size / 1024);
+            const label = f.displayName ? `${f.displayName} (${f.name} - ${kbSize} KB)` : `${f.name} (${kbSize} KB)`;
+            html += `<option value="${f.id}">${label}</option>`;
+          });
+          selectEl.innerHTML = html;
+          loadBtn.disabled = false;
         } else {
           selectEl.innerHTML = '<option value="">（未在雲端硬碟找到任何備份 .txt 檔案）</option>';
         }
@@ -1235,207 +1194,6 @@
         selectEl.innerHTML = `<option value="">讀取失敗: ${err.message}</option>`;
       } finally {
         toggleDrivePreviewButton();
-      }
-    }
-
-    // Global cache and handlers for cloud files manager
-    let cachedDriveFiles = [];
-
-    async function openCloudFilesManager() {
-      // Show Bootstrap Modal
-      const modalEl = document.getElementById('cloudFilesManagerModal');
-      if (!modalEl) return;
-      
-      const bsModal = new bootstrap.Modal(modalEl);
-      bsModal.show();
-      
-      await refreshManagerFilesList();
-    }
-
-    async function refreshManagerFilesList() {
-      const tableBody = document.getElementById('managerFilesTableBody');
-      if (!tableBody) return;
-      
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="5" class="text-center py-4 text-secondary">
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            正在載入雲端檔案列表...
-          </td>
-        </tr>
-      `;
-      
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=list_files&token=${token}`;
-      } else {
-        fetchUrl += `&action=list_files&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl);
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok && result.files && result.files.length > 0) {
-          cachedDriveFiles = result.files;
-          
-          // Update exports folder link in modal and header
-          if (result.exports_folder_url) {
-            const folderLink = document.getElementById('linkExportsFolder');
-            if (folderLink) folderLink.href = result.exports_folder_url;
-            const modalFolderLink = document.getElementById('modalExportsFolderLink');
-            if (modalFolderLink) modalFolderLink.href = result.exports_folder_url;
-          }
-          
-          let html = '';
-          result.files.forEach(f => {
-            const kbSize = Math.round(f.size / 1024);
-            const formattedDate = f.created ? f.created.substring(0, 16).replace('T', ' ') : '未知';
-            
-            // Determine display name vs original filename
-            const isReg = f.isRegistered;
-            const regBadge = isReg 
-              ? '<span class="badge bg-success bg-opacity-20 text-success ms-2" style="font-size: 10px;">已註冊別名</span>' 
-              : '<span class="badge bg-secondary bg-opacity-20 text-secondary ms-2" style="font-size: 10px;">未註冊</span>';
-            
-            html += `
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td>
-                  <div class="d-flex align-items-center justify-content-between">
-                    <span class="fw-bold text-teal" style="color: var(--primary-teal);">${f.displayName}</span>
-                    <button class="btn btn-sm btn-link text-muted p-0" onclick="promptRenameCloudFile('${f.id}', '${f.displayName.replace(/'/g, "\\'")}')" title="編輯別名">
-                      <i class="bi bi-pencil-square text-info"></i>
-                    </button>
-                  </div>
-                </td>
-                <td>
-                  <div class="text-truncate" style="max-width: 320px;" title="${f.name}">
-                    <span class="text-light">${f.name}</span>
-                    <div class="small text-muted" style="font-size: 11px;">ID: ${f.id} ${regBadge}</div>
-                  </div>
-                </td>
-                <td class="text-secondary">${kbSize} KB</td>
-                <td class="text-secondary">${formattedDate}</td>
-                <td class="text-center">
-                  <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteCloudFile('${f.id}', '${f.displayName.replace(/'/g, "\\'")}')" title="將檔案移至垃圾桶並刪除資料庫紀錄">
-                    <i class="bi bi-trash3-fill"></i> 刪除
-                  </button>
-                </td>
-              </tr>
-            `;
-          });
-          tableBody.innerHTML = html;
-        } else {
-          tableBody.innerHTML = `
-            <tr>
-              <td colspan="5" class="text-center py-5 text-secondary">
-                <i class="bi bi-folder-x display-6 d-block mb-2 text-muted"></i>
-                沒有在 exports/ 資料夾下找到備份檔案
-              </td>
-            </tr>
-          `;
-        }
-      } catch (err) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="text-center py-4 text-danger">
-              <i class="bi bi-exclamation-triangle-fill me-1"></i> 讀取雲端列表失敗: ${err.message}
-            </td>
-          </tr>
-        `;
-      }
-    }
-
-    // Prompts user for a new alias
-    window.promptRenameCloudFile = function(fileId, currentAlias) {
-      const newAlias = prompt(`修改此雲端對話備份的顯示別名：`, currentAlias);
-      if (newAlias === null) return; // Cancelled
-      if (!newAlias.trim()) {
-        alert('別名不能為空！');
-        return;
-      }
-      updateCloudFileAlias(fileId, newAlias.trim());
-    }
-
-    // Sends POST to update alias in dialogue_registry
-    async function updateCloudFileAlias(fileId, newAlias) {
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=update_dialogue_alias&token=${token}`;
-      } else {
-        fetchUrl += `&action=update_dialogue_alias&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            file_id: fileId,
-            new_alias: newAlias
-          })
-        });
-        
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok) {
-          alert('別名修改成功！');
-          // Refresh list inside modal
-          await refreshManagerFilesList();
-          // Also refresh main dropdown list
-          await refreshDriveFiles(url, token);
-        } else {
-          throw new Error(result.error || '修改失敗');
-        }
-      } catch (err) {
-        alert(`修改別名失敗: ${err.message}`);
-      }
-    }
-
-    // Sends POST to trash file and remove registry
-    window.deleteCloudFile = async function(fileId, displayName) {
-      const confirmDelete = confirm(`確定要將「${displayName}」從雲端硬碟中刪除嗎？\\n這會將實體檔案移至 Google Drive 垃圾桶，並清除資料庫關聯註冊，此操作將無法還原！`);
-      if (!confirmDelete) return;
-      
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=delete_dialogue_file&token=${token}`;
-      } else {
-        fetchUrl += `&action=delete_dialogue_file&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            file_id: fileId
-          })
-        });
-        
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok) {
-          alert('檔案已成功刪除並解除註冊！');
-          // Refresh list inside modal
-          await refreshManagerFilesList();
-          // Also refresh main dropdown list
-          await refreshDriveFiles(url, token);
-        } else {
-          throw new Error(result.error || '刪除失敗');
-        }
-      } catch (err) {
-        alert(`刪除檔案失敗: ${err.message}`);
       }
     }
 
@@ -1602,8 +1360,8 @@
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
             
-          // Check if it's a date header line, e.g., 2026/07/05(週日) or 2021/6/19（週六）
-          if (/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}\s*(?:\([^)]+\)|（[^）]+）)?$/.test(escaped.trim())) {
+          // Check if it's a date header line, e.g., 2026/07/05(週日)
+          if (/^\d{4}\/\d{2}\/\d{2}(\([^)]+\))?$/.test(escaped.trim())) {
             return `<span style="color: #fbbf24; font-weight: bold; font-size: 14px; display: inline-block; margin-top: 12px; margin-bottom: 4px;">${escaped}</span>`;
           }
           
@@ -1679,9 +1437,6 @@
       }
     });
 
-    let lastLoadedLocalFileName = '';
-    let lastLoadedLocalFileContent = '';
-
     function handleLocalFile(file) {
       if (!file.name.endsWith('.txt')) {
         alert('請上傳 LINE 備份產生的 .txt 檔案格式！');
@@ -1691,96 +1446,10 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const text = e.target.result;
-        
-        lastLoadedLocalFileName = file.name;
-        lastLoadedLocalFileContent = text;
-        
         processRawText(text);
-        
-        document.getElementById('localFileNameSpan').textContent = file.name;
-        document.getElementById('localUploadContainer').style.display = 'block';
-        
         alert(`本機載入成功！共解析出 ${parsedChatLog.messages.length} 筆對話記錄。`);
       };
       reader.readAsText(file);
-    }
-
-    async function uploadLocalFileToCloud() {
-      if (!lastLoadedLocalFileName || !lastLoadedLocalFileContent) {
-        alert('無效的本機載入檔案內容，請先拖放或選擇本機文字檔！');
-        return;
-      }
-      
-      const chatName = parsedChatLog ? (parsedChatLog.chatName || '未命名對話') : '對話備份';
-      
-      // Format YYYYMMDD date suffix for suggestion alias
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const dateStr = `${yyyy}${mm}${dd}`;
-      const defaultAlias = `${chatName}_${dateStr}_備份`;
-      
-      const alias = prompt('請輸入此對話備份在雲端大腦中的「顯示別名」：', defaultAlias);
-      if (alias === null) return; // User cancelled
-      
-      const uploadBtn = document.getElementById('btnUploadLocalToCloud');
-      const originalText = uploadBtn.innerHTML;
-      uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 上傳中...';
-      uploadBtn.disabled = true;
-      
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=upload_file&token=${token}`;
-      } else {
-        fetchUrl += `&action=upload_file&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            filename: lastLoadedLocalFileName,
-            alias: alias.trim() || lastLoadedLocalFileName,
-            content: lastLoadedLocalFileContent
-          })
-        });
-        
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok) {
-          alert(`上傳並註冊成功！\n雲端別名：${result.alias}\n上傳時間：${result.uploaded_at}`);
-          
-          // Switch to Cloud sync panel
-          const driveTabBtn = document.querySelector('#slicerTabs button[data-bs-target="#drive-panel"]');
-          if (driveTabBtn) {
-            const bsTab = new bootstrap.Tab(driveTabBtn);
-            bsTab.show();
-          }
-          
-          // Refresh list and select the uploaded file
-          await refreshDriveFiles(url, token);
-          
-          const selectEl = document.getElementById('driveFilesSelect');
-          if (selectEl) {
-            selectEl.value = result.file_id;
-            toggleDrivePreviewButton();
-            // Load file content instantly so dates checklist is populated
-            loadSelectedDriveFile();
-          }
-        } else {
-          throw new Error(result.error || '上傳失敗');
-        }
-      } catch (err) {
-        alert(`上傳失敗: ${err.message}`);
-      } finally {
-        uploadBtn.innerHTML = originalText;
-        uploadBtn.disabled = false;
-      }
     }
 
     // 4. Process raw text and group
@@ -2126,13 +1795,6 @@
       
       document.getElementById('driveLoadStatus').innerText = '';
       document.getElementById('localFileInput').value = '';
-      
-      // Reset local file upload state
-      lastLoadedLocalFileName = '';
-      lastLoadedLocalFileContent = '';
-      const uploadContainer = document.getElementById('localUploadContainer');
-      if (uploadContainer) uploadContainer.style.display = 'none';
-      
       updateUnifiedCompiledContext();
     }
 
@@ -2166,11 +1828,7 @@
         if (result.ok && result.data && result.data.length > 0) {
           let html = '<option value="">-- 請選擇官方帳號 / 對話群組 --</option>';
           result.data.forEach(c => {
-            const hasCustom = c.custom_name && c.custom_name !== c.default_name;
-            const labelName = hasCustom 
-              ? `${c.custom_name} (原名: ${c.default_name})` 
-              : c.default_name;
-            html += `<option value="${c.bot_alias}|${c.chat_id}" data-default-name="${c.default_name.replace(/"/g, '&quot;')}" data-custom-name="${c.custom_name.replace(/"/g, '&quot;')}">助手: ${c.bot_alias} | ${labelName}</option>`;
+            html += `<option value="${c.bot_alias}|${c.chat_id}">助手: ${c.bot_alias} | 群組ID: ${c.chat_id}</option>`;
           });
           selectEl.innerHTML = html;
           loadBtn.disabled = false;
@@ -2235,91 +1893,11 @@
       }
     }
 
-    function handleDbChatsSelectChange() {
-      toggleDbPreviewButton();
-      
-      const selectEl = document.getElementById('dbChatsSelect');
-      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
-      if (selectEl && nicknameBtn) {
-        nicknameBtn.disabled = !selectEl.value;
-      }
-    }
-
     function toggleDbPreviewButton() {
       const selectEl = document.getElementById('dbChatsSelect');
       const previewBtn = document.getElementById('btnPreviewDbChat');
       if (selectEl && previewBtn) {
         previewBtn.disabled = !selectEl.value;
-      }
-    }
-
-    async function promptEditDbChatNickname() {
-      const selectEl = document.getElementById('dbChatsSelect');
-      const selectedVal = selectEl.value;
-      if (!selectedVal) {
-        alert('請先選擇官方帳號！');
-        return;
-      }
-      
-      const [botAlias, chatId] = selectedVal.split('|');
-      const selectedOption = selectEl.options[selectEl.selectedIndex];
-      const currentCustomName = selectedOption.getAttribute('data-custom-name') || '';
-      const currentDefaultName = selectedOption.getAttribute('data-default-name') || '';
-      
-      const newNickname = prompt(`修改此官方帳號對話的自訂別名（暱稱）：`, currentCustomName || currentDefaultName);
-      if (newNickname === null) return; // User cancelled
-      if (!newNickname.trim()) {
-        alert('暱稱不能為空！');
-        return;
-      }
-      
-      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
-      const originalText = nicknameBtn.innerHTML;
-      nicknameBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      nicknameBtn.disabled = true;
-      
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=update_chat_nickname&token=${token}`;
-      } else {
-        fetchUrl += `&action=update_chat_nickname&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            chat_id: chatId,
-            bot_alias: botAlias,
-            custom_name: newNickname.trim()
-          })
-        });
-        
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok) {
-          alert('自訂別名修改成功！');
-          
-          // Update selected option data attributes locally instantly
-          selectedOption.setAttribute('data-custom-name', result.custom_name);
-          const hasCustom = result.custom_name !== currentDefaultName;
-          const labelName = hasCustom 
-            ? `${result.custom_name} (原名: ${currentDefaultName})` 
-            : currentDefaultName;
-          
-          selectedOption.text = `助手: ${botAlias} | ${labelName}`;
-        } else {
-          throw new Error(result.error || '修改失敗');
-        }
-      } catch (err) {
-        alert(`修改暱稱失敗: ${err.message}`);
-      } finally {
-        nicknameBtn.innerHTML = originalText;
-        nicknameBtn.disabled = false;
       }
     }
 
@@ -4093,55 +3671,6 @@
       }
     });
   </script>
-
-  <!-- Modal: Cloud Files Manager -->
-  <div class="modal fade" id="cloudFilesManagerModal" tabindex="-1" aria-labelledby="cloudFilesManagerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content" style="background: #0f172a; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
-        <div class="modal-header border-secondary border-opacity-20">
-          <h5 class="modal-title fw-bold text-teal d-flex align-items-center gap-2" id="cloudFilesManagerModalLabel" style="color: var(--primary-teal);">
-            <i class="bi bi-clouds-fill"></i> ☁️ 雲端備份檔案管理器
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <!-- Exports Folder Direct Link Alert -->
-          <div class="alert alert-info py-3 px-4 border border-info border-opacity-25 rounded mb-4" style="background: rgba(14, 165, 233, 0.1);">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div class="text-light">
-                <i class="bi bi-folder-symlink-fill text-info me-2 fs-5"></i>
-                <span>Google Drive 雲端實體備份資料夾目錄：</span>
-              </div>
-              <a class="btn btn-sm btn-outline-info text-decoration-none fw-bold" id="modalExportsFolderLink" href="https://drive.google.com" target="_blank">
-                <i class="bi bi-box-arrow-up-right"></i> 在網頁中開啟 Google Drive 資料夾
-              </a>
-            </div>
-          </div>
-
-          <!-- Files Table -->
-          <div class="table-responsive border border-secondary border-opacity-20 rounded" style="max-height: 450px; overflow-y: auto; background: rgba(15, 23, 42, 0.6);">
-            <table class="table table-dark table-striped table-hover align-middle mb-0" style="font-size: 13px;">
-              <thead class="sticky-top" style="z-index: 10;">
-                <tr class="table-dark" style="border-bottom: 2px solid rgba(255, 255, 255, 0.1);">
-                  <th style="background: #1e293b; color: #a78bfa;">別名 (雙擊或點右側圖示編輯)</th>
-                  <th style="background: #1e293b; color: #9ca3af;">原始檔案名稱 / 雲端 ID</th>
-                  <th style="background: #1e293b; color: #9ca3af; width: 100px;">大小</th>
-                  <th style="background: #1e293b; color: #9ca3af; width: 160px;">上傳時間</th>
-                  <th style="background: #1e293b; color: #f43f5e; width: 120px;" class="text-center">操作</th>
-                </tr>
-              </thead>
-              <tbody id="managerFilesTableBody">
-                <!-- Dynamically populated by JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="modal-footer border-secondary border-opacity-20 p-3">
-          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">關閉</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- JS: Marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

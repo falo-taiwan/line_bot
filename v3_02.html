@@ -342,12 +342,9 @@
     <div class="container main-container py-0 d-flex justify-content-between align-items-center">
       <div class="navbar-brand-custom">
         <i class="bi bi-cpu-fill text-teal me-2" style="color: var(--primary-teal);"></i>
-        Falo IM 3.03 <span class="fw-light text-muted">|</span> MVP 控制台
+        Falo IM 3.02 <span class="fw-light text-muted">|</span> MVP 控制台
       </div>
-      <div class="d-flex align-items-center">
-        <a class="btn btn-sm btn-outline-purple me-3 fw-bold" href="/mobile" target="_blank" title="在新分頁開啟手機直立式快速控制台">
-          <i class="bi bi-phone"></i> 📱 手機專用版
-        </a>
+      <div>
         <span class="badge-status badge-offline" id="globalStatusBadge">未連線</span>
       </div>
     </div>
@@ -591,7 +588,7 @@
               <h5 class="small fw-bold text-light mb-3">1. 選擇官方帳號與對話群組</h5>
               
               <div class="mb-3 d-flex gap-2">
-                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;" onchange="handleDbChatsSelectChange()">
+                <select id="dbChatsSelect" class="form-select form-select-custom" style="flex: 1;" onchange="toggleDbPreviewButton()">
                   <option value="">請先建立系統連線以載入官方帳號列表...</option>
                 </select>
                 <button class="btn btn-custom px-3" onclick="loadDbChatEvents()" id="btnLoadDbChat" disabled>
@@ -599,9 +596,6 @@
                 </button>
                 <button class="btn btn-outline-info px-2" onclick="previewSelectedDbChat()" id="btnPreviewDbChat" disabled title="預覽選取的官方帳號備份檔案內容">
                   <i class="bi bi-eye"></i> 預覽
-                </button>
-                <button class="btn btn-outline-secondary px-2" onclick="promptEditDbChatNickname()" id="btnEditDbChatNickname" disabled title="修改此官方帳號群組的自訂別名(暱稱)">
-                  <i class="bi bi-pencil"></i> 暱稱
                 </button>
               </div>
               <div id="dbEventsLoadStatus" class="small text-muted mb-4"></div>
@@ -2166,11 +2160,7 @@
         if (result.ok && result.data && result.data.length > 0) {
           let html = '<option value="">-- 請選擇官方帳號 / 對話群組 --</option>';
           result.data.forEach(c => {
-            const hasCustom = c.custom_name && c.custom_name !== c.default_name;
-            const labelName = hasCustom 
-              ? `${c.custom_name} (原名: ${c.default_name})` 
-              : c.default_name;
-            html += `<option value="${c.bot_alias}|${c.chat_id}" data-default-name="${c.default_name.replace(/"/g, '&quot;')}" data-custom-name="${c.custom_name.replace(/"/g, '&quot;')}">助手: ${c.bot_alias} | ${labelName}</option>`;
+            html += `<option value="${c.bot_alias}|${c.chat_id}">助手: ${c.bot_alias} | 群組ID: ${c.chat_id}</option>`;
           });
           selectEl.innerHTML = html;
           loadBtn.disabled = false;
@@ -2235,91 +2225,11 @@
       }
     }
 
-    function handleDbChatsSelectChange() {
-      toggleDbPreviewButton();
-      
-      const selectEl = document.getElementById('dbChatsSelect');
-      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
-      if (selectEl && nicknameBtn) {
-        nicknameBtn.disabled = !selectEl.value;
-      }
-    }
-
     function toggleDbPreviewButton() {
       const selectEl = document.getElementById('dbChatsSelect');
       const previewBtn = document.getElementById('btnPreviewDbChat');
       if (selectEl && previewBtn) {
         previewBtn.disabled = !selectEl.value;
-      }
-    }
-
-    async function promptEditDbChatNickname() {
-      const selectEl = document.getElementById('dbChatsSelect');
-      const selectedVal = selectEl.value;
-      if (!selectedVal) {
-        alert('請先選擇官方帳號！');
-        return;
-      }
-      
-      const [botAlias, chatId] = selectedVal.split('|');
-      const selectedOption = selectEl.options[selectEl.selectedIndex];
-      const currentCustomName = selectedOption.getAttribute('data-custom-name') || '';
-      const currentDefaultName = selectedOption.getAttribute('data-default-name') || '';
-      
-      const newNickname = prompt(`修改此官方帳號對話的自訂別名（暱稱）：`, currentCustomName || currentDefaultName);
-      if (newNickname === null) return; // User cancelled
-      if (!newNickname.trim()) {
-        alert('暱稱不能為空！');
-        return;
-      }
-      
-      const nicknameBtn = document.getElementById('btnEditDbChatNickname');
-      const originalText = nicknameBtn.innerHTML;
-      nicknameBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      nicknameBtn.disabled = true;
-      
-      const url = document.getElementById('gasUrlInput').value.trim();
-      const token = document.getElementById('tokenInput').value.trim();
-      
-      let fetchUrl = url;
-      if (fetchUrl.indexOf('?') === -1) {
-        fetchUrl += `?action=update_chat_nickname&token=${token}`;
-      } else {
-        fetchUrl += `&action=update_chat_nickname&token=${token}`;
-      }
-      
-      try {
-        const response = await fetch(fetchUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            chat_id: chatId,
-            bot_alias: botAlias,
-            custom_name: newNickname.trim()
-          })
-        });
-        
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        
-        if (result.ok) {
-          alert('自訂別名修改成功！');
-          
-          // Update selected option data attributes locally instantly
-          selectedOption.setAttribute('data-custom-name', result.custom_name);
-          const hasCustom = result.custom_name !== currentDefaultName;
-          const labelName = hasCustom 
-            ? `${result.custom_name} (原名: ${currentDefaultName})` 
-            : currentDefaultName;
-          
-          selectedOption.text = `助手: ${botAlias} | ${labelName}`;
-        } else {
-          throw new Error(result.error || '修改失敗');
-        }
-      } catch (err) {
-        alert(`修改暱稱失敗: ${err.message}`);
-      } finally {
-        nicknameBtn.innerHTML = originalText;
-        nicknameBtn.disabled = false;
       }
     }
 

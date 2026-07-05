@@ -12,10 +12,12 @@ HTML_MAPPING = {
     "__INDEX_HTML__": "index.html",
     "__POC_DEMO_HTML__": "poc-demo.html",
     "__MVP_HTML__": "mvp.html",
+    "__MOBILE_HTML__": "mobile.html",
     "__PRODUCT_INTRO_HTML__": "product-intro.html",
     "__PRODUCT_ANALYSIS_HTML__": "product-analysis.html",
     "__LINE_PARSER_SPEC_HTML__": "docs/tutorials/line_parser_spec.html",
-    "__GOOGLE_SHEETS_ACCESS_METHODS_HTML__": "google-sheets-access-methods.html"
+    "__GOOGLE_SHEETS_ACCESS_METHODS_HTML__": "google-sheets-access-methods.html",
+    "__MOBILE_PREVIEW_HTML__": "mobile-preview.html"
 }
 
 def escape_for_js_literal(content):

@@ -90,7 +90,7 @@ function doGet(e) {
     }
   }
 
-  // Secure endpoint to list files inside the exports folder or system_media subfolder directly from URL
+  // Secure endpoint to list files inside the exports folder directly from URL
   if (action === 'list_files') {
     try {
       var filesList = [];
@@ -107,60 +107,70 @@ function doGet(e) {
         exportsFolder = parentFolder.createFolder('exports');
       }
       
-      // Read Registry Maps for mapping chat IDs / filenames
+      // Read dialogue_registry database mapping
       var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
       ensureSetup(ss);
+      
+      var registrySheet = ss.getSheetByName('dialogue_registry');
+      var registryMap = {};
+      if (registrySheet) {
+        var lastRegRow = registrySheet.getLastRow();
+        if (lastRegRow > 1) {
+          var regValues = registrySheet.getRange(2, 1, lastRegRow - 1, 6).getValues();
+          for (var i = 0; i < regValues.length; i++) {
+            var fId = String(regValues[i][0]);
+            registryMap[fId] = {
+              original_filename: regValues[i][1],
+              alias_name: regValues[i][2],
+              drive_url: regValues[i][3],
+              file_size: regValues[i][4],
+              uploaded_at: regValues[i][5]
+            };
+          }
+        }
+      }
       
       var files = exportsFolder.getFiles();
       while (files.hasNext()) {
         var f = files.next();
         if (f.getName().endsWith('.txt') || f.getName().endsWith('.html')) {
-          // Attempt to extract friendly name by reading the first line of the file
+          var fileId = f.getId();
           var displayName = f.getName();
-          try {
-            var content = f.getBlob().getDataAsString();
-            var firstLine = content.split('\n')[0].trim();
-            if (firstLine.indexOf('[LINE]') === 0) {
-              displayName = firstLine.replace('[LINE]', '').trim();
-            } else if (firstLine.indexOf('<!DOCTYPE') !== 0 && firstLine.indexOf('<html') !== 0 && firstLine.length > 0 && firstLine.length < 50) {
-              displayName = firstLine;
+          var uploadedTime = formatDateToTaipeiIso_(f.getDateCreated());
+          var isRegistered = false;
+          
+          if (registryMap[fileId]) {
+            displayName = registryMap[fileId].alias_name;
+            uploadedTime = registryMap[fileId].uploaded_at;
+            isRegistered = true;
+          } else {
+            // Attempt to extract friendly name by reading the first line of the file (legacy fallback)
+            try {
+              var content = f.getBlob().getDataAsString();
+              var firstLine = content.split('\n')[0].trim();
+              if (firstLine.indexOf('[LINE]') === 0) {
+                displayName = firstLine.replace('[LINE]', '').trim();
+              } else if (firstLine.indexOf('<!DOCTYPE') !== 0 && firstLine.indexOf('<html') !== 0 && firstLine.length > 0 && firstLine.length < 50) {
+                displayName = firstLine;
+              }
+            } catch (e) {
+              // Fallback to filename
             }
-          } catch (e) {
-            // Fallback to filename
           }
           
           filesList.push({
-            id: f.getId(),
+            id: fileId,
             name: f.getName(),
             displayName: displayName,
             size: f.getSize(),
             mime: f.getMimeType(),
-            created: formatDateToTaipeiIso_(f.getDateCreated())
+            created: uploadedTime,
+            isRegistered: isRegistered
           });
         }
       }
       
-      // Also scan system_media folder if it contains parsed logs (compatibility helper)
-      var mediaFolders = parentFolder.getFoldersByName('system_media');
-      if (mediaFolders.hasNext()) {
-        var mediaFolder = mediaFolders.next();
-        var mediaFiles = mediaFolder.getFiles();
-        while (mediaFiles.hasNext()) {
-          var mf = mediaFiles.next();
-          if (mf.getName().endsWith('.txt')) {
-            filesList.push({
-              id: mf.getId(),
-              name: 'system_media/' + mf.getName(),
-              displayName: 'system_media/' + mf.getName(),
-              size: mf.getSize(),
-              mime: mf.getMimeType(),
-              created: formatDateToTaipeiIso_(mf.getDateCreated())
-            });
-          }
-        }
-      }
-
-      return jsonResponse({ ok: true, files: filesList });
+      return jsonResponse({ ok: true, files: filesList, exports_folder_url: exportsFolder.getUrl() });
     } catch (err) {
       return jsonResponse({ ok: false, error: err.message }, 500);
     }
@@ -172,20 +182,66 @@ function doGet(e) {
   // A. action=get_chats (Returns unique active chat groups)
   if (action === 'get_chats') {
     try {
-      var sheet = ss.getSheetByName('chat_events');
-      var values = sheet.getDataRange().getValues();
-      var chatsMap = {};
-      
-      for (var i = 1; i < values.length; i++) {
-        var bot_alias = values[i][1];
-        var chat_id = values[i][2];
-        var key = bot_alias + '/' + chat_id;
-        chatsMap[key] = { bot_alias: bot_alias, chat_id: chat_id };
+      var registrySheet = ss.getSheetByName('chat_registry');
+      var registeredMap = {};
+      if (registrySheet) {
+        var lastRegRow = registrySheet.getLastRow();
+        if (lastRegRow > 1) {
+          var regValues = registrySheet.getRange(2, 1, lastRegRow - 1, 6).getValues();
+          for (var i = 0; i < regValues.length; i++) {
+            var cId = String(regValues[i][0]);
+            var bAlias = String(regValues[i][1]);
+            var key = bAlias + '/' + cId;
+            registeredMap[key] = {
+              chat_id: cId,
+              bot_alias: bAlias,
+              default_name: regValues[i][2],
+              custom_name: regValues[i][3],
+              chat_type: regValues[i][4]
+            };
+          }
+        }
+      }
+
+      var eventsSheet = ss.getSheetByName('chat_events');
+      if (eventsSheet) {
+        var eventsValues = eventsSheet.getDataRange().getValues();
+        for (var i = 1; i < eventsValues.length; i++) {
+          var bot_alias = String(eventsValues[i][1]);
+          var chat_id = String(eventsValues[i][2]);
+          var chat_name = String(eventsValues[i][3]);
+          var key = bot_alias + '/' + chat_id;
+          
+          if (!registeredMap[key]) {
+            // Self-healing backfill for unregistered chats
+            var chatType = chat_id.indexOf('C') === 0 ? '群組' : '個人';
+            var friendly = chat_name || ('未命名對話 (' + chat_id.slice(0, 8) + ')');
+            
+            if (registrySheet) {
+              registrySheet.appendRow([
+                chat_id,
+                bot_alias,
+                friendly, // default_name
+                friendly, // custom_name
+                chatType,
+                formatDateToTaipeiIso_()
+              ]);
+            }
+            
+            registeredMap[key] = {
+              chat_id: chat_id,
+              bot_alias: bot_alias,
+              default_name: friendly,
+              custom_name: friendly,
+              chat_type: chatType
+            };
+          }
+        }
       }
 
       var chatsList = [];
-      for (var k in chatsMap) {
-        chatsList.push(chatsMap[k]);
+      for (var k in registeredMap) {
+        chatsList.push(registeredMap[k]);
       }
       return jsonResponse({ ok: true, data: chatsList });
     } catch (err) {
@@ -406,29 +462,269 @@ function doPost(e) {
       var registrySheet = ss.getSheetByName('chat_registry');
       if (registrySheet) {
         var lastRegRow = registrySheet.getLastRow();
-        var regValues = lastRegRow > 1 ? registrySheet.getRange(2, 1, lastRegRow - 1, 5).getValues() : [];
-        var exists = false;
+        var regValues = lastRegRow > 1 ? registrySheet.getRange(2, 1, lastRegRow - 1, 6).getValues() : [];
+        var existsIdx = -1;
+        
         for (var i = 0; i < regValues.length; i++) {
           if (regValues[i][0] === chatId) {
-            exists = true;
+            existsIdx = i;
             break;
           }
         }
         
-        if (!exists) {
-          var friendlyName = payload.chat_name || ('未命名對話 (' + chatId.slice(0, 8) + ')');
-          var chatType = chatId.indexOf('C') === 0 ? '群組' : '個人';
+        var chatName = payload.chat_name || ('未命名對話 (' + chatId.slice(0, 8) + ')');
+        var chatType = chatId.indexOf('C') === 0 ? '群組' : '個人';
+        
+        if (existsIdx === -1) {
           registrySheet.appendRow([
             chatId,
             botAlias,
-            friendlyName,
+            chatName, // default_name
+            chatName, // custom_name
             chatType,
             formatDateToTaipeiIso_()
           ]);
+        } else {
+          // Auto-sync default name if it has changed in webhook
+          var existingDefaultName = regValues[existsIdx][2];
+          if (payload.chat_name && existingDefaultName !== payload.chat_name) {
+            registrySheet.getRange(existsIdx + 2, 3).setValue(payload.chat_name); // Col 3 is default_name
+            registrySheet.getRange(existsIdx + 2, 6).setValue(formatDateToTaipeiIso_()); // Col 6 is updated_at
+          }
         }
       }
 
       return jsonResponse({ ok: true, saved_raw: true, saved_events_count: parsedEvents.length });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
+  // B. action=upload_file (Saves text file with timestamp prefix to Drive exports/ folder, registers it in dialogue_registry sheet)
+  if (action === 'upload_file') {
+    try {
+      var payload = JSON.parse(e.postData.contents);
+      var filename = payload.filename;
+      var alias = payload.alias;
+      var content = payload.content;
+
+      if (!filename || !content) {
+        return jsonResponse({ ok: false, error: 'Missing filename or content' }, 400);
+      }
+
+      var currentFile = DriveApp.getFileById(MASTER_SPREADSHEET_ID);
+      var parents = currentFile.getParents();
+      var parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+      
+      // Resolve exports folder
+      var exportsFolder;
+      var exportsSubFolders = parentFolder.getFoldersByName('exports');
+      if (exportsSubFolders.hasNext()) {
+        exportsFolder = exportsSubFolders.next();
+      } else {
+        exportsFolder = parentFolder.createFolder('exports');
+      }
+
+      // Generate timestamp prefix YYYYMMDD_HHMMSS in Taipei Time
+      var now = new Date();
+      var formattedTimestamp = Utilities.formatDate(now, "GMT+8", "yyyyMMdd_HHmmss");
+      var physicalFilename = formattedTimestamp + '_' + filename;
+
+      // Save file to Google Drive exports/ folder
+      var newFile = exportsFolder.createFile(physicalFilename, content);
+      
+      // Register in dialogue_registry
+      var registrySheet = ss.getSheetByName('dialogue_registry');
+      if (!registrySheet) {
+        registrySheet = ss.insertSheet('dialogue_registry');
+        var dialogueRegistryHeaders = ['file_id', 'original_filename', 'alias_name', 'drive_url', 'file_size', 'uploaded_at'];
+        registrySheet.appendRow(dialogueRegistryHeaders);
+      }
+
+      var uploadedAtStr = formatDateToTaipeiIso_(now);
+      var fileId = newFile.getId();
+      var driveUrl = newFile.getUrl();
+      var fileSize = newFile.getSize();
+
+      registrySheet.appendRow([
+        fileId,
+        filename,
+        alias || filename,
+        driveUrl,
+        fileSize,
+        uploadedAtStr
+      ]);
+
+      return jsonResponse({
+        ok: true,
+        file_id: fileId,
+        physical_filename: physicalFilename,
+        alias: alias || filename,
+        uploaded_at: uploadedAtStr
+      });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
+  // C. action=update_dialogue_alias (Updates friendly alias inside dialogue_registry sheet)
+  if (action === 'update_dialogue_alias') {
+    try {
+      var payload = JSON.parse(e.postData.contents);
+      var fileId = payload.file_id;
+      var newAlias = payload.new_alias;
+      
+      if (!fileId || !newAlias) {
+        return jsonResponse({ ok: false, error: 'Missing file_id or new_alias' }, 400);
+      }
+      
+      var registrySheet = ss.getSheetByName('dialogue_registry');
+      if (!registrySheet) {
+        registrySheet = ss.insertSheet('dialogue_registry');
+        var dialogueRegistryHeaders = ['file_id', 'original_filename', 'alias_name', 'drive_url', 'file_size', 'uploaded_at'];
+        registrySheet.appendRow(dialogueRegistryHeaders);
+      }
+
+      var lastRow = registrySheet.getLastRow();
+      var found = false;
+      if (lastRow > 1) {
+        var range = registrySheet.getRange(2, 1, lastRow - 1, 6);
+        var values = range.getValues();
+        for (var i = 0; i < values.length; i++) {
+          if (String(values[i][0]) === String(fileId)) {
+            registrySheet.getRange(i + 2, 3).setValue(newAlias); // Column 3 (C) is alias_name
+            found = true;
+            break;
+          }
+        }
+      }
+
+      // Self-healing: if the file was not registered in dialogue_registry, register it on the fly
+      if (!found) {
+        try {
+          var file = DriveApp.getFileById(fileId);
+          var originalFilename = file.getName();
+          var driveUrl = file.getUrl();
+          var fileSize = file.getSize();
+          var uploadedAtStr = formatDateToTaipeiIso_(new Date());
+          
+          registrySheet.appendRow([
+            fileId,
+            originalFilename,
+            newAlias,
+            driveUrl,
+            fileSize,
+            uploadedAtStr
+          ]);
+          found = true;
+        } catch (driveErr) {
+          // If Drive file is not accessible but we want to register it anyway
+          registrySheet.appendRow([
+            fileId,
+            '',
+            newAlias,
+            '',
+            0,
+            formatDateToTaipeiIso_(new Date())
+          ]);
+          found = true;
+        }
+      }
+
+      return jsonResponse({ ok: true, file_id: fileId, alias: newAlias });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
+  // D. action=delete_dialogue_file (Trashes Drive file and removes registry record)
+  if (action === 'delete_dialogue_file') {
+    try {
+      var payload = JSON.parse(e.postData.contents);
+      var fileId = payload.file_id;
+      
+      if (!fileId) {
+        return jsonResponse({ ok: false, error: 'Missing file_id' }, 400);
+      }
+      
+      // 1. Move file to Drive trash
+      try {
+        var file = DriveApp.getFileById(fileId);
+        file.setTrashed(true);
+      } catch (driveErr) {
+        // Log error or continue if already deleted
+      }
+      
+      // 2. Remove registry row from dialogue_registry
+      var registrySheet = ss.getSheetByName('dialogue_registry');
+      if (registrySheet) {
+        var lastRow = registrySheet.getLastRow();
+        if (lastRow > 1) {
+          var range = registrySheet.getRange(2, 1, lastRow - 1, 6);
+          var values = range.getValues();
+          for (var i = 0; i < values.length; i++) {
+            if (String(values[i][0]) === String(fileId)) {
+              registrySheet.deleteRow(i + 2);
+              break;
+            }
+          }
+        }
+      }
+      return jsonResponse({ ok: true, file_id: fileId, message: 'File deleted and unregistered successfully' });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+  }
+
+  // E. action=update_chat_nickname (Updates custom nickname of official account group in chat_registry)
+  if (action === 'update_chat_nickname') {
+    try {
+      var payload = JSON.parse(e.postData.contents);
+      var chatId = payload.chat_id;
+      var botAlias = payload.bot_alias;
+      var customName = payload.custom_name;
+      
+      if (!chatId || !botAlias || !customName) {
+        return jsonResponse({ ok: false, error: 'Missing chat_id, bot_alias or custom_name' }, 400);
+      }
+      
+      var registrySheet = ss.getSheetByName('chat_registry');
+      if (!registrySheet) {
+        registrySheet = ss.insertSheet('chat_registry');
+        var dialogueRegistryHeaders = ['chat_id', 'bot_alias', 'default_name', 'custom_name', 'chat_type', 'updated_at'];
+        registrySheet.appendRow(dialogueRegistryHeaders);
+      }
+
+      var lastRow = registrySheet.getLastRow();
+      var found = false;
+      if (lastRow > 1) {
+        var range = registrySheet.getRange(2, 1, lastRow - 1, 6);
+        var values = range.getValues();
+        for (var i = 0; i < values.length; i++) {
+          if (String(values[i][0]) === String(chatId) && String(values[i][1]) === String(botAlias)) {
+            registrySheet.getRange(i + 2, 4).setValue(customName); // Column 4 (D) is custom_name
+            registrySheet.getRange(i + 2, 6).setValue(formatDateToTaipeiIso_()); // Column 6 (F) is updated_at
+            found = true;
+            break;
+          }
+        }
+      }
+
+      // Self-healing: if the chat was not registered in chat_registry, register it on the fly
+      if (!found) {
+        var chatType = chatId.indexOf('C') === 0 ? '群組' : '個人';
+        registrySheet.appendRow([
+          chatId,
+          botAlias,
+          customName, // default_name (fallback to customName)
+          customName, // custom_name
+          chatType,
+          formatDateToTaipeiIso_()
+        ]);
+        found = true;
+      }
+
+      return jsonResponse({ ok: true, chat_id: chatId, bot_alias: botAlias, custom_name: customName });
     } catch (err) {
       return jsonResponse({ ok: false, error: err.message }, 500);
     }
@@ -484,6 +780,19 @@ function handleLineWebhook(webhookPayload) {
       var userId = source.userId || '';
       var message = evt.message || {};
 
+      if (message.id) {
+        if (isMessageIdExists_(sheet, message.id)) {
+          Logger.log('Duplicate message event detected and skipped (sheet check): ' + message.id);
+          return;
+        }
+        for (var i = 0; i < valuesToAppend.length; i++) {
+          if (valuesToAppend[i][3] === message.id) {
+            Logger.log('Duplicate message event detected and skipped (batch check): ' + message.id);
+            return;
+          }
+        }
+      }
+
       var textContent = message.text || '';
       if (message.type !== 'text') {
         textContent = '[' + message.type.toUpperCase() + ']';
@@ -537,6 +846,23 @@ function handleLineWebhook(webhookPayload) {
   } catch (err) {
     return htmlPostAck_({ ok: false, error: err.message });
   }
+}
+
+function isMessageIdExists_(sheet, messageId) {
+  if (!messageId) return false;
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return false;
+  
+  var startRow = Math.max(2, lastRow - 199);
+  var numRows = lastRow - startRow + 1;
+  
+  var values = sheet.getRange(startRow, 4, numRows, 1).getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0]) === String(messageId)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // ----------------------------------------------------
