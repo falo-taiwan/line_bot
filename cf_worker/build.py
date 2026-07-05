@@ -11,6 +11,7 @@ OUTPUT_PATH = os.path.join(WORKER_DIR, "src", "index.js")
 HTML_MAPPING = {
     "__INDEX_HTML__": "index.html",
     "__POC_DEMO_HTML__": "poc-demo.html",
+    "__POC_V2_HTML__": "poc-v2.html",
     "__PRODUCT_INTRO_HTML__": "product-intro.html",
     "__PRODUCT_ANALYSIS_HTML__": "product-analysis.html",
     "__LINE_PARSER_SPEC_HTML__": "docs/tutorials/line_parser_spec.html",

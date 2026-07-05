@@ -1120,6 +1120,1568 @@ const POC_DEMO_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
       <!-- Sidebar -->
       <div class="sidebar">
         
+        <!-- Source Selection -->
+        <div class="sidebar-section" id="sectionSources">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2>對話資料來源</h2>
+            <span class="text-secondary small fw-bold">全選 / 全清</span>
+          </div>
+          <div class="checkbox-card">
+            <input type="checkbox" id="cbGroupDemo" name="source">
+            <div>
+              <strong class="d-block text-dark small fw-bold">天勳 ERP 導入戰情群組 (Demo)</strong>
+              <small class="text-muted" style="font-size: 11px;">手動匯入歷史對話</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Filter & Timeline -->
+        <div class="sidebar-section" id="sectionDates">
+          <h2>時間區間篩選</h2>
+          <div class="d-flex flex-column gap-2">
+            <label class="small text-muted">開始時間 (含):
+              <input type="date" id="startDate" class="form-control form-control-sm mt-1" disabled>
+            </label>
+            <label class="small text-muted">結束時間 (含):
+              <input type="date" id="endDate" class="form-control form-control-sm mt-1" disabled>
+            </label>
+            <div class="d-flex gap-2 justify-content-end mt-1" style="font-size: 11px; font-weight: bold;">
+              <a href="javascript:void(0)" onclick="quickSelectDate('today')" style="color: var(--green); text-decoration: none;">今天</a>
+              <a href="javascript:void(0)" onclick="quickSelectDate('week')" style="color: var(--green); text-decoration: none;" id="btnPresetWeek">本週</a>
+              <a href="javascript:void(0)" onclick="quickSelectDate('month')" style="color: var(--green); text-decoration: none;">本月</a>
+              <a href="javascript:void(0)" onclick="quickSelectDate('clear')" style="color: var(--muted); text-decoration: none;">清除</a>
+            </div>
+          </div>
+
+          <!-- Timeline list -->
+          <h2 class="mt-3 mb-1" style="font-size: 11px;">📌 歷史時程事件軸 (可點選)</h2>
+          <div class="timeline-container">
+            <div class="timeline-track">
+              <div class="timeline-node" style="left: 10%;" onclick="clickTimelineNode('2026-06-28', this)">
+                <span class="timeline-label">06/28 啟動</span>
+              </div>
+              <div class="timeline-node" style="left: 45%;" onclick="clickTimelineNode('2026-06-30', this)" id="nodeTimelineTimeout">
+                <span class="timeline-label">06/30 故障</span>
+              </div>
+              <div class="timeline-node" style="left: 80%;" onclick="clickTimelineNode('2026-07-03', this)">
+                <span class="timeline-label">07/03 部署</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KM References -->
+        <div class="sidebar-section" id="sectionKMs">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2>個人 KM 參考</h2>
+            <span class="text-secondary small fw-bold">全選</span>
+          </div>
+          <label class="checkbox-card mb-1 w-100">
+            <input type="checkbox" id="cbKM1" name="km_file">
+            <div>
+              <strong class="small text-dark fw-bold">tianxun_erp_sop.md</strong>
+            </div>
+          </label>
+          <label class="checkbox-card mb-1 w-100">
+            <input type="checkbox" id="cbKM2" name="km_file">
+            <div>
+              <strong class="small text-dark fw-bold">tianxun_project_milestones.md</strong>
+            </div>
+          </label>
+        </div>
+
+        <!-- NotebookLM Partition Exporter -->
+        <div class="sidebar-section" id="sectionExportBox">
+          <h2>NotebookLM 實體分割導出</h2>
+          <div class="d-flex flex-column gap-2" style="font-size: 12px;">
+            <label>分割方式:
+              <select id="partitionType" class="form-select form-select-sm mt-1">
+                <option value="day">按日 (By Day)</option>
+                <option value="week">按週 (By Week)</option>
+                <option value="month">按月 (By Month)</option>
+              </select>
+            </label>
+            <label>導出格式:
+              <select id="exportFormat" class="form-select form-select-sm mt-1">
+                <option value="log">結構化對話紀錄 (.md)</option>
+                <option value="summary">AI 自動摘要報告 (.md)</option>
+              </select>
+            </label>
+            <button class="btn btn-primary btn-sm mt-2 fw-bold w-100" id="btnExportExecutor" onclick="executeMockExport()">
+              生成實體分割檔案 <span class="spinner-border spinner-border-sm d-none" id="exportSpinner"></span>
+            </button>
+            <button class="btn btn-sm mt-2 fw-bold text-white w-100" style="background-color: #0d9488;" id="btnExportAgentMD" onclick="exportAgentMD()">
+              📥 匯出 MD 給 Agent 分析
+            </button>
+          </div>
+        </div>
+
+        <!-- Partitions List -->
+        <div class="sidebar-section" id="sectionPartitions">
+          <h2>已生成歷史分割檔 (115年)</h2>
+          <details open style="margin-bottom: 6px; border: 1px solid var(--border); border-radius: 4px; background: white;">
+            <summary style="font-weight: 700; cursor: pointer; font-size: 12px; padding: 6px 8px; color: var(--muted); background: #f8fafc;">
+              📂 06 月 (2 個檔案)
+            </summary>
+            <div style="padding: 8px;" id="partitionFileList">
+              <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                <a href="javascript:void(0)" onclick="previewPartitionFile('2026-06-30-log')" class="text-decoration-none fw-bold" style="color: var(--ink); font-size: 12px;">📄 2026-06-30-log.md</a>
+                <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <a href="javascript:void(0)" onclick="previewPartitionFile('2026-06-29-log')" class="text-decoration-none fw-bold" style="color: var(--ink); font-size: 12px;">📄 2026-06-29-log.md</a>
+                <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+              </div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <!-- Chat Container -->
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <!-- Welcome banner -->
+          <div class="text-center text-secondary py-5" id="welcomeMsg">
+            <h3 class="fw-bold">歡迎使用 Attn IM AI 協作</h3>
+            <p class="small text-muted">請在左側勾選要交叉分析的對話源與時間區間，然後在下方輸入您的問題。</p>
+          </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="chat-input-area" id="inputArea">
+          <div class="d-flex align-items-center gap-3 mb-2 flex-wrap" style="font-size: 13px;">
+            <div>
+              <span class="fw-bold text-secondary">AI 協作模型：</span>
+              <select id="modelSelector" class="form-select form-select-sm d-inline-block w-auto py-0 px-2" style="height: 28px;">
+                <option value="flash-lite">Gemini 預設大模型 (Flash-lite 1x)</option>
+                <option value="flash">Gemini 經典大模型 (Flash 2x)</option>
+                <option value="ollama" id="optOllama" style="display: none;">Ollama 地端開源模型 (離線資安)</option>
+              </select>
+            </div>
+            <div id="apiKeyInputWrapper" style="display: none;">
+              <span class="fw-bold text-secondary">Gemini API Key：</span>
+              <input type="password" class="form-control form-control-sm d-inline-block w-auto py-0 px-2" style="height: 28px;" value="••••••••••••••••••••" placeholder="請輸入您個人的 Gemini API Key">
+            </div>
+          </div>
+
+          <!-- Prompt Helper Templates -->
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap" id="promptHelperRow" style="font-size: 12px; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);">
+            <span class="fw-bold text-muted">💡 Prompt 範本：</span>
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 11px; font-weight: bold;" id="btnPromptSummary" onclick="applyPromptTemplate('summary')">📋 摘要待辦整理</button>
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 11px; font-weight: bold;" id="btnPromptRisk" onclick="applyPromptTemplate('risk')">⚠️ 評估潛在風險</button>
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 11px; font-weight: bold;" id="btnPromptKM" onclick="applyPromptTemplate('km')">🔍 交叉比對 KM 落差</button>
+          </div>
+
+          <!-- Input wrapper -->
+          <div class="chat-input-wrapper">
+            <textarea id="promptInput" placeholder="輸入要問的問題..."></textarea>
+            <button class="btn-send" id="sendBtn" onclick="sendUserPrompt()">
+              送出分析 <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Overlay and File Content Preview Modal -->
+  <div class="overlay" id="overlay" onclick="closePreviewModal()"></div>
+  <div class="preview-modal" id="previewModal">
+    <div class="preview-modal-header">
+      <strong id="previewFileName">檔案預覽</strong>
+      <button class="btn-close" onclick="closePreviewModal()"></button>
+    </div>
+    <pre class="preview-modal-body" id="previewFileBody"></pre>
+  </div>
+
+  <!-- Javascript Tour and Mock Logics -->
+  <script>
+    let currentStep = 0;
+    const messagesContainer = document.getElementById('chatMessages');
+
+    function switchPage(page) {
+      document.getElementById('pageProduct').classList.remove('active');
+      document.getElementById('pageConsole').classList.remove('active');
+      
+      document.getElementById('tabProduct').classList.remove('active');
+      document.getElementById('tabConsoleStandard').classList.remove('active');
+      document.getElementById('tabConsoleAdvanced').classList.remove('active');
+      
+      const ptsDisplay = document.getElementById('pointsDisplayHeader');
+      const optOllama = document.getElementById('optOllama');
+      const apiKeyWrapper = document.getElementById('apiKeyInputWrapper');
+      const btnExportAgent = document.getElementById('btnExportAgentMD');
+      
+      if (page === 'product') {
+        document.getElementById('pageProduct').classList.add('active');
+        document.getElementById('tabProduct').classList.add('active');
+        if (ptsDisplay) ptsDisplay.style.display = 'none';
+      } else if (page === 'standard') {
+        document.getElementById('pageConsole').classList.add('active');
+        document.getElementById('tabConsoleStandard').classList.add('active');
+        if (ptsDisplay) {
+          ptsDisplay.style.display = 'inline-block';
+          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>20,000 點 / 20,000 點</strong>';
+        }
+        if (optOllama) optOllama.style.display = 'none';
+        if (apiKeyWrapper) apiKeyWrapper.style.display = 'none';
+        if (btnExportAgent) btnExportAgent.style.display = 'none';
+      } else if (page === 'advanced') {
+        document.getElementById('pageConsole').classList.add('active');
+        document.getElementById('tabConsoleAdvanced').classList.add('active');
+        if (ptsDisplay) {
+          ptsDisplay.style.display = 'inline-block';
+          ptsDisplay.innerHTML = 'AI 點數餘額：<strong>50,000 點 / 50,000 點</strong>';
+        }
+        if (optOllama) optOllama.style.display = 'block';
+        if (apiKeyWrapper) apiKeyWrapper.style.display = 'block';
+        if (btnExportAgent) btnExportAgent.style.display = 'block';
+      }
+    }
+
+    // Timeline event selection
+    function clickTimelineNode(date, node) {
+      document.querySelectorAll('.timeline-node').forEach(n => n.classList.remove('active'));
+      if (node) node.classList.add('active');
+      
+      document.getElementById('startDate').value = date;
+      document.getElementById('endDate').value = date;
+    }
+
+    function quickSelectDate(type) {
+      const start = document.getElementById('startDate');
+      const end = document.getElementById('endDate');
+      if (type === 'today') {
+        start.value = "2026-07-03";
+        end.value = "2026-07-03";
+      } else if (type === 'week') {
+        start.value = "2026-06-28";
+        end.value = "2026-07-04";
+      } else if (type === 'month') {
+        start.value = "2026-06-01";
+        end.value = "2026-06-30";
+      } else {
+        start.value = "";
+        end.value = "";
+      }
+    }
+
+    function applyPromptTemplate(type) {
+      const textarea = document.getElementById('promptInput');
+      if (type === 'summary') {
+        textarea.value = "請為我彙整以上所選對話的時程節點、主要討論決策，並以 Markdown 表格列出所有指派的待辦事項與負責人。";
+      } else if (type === 'risk') {
+        textarea.value = "請分析對話中是否存在進度延遲、溝通誤會、技術瓶頸或尚未解決的潛在風險，並提供具體的改善建議。";
+      } else if (type === 'km') {
+        textarea.value = "請比對 LINE 對話中提及的系統操作問題，與我們上傳的天勳 ERP SOP/FAQ 進行對照，分析目前是否有超出 SOP 的例外狀況或需更新的知識落差。";
+      }
+      textarea.focus();
+    }
+
+    // Modal view for split partition logs
+    function previewPartitionFile(name) {
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('previewModal').style.display = 'block';
+      document.getElementById('previewFileName').innerText = name + '.md';
+      
+      let mockContent = "";
+      if (name.includes('06-30')) {
+        mockContent = \`=== TIMESTAMP: 2026-06-30 ===\\n\` +
+          \`[10:00:00] Jerry: 各位，我們在進行 ERP API 對接時，遇到第三方支付金流回傳 DB Connection Timeout 錯誤，能幫忙看看資料庫伺服器是否正常嗎？\\n\` +
+          \`[10:05:00] 客服窗口: Jerry 你好，請先確認內部資料庫伺服器 (192.168.1.50) 是否有過載或斷線。另外，匯入 API 的 CSV 時要記得使用 UTF-8 編碼，不然會報編碼錯誤喔。\\n\` +
+          \`[10:10:00] Jerry: 收到！確認是 1.50 伺服器磁碟空間滿了，清出空間後連線已經恢復正常。API 串接目前順利通暢。\`;
+      } else {
+        mockContent = \`=== TIMESTAMP: 2026-06-29 ===\\n\` +
+          \`[15:30:00] Jerry: 天勳 ERP 客戶權限的模組，管理員是否可以異動他人單據？\\n\` +
+          \`[15:32:00] 客服窗口: 依據天勳 SOP 規範，系統管理員(Admin)可以修改系統設定，但一般單據填寫應由一般操作員(User)執行，管理員主要是維護系統與備份喔。\`;
+      }
+      document.getElementById('previewFileBody').innerText = mockContent;
+    }
+
+    function closePreviewModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('previewModal').style.display = 'none';
+    }
+
+    // NotebookLM Partition Simulation
+    function executeMockExport() {
+      const spinner = document.getElementById('exportSpinner');
+      const btn = document.getElementById('btnExportExecutor');
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+      
+      setTimeout(() => {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+        
+        // Append new simulated partitioned file to list
+        const fileList = document.getElementById('partitionFileList');
+        const newFileRow = document.createElement('div');
+        newFileRow.className = "d-flex justify-content-between align-items-center mb-1 mt-1 pt-1 border-top";
+        newFileRow.innerHTML = \`
+          <a href="javascript:void(0)" onclick="previewPartitionFile('2026-07-03-summary')" class="text-decoration-none fw-bold" style="color: var(--primary-color); font-size: 12px;">📄 2026-07-03-summary.md</a>
+          <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+        \`;
+        fileList.insertBefore(newFileRow, fileList.firstChild);
+        alert('成功分割並導出 2026-07-03 分割檔！已新增至左側歷史分割檔列表中。');
+      }, 1500);
+    }
+
+    // Typewriter markdown output simulation
+    function sendUserPrompt() {
+      const prompt = document.getElementById('promptInput').value.trim();
+      if (!prompt) return;
+
+      document.getElementById('welcomeMsg').style.display = 'none';
+      
+      // User Card
+      const userCard = document.createElement('div');
+      userCard.className = 'response-card';
+      userCard.style.background = '#eef6f0';
+      userCard.innerHTML = \`
+        <div class="response-header">
+          <span>提問</span>
+          <span>\${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="response-body"><strong>\${prompt}</strong></div>
+      \`;
+      messagesContainer.appendChild(userCard);
+      document.getElementById('promptInput').value = "";
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // AI Loading Spinner
+      const aiCard = document.createElement('div');
+      aiCard.className = 'response-card';
+      aiCard.innerHTML = \`
+        <div class="response-header">
+          <span>AI 分析中...</span>
+          <span>\${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="response-body">
+          <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+          正在計算選定對話與知識規章的關聯度，進行交叉對照彙整中...
+        </div>
+      \`;
+      messagesContainer.appendChild(aiCard);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Complete and fill AI response card
+      setTimeout(() => {
+        aiCard.innerHTML = \`
+          <div class="response-header">
+            <span>AI 戰情分析回覆</span>
+            <span>\${new Date().toLocaleTimeString()}</span>
+          </div>
+          <div class="response-body" id="aiDynamicOutput"></div>
+          <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <span>模型: <strong>gemini-3.1-flash-lite</strong></span>
+            <span>Tokens: <strong>26,450</strong> (輸入: 25,120 | 輸出: 1,330)</span>
+            <span>花費: <strong>$0.001141 USD</strong> (約 <strong>NT$ 0.0342</strong>)</span>
+          </div>
+          <div class="no-print d-flex gap-2 justify-content-end mt-2 pt-2 border-top">
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已複製 HTML 格式')">📄 複製 HTML</button>
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('下載 MD 成功')">📥 下載 MD</button>
+            <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="window.print()">🖨️ 匯出 PDF</button>
+          </div>
+        \`;
+        
+        const mdText = \`### 📋 天勳 ERP 專案戰情分析回覆\\n\\n\` +
+          \`根據您勾選的 **「天勳 ERP 導入戰情群組 (Demo)」**，為您摘錄專案關鍵要點：\\n\` +
+          \`* 🛠️ **連線 Timeout 排除**：Jerry 確認為資料庫伺服器 (1.50) 空間不足所致，已排除完畢。\\n\` +
+          \`* 📅 **備份時程安排**：Jerry 將於週五執行人工異地備份，符合天勳備份規範流程。\\n\` +
+          \`* 📚 **教育訓練**：天勳窗口已著手撰寫教育手冊，預定 7/15 提交初版。\\n\\n\` +
+          \`#### 📋 行動待辦工作表\\n\` +
+          \`| 序號 | 工作說明 | 負責人 | 預定日期 |\\n\` +
+          \`| :--- | :--- | :---: | :---: |\\n\` +
+          \`| 1 | 部署金流模組至測試機 | Jerry | 07/03 |\\n\` +
+          \`| 2 | 人工異地磁碟備份 | Jerry | 07/03 |\\n\` +
+          \`| 3 | 交付教育手冊初版 | 天勳窗口 | 07/15 |\`;
+
+        document.getElementById('aiDynamicOutput').innerHTML = marked.parse(mdText);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 1500);
+    }
+
+    // ==========================================
+    // AUTOMATED GUIDED TOUR ENGINE
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedTier = urlParams.get('tier') || 'standard';
+
+    const tourStepsStandard = [
+      {
+        title: "步驟 1：雙版本方案與架構展示 (SME Biz 專區)",
+        desc: "方案簡介網頁，展示天勳資訊針對企業轉型設計 of 10 萬與 20 萬雙版本規格、點數配置對照，以及系統架裝圖。",
+        action: () => {
+          switchPage('product');
+          document.getElementById('pageProduct').classList.add('highlight-ring');
+        }
+      },
+      {
+        title: "步驟 2：展示『10 萬企業標準版』操作 Console",
+        desc: "點選頂部切換。此版本專為基礎導入設計，預設贈送 20,000 點額度，無 API Key 輸入區，亦鎖定 Ollama 地端模型與 Agent 導出按鈕（強綁天勳充值機制）。",
+        action: () => {
+          document.getElementById('pageProduct').classList.remove('highlight-ring');
+          switchPage('standard');
+          document.getElementById('tabConsoleStandard').classList.add('highlight-ring');
+        }
+      },
+      {
+        title: "步驟 3：雙資料源 (LINE + KM) 精準勾選",
+        desc: "自動勾選要分析的 LINE 對話（天勳 ERP 戰情群組）以及地端上傳的專案知識規章（tianxun_erp_sop.md）。",
+        action: () => {
+          document.getElementById('tabConsoleStandard').classList.remove('highlight-ring');
+          document.getElementById('sectionSources').classList.add('highlight-ring');
+          document.getElementById('sectionKMs').classList.add('highlight-ring');
+          document.getElementById('cbGroupDemo').checked = true;
+          document.getElementById('cbKM1').checked = true;
+        }
+      },
+      {
+        title: "步驟 4：時間軸快捷定位",
+        desc: "點選事件軸上的『06/30 故障』，開始與結束日期自動填充，鎖定故障發生的特定時間區間。",
+        action: () => {
+          document.getElementById('sectionSources').classList.remove('highlight-ring');
+          document.getElementById('sectionKMs').classList.remove('highlight-ring');
+          document.getElementById('sectionDates').classList.add('highlight-ring');
+          document.getElementById('nodeTimelineTimeout').classList.add('active');
+          
+          document.getElementById('startDate').value = "2026-06-30";
+          document.getElementById('endDate').value = "2026-06-30";
+        }
+      },
+      {
+        title: "步驟 5：加載 Prompt 範本並自動輸入",
+        desc: "點擊 Prompt 範本小幫手中的『📋 摘要待辦整理』，AI 提問框自動帶入優化好的分析語法並模擬鍵盤打字輸入。",
+        action: (skipDelay) => {
+          document.getElementById('sectionDates').classList.remove('highlight-ring');
+          document.getElementById('nodeTimelineTimeout').classList.remove('active');
+          document.getElementById('promptHelperRow').classList.add('highlight-ring');
+          document.getElementById('btnPromptSummary').classList.add('btn-warning');
+          
+          const text = "請為我彙整以上所選對話的時程節點、主要討論決策，並以 Markdown 表格列出所有指派的待辦事項與負責人。";
+          const textarea = document.getElementById('promptInput');
+          
+          if (skipDelay) {
+            textarea.value = text;
+            return;
+          }
+          
+          let i = 0;
+          textarea.value = "";
+          return new Promise(resolve => {
+            const timer = setInterval(() => {
+              textarea.value += text[i];
+              i++;
+              if (i >= text.length) {
+                clearInterval(timer);
+                resolve();
+              }
+            }, 30);
+          });
+        }
+      },
+      {
+        title: "步驟 6：呼叫 Gemini API 進行戰情分析",
+        desc: "送出分析！後端載入 6/30 的對話紀錄及 ERP SOP 比對，Gemini 迅速以打字機效果回傳有系統性的專案分析結果！",
+        action: (skipDelay) => {
+          document.getElementById('promptHelperRow').classList.remove('highlight-ring');
+          document.getElementById('btnPromptSummary').classList.remove('btn-warning');
+          document.getElementById('welcomeMsg').style.display = 'none';
+          document.getElementById('inputArea').classList.add('highlight-ring');
+          
+          // Clear any duplicate cards
+          const oldCard = document.getElementById('tourAICard');
+          if (oldCard) oldCard.remove();
+          const oldUser = document.getElementById('tourUserCard');
+          if (oldUser) oldUser.remove();
+          
+          // User Card
+          const userCard = document.createElement('div');
+          userCard.id = 'tourUserCard';
+          userCard.className = 'response-card';
+          userCard.style.background = '#eef6f0';
+          userCard.innerHTML = \`
+            <div class="response-header">
+              <span>提問</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body"><strong>請為我彙整以上所選對話的時程節點、主要討論決策，並以 Markdown 表格列出所有指派的待辦事項與負責人。</strong></div>
+          \`;
+          messagesContainer.appendChild(userCard);
+
+          // AI Card
+          const aiCard = document.createElement('div');
+          aiCard.className = 'response-card printing-target';
+          aiCard.id = "tourAICard";
+          aiCard.innerHTML = \`
+            <div class="response-header">
+              <span>AI 戰情分析回覆</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body" id="aiTourOutputBody"></div>
+            <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <span>模型: <strong>Gemini 預設大模型 (高性價比)</strong></span>
+              <span>點數消耗: <strong>16 點</strong> (輸入 13 點 + 輸出 3 點)</span>
+              <span>點數餘額: <strong>19,984 點 / 20,000 點</strong></span>
+            </div>
+            <div class="no-print d-flex gap-2 justify-content-end mt-2 pt-2 border-top" id="tourActionsBlock">
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已複製 HTML')">📄 複製 HTML</button>
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已下載 MD')">📥 下載 MD</button>
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="window.print()">🖨️ 匯出 PDF</button>
+            </div>
+          \`;
+          messagesContainer.appendChild(aiCard);
+          
+          const mdContent = \`### 📋 天勳 ERP 專案戰情分析回覆
+
+根據您勾選的 **「天勳 ERP 導入戰情群組 (Demo)」** 對話紀錄與 **「天勳 ERP SOP / 專案時程表」**，為您彙整以下專案進度、決策與待辦工作事項：
+
+#### 1. 核心專案進度與決策
+* 🛠️ **第三方支付金流對接故障排除**：
+  * **狀況**：API 對接時金流回傳 \\\`DB Connection Timeout\\\` 錯誤。
+  * **處置**：Jerry 已確認為資料庫伺服器 (192.168.1.50) 磁碟空間已滿。清出空間後連線已恢復正常，API 串接恢復通暢。
+* 💾 **資料庫備份規範**：
+  * **決策**：Jerry 將於週五 (7/3) 晚上進行人工異地備份，並順便保存測試版備份以符合備份規範。
+* 📚 **教育訓練啟動**：
+  * **決策**：配合 8/16 之後的 UAT 教育訓練，天勳窗口已著手撰寫教育訓練手冊，預計於 **7/15 前** 提交初版予主管審閱。
+
+#### 2. 指派行動清單與待辦 (TODO)
+
+| 序號 | 待辦事項說明 | 負責人 | 預計完成日 | 關聯文件 / 對照規範 |
+| :--- | :--- | :---: | :---: | :--- |
+| 1 | 完成 ERP 金流模組開發並部署至測試環境 | Jerry | 07/03 (五) | 專案里程碑-階段二 |
+| 2 | 執行每週五人工異地備份 (含測試庫) | Jerry | 07/03 (五) | 天勳 ERP 備份規範 |
+| 3 | 撰寫並提交初版 ERP 教育訓練手冊 | 天勳窗口 | 07/15 (三) | 專案里程碑-階段三 |
+| 4 | 審閱 ERP 教育訓練手冊初版 | 鄭Force | 07/17 (五) | 主管審核程序 |
+
+#### 3. 專案潛在風險提示
+* ⚠️ **人工異地備份依賴單一人力**：每週五異地備份主要由 Jerry 手動執行，建議應依據 SOP 備份自動化流程以規避風險。\`;
+
+          document.getElementById('aiTourOutputBody').innerHTML = marked.parse(mdContent);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          if (skipDelay) {
+            return;
+          }
+
+          aiCard.style.display = 'none';
+          const loadingCard = document.createElement('div');
+          loadingCard.id = "tempLoadingCard";
+          loadingCard.className = 'response-card';
+          loadingCard.innerHTML = \`
+            <div class="response-header">
+              <span>AI 分析中...</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body">
+              <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+              正在比對天勳專案對話與 SOP 規章中...
+            </div>
+          \`;
+          messagesContainer.appendChild(loadingCard);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          return new Promise(resolve => {
+            setTimeout(() => {
+              if (loadingCard) loadingCard.remove();
+              aiCard.style.display = 'block';
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              resolve();
+            }, 1000);
+          });
+        }
+      },
+      {
+        title: "步驟 7：NotebookLM 實體檔案分割導出",
+        desc: "系統示範 NotebookLM 切割。選定『按日』、『對話紀錄 (.md)』，點選『生成實體分割檔案』，系統將以動畫展示背景產出單日切割檔並新增至左側清單中。",
+        action: (skipDelay) => {
+          document.getElementById('inputArea').classList.remove('highlight-ring');
+          document.getElementById('sectionExportBox').classList.add('highlight-ring');
+          
+          const fileList = document.getElementById('partitionFileList');
+          let oldRow = document.getElementById('tourNewFileRow');
+          if (oldRow) oldRow.remove();
+          
+          const newFileRow = document.createElement('div');
+          newFileRow.id = 'tourNewFileRow';
+          newFileRow.className = "d-flex justify-content-between align-items-center mb-1 mt-1 pt-1 border-top";
+          newFileRow.innerHTML = \`
+            <a href="javascript:void(0)" onclick="previewPartitionFile('2026-07-03-log')" class="text-decoration-none fw-bold" style="color: var(--primary-color); font-size: 12px;">📄 2026-07-03-log.md</a>
+            <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+          \`;
+          fileList.insertBefore(newFileRow, fileList.firstChild);
+          
+          if (skipDelay) {
+            document.getElementById('sectionExportBox').classList.remove('highlight-ring');
+            document.getElementById('sectionPartitions').classList.add('highlight-ring');
+            return;
+          }
+          
+          const spinner = document.getElementById('exportSpinner');
+          const btn = document.getElementById('btnExportExecutor');
+          btn.disabled = true;
+          spinner.classList.remove('d-none');
+          
+          return new Promise(resolve => {
+            setTimeout(() => {
+              btn.disabled = false;
+              spinner.classList.add('d-none');
+              document.getElementById('sectionExportBox').classList.remove('highlight-ring');
+              document.getElementById('sectionPartitions').classList.add('highlight-ring');
+              resolve();
+            }, 1500);
+          });
+        }
+      },
+      {
+        title: "步驟 8：點擊歷史分割檔進行彈窗預覽",
+        desc: "系統點選剛生成的『2026-07-03-log.md』，跳出黑色終端機風格的 Markdown 對話文字彈窗，完全還原 NotebookLM 專用結構化對話紀錄格式！",
+        action: () => {
+          document.getElementById('sectionPartitions').classList.remove('highlight-ring');
+          previewPartitionFile('2026-06-30-log');
+        }
+      }
+    ];
+
+    const tourStepsAdvanced = [
+      {
+        title: "步驟 1：雙版本方案與架構展示 (SME Biz 專區)",
+        desc: "方案簡介網頁，展示天勳資訊針對企業轉型設計 of 10 萬與 20 萬雙版本規格、點數配置對照，以及系統架構圖。",
+        action: () => {
+          switchPage('product');
+          document.getElementById('pageProduct').classList.add('highlight-ring');
+        }
+      },
+      {
+        title: "步驟 2：切換至『20 萬企業進階版』工作台",
+        desc: "點選頂部切換。此版提供 50,000 點，並解鎖三大權限：顯示自備 API Key 欄位、開啟 Ollama 地端模型選項、以及加載綠色的『匯出 MD 給 Agent 分析』按鈕！",
+        action: () => {
+          document.getElementById('pageProduct').classList.remove('highlight-ring');
+          switchPage('advanced');
+          document.getElementById('tabConsoleAdvanced').classList.add('highlight-ring');
+        }
+      },
+      {
+        title: "步驟 3：雙資料源 (LINE + KM) 精準勾選",
+        desc: "自動勾選要分析的 LINE 對話（天勳 ERP 戰情群組）以及地端上傳的專案知識規章（tianxun_erp_sop.md）。",
+        action: () => {
+          document.getElementById('tabConsoleAdvanced').classList.remove('highlight-ring');
+          document.getElementById('sectionSources').classList.add('highlight-ring');
+          document.getElementById('sectionKMs').classList.add('highlight-ring');
+          document.getElementById('cbGroupDemo').checked = true;
+          document.getElementById('cbKM1').checked = true;
+        }
+      },
+      {
+        title: "步驟 4：時間軸快捷定位",
+        desc: "點選事件軸上的『06/30 故障』，開始與結束日期自動填充，鎖定故障發生的特定時間區間。",
+        action: () => {
+          document.getElementById('sectionSources').classList.remove('highlight-ring');
+          document.getElementById('sectionKMs').classList.remove('highlight-ring');
+          document.getElementById('sectionDates').classList.add('highlight-ring');
+          document.getElementById('nodeTimelineTimeout').classList.add('active');
+          
+          document.getElementById('startDate').value = "2026-06-30";
+          document.getElementById('endDate').value = "2026-06-30";
+        }
+      },
+      {
+        title: "步驟 5：加載 Prompt 範本並自動輸入",
+        desc: "點擊 Prompt 範本小幫手中的『📋 摘要待辦整理』，AI 提問框自動帶入優化好的分析語法並模擬鍵盤打字輸入。",
+        action: (skipDelay) => {
+          document.getElementById('sectionDates').classList.remove('highlight-ring');
+          document.getElementById('nodeTimelineTimeout').classList.remove('active');
+          document.getElementById('promptHelperRow').classList.add('highlight-ring');
+          document.getElementById('btnPromptSummary').classList.add('btn-warning');
+          
+          const text = "請為我彙整以上所選對話的時程節點、主要討論決策，並以 Markdown 表格列出所有指派的待辦事項與負責人。";
+          const textarea = document.getElementById('promptInput');
+          
+          if (skipDelay) {
+            textarea.value = text;
+            return;
+          }
+          
+          let i = 0;
+          textarea.value = "";
+          return new Promise(resolve => {
+            const timer = setInterval(() => {
+              textarea.value += text[i];
+              i++;
+              if (i >= text.length) {
+                clearInterval(timer);
+                resolve();
+              }
+            }, 30);
+          });
+        }
+      },
+      {
+        title: "步驟 6：呼叫 Gemini API 進行戰情分析",
+        desc: "送出分析！後端載入 6/30 的對話紀錄及 ERP SOP 比對，Gemini 迅速以打字機效果回傳有系統性的專案分析結果！",
+        action: (skipDelay) => {
+          document.getElementById('promptHelperRow').classList.remove('highlight-ring');
+          document.getElementById('btnPromptSummary').classList.remove('btn-warning');
+          document.getElementById('welcomeMsg').style.display = 'none';
+          document.getElementById('inputArea').classList.add('highlight-ring');
+          
+          // Clear any duplicate cards
+          const oldCard = document.getElementById('tourAICard');
+          if (oldCard) oldCard.remove();
+          const oldUser = document.getElementById('tourUserCard');
+          if (oldUser) oldUser.remove();
+          
+          // User Card
+          const userCard = document.createElement('div');
+          userCard.id = 'tourUserCard';
+          userCard.className = 'response-card';
+          userCard.style.background = '#eef6f0';
+          userCard.innerHTML = \`
+            <div class="response-header">
+              <span>提問</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body"><strong>請為我彙整以上所選對話的時程節點、主要討論決策，並以 Markdown 表格列出所有指派的待辦事項與負責人。</strong></div>
+          \`;
+          messagesContainer.appendChild(userCard);
+
+          // AI Card
+          const aiCard = document.createElement('div');
+          aiCard.className = 'response-card printing-target';
+          aiCard.id = "tourAICard";
+          aiCard.innerHTML = \`
+            <div class="response-header">
+              <span>AI 戰情分析回覆</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body" id="aiTourOutputBody"></div>
+            <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <span>模型: <strong>Gemini 預設大模型 (高性價比)</strong></span>
+              <span>點數消耗: <strong>16 點</strong> (輸入 13 點 + 輸出 3 點)</span>
+              <span>點數餘額: <strong>49,984 點 / 50,000 點</strong></span>
+            </div>
+            <div class="no-print d-flex gap-2 justify-content-end mt-2 pt-2 border-top" id="tourActionsBlock">
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已複製 HTML')">📄 複製 HTML</button>
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="alert('已下載 MD')">📥 下載 MD</button>
+              <button class="btn btn-light btn-sm py-0 px-2 border" style="font-size: 10px;" onclick="window.print()">🖨️ 匯出 PDF</button>
+            </div>
+          \`;
+          messagesContainer.appendChild(aiCard);
+          
+          const mdContent = \`### 📋 天勳 ERP 專案戰情分析回覆
+
+根據您勾選的 **「天勳 ERP 導入戰情群組 (Demo)」** 對話紀錄與 **「天勳 ERP SOP / 專案時程表」**，為您彙整以下專案進度、決策與待辦工作事項：
+
+#### 1. 核心專案進度與決策
+* 🛠️ **第三方支付金流對接故障排除**：
+  * **狀況**：API 對接時金流回傳 \\\`DB Connection Timeout\\\` 錯誤。
+  * **處置**：Jerry 已確認為資料庫伺服器 (192.168.1.50) 磁碟空間已滿。清出空間後連線已恢復正常，API 串接恢復通暢。
+* 💾 **資料庫備份規範**：
+  * **決策**：Jerry 將於週五 (7/3) 晚上進行人工異地備份，並順便保存測試版備份以符合備份規範。
+* 📚 **教育訓練啟動**：
+  * **決策**：配合 8/16 之後的 UAT 教育訓練，天勳窗口已著手撰寫教育訓練手冊，預計於 **7/15 前** 提交初版予主管審閱。
+
+#### 2. 指派行動清單與待辦 (TODO)
+
+| 序號 | 待辦事項說明 | 負責人 | 預計完成日 | 關聯文件 / 對照規範 |
+| :--- | :--- | :---: | :---: | :--- |
+| 1 | 完成 ERP 金流模組開發並部署至測試環境 | Jerry | 07/03 (五) | 專案里程碑-階段二 |
+| 2 | 執行每週五人工異地備份 (含測試庫) | Jerry | 07/03 (五) | 天勳 ERP 備份規範 |
+| 3 | 撰寫並提交初版 ERP 教育訓練手冊 | 天勳窗口 | 07/15 (三) | 專案里程碑-階段三 |
+| 4 | 審閱 ERP 教育訓練手冊初版 | 鄭Force | 07/17 (五) | 主管審核程序 |
+
+#### 3. 專案潛在風險提示
+* ⚠️ **人工異地備份依賴單一人力**：每週五異地備份主要由 Jerry 手動執行，建議應依據 SOP 備份自動化流程以規避風險。\`;
+
+          document.getElementById('aiTourOutputBody').innerHTML = marked.parse(mdContent);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          if (skipDelay) {
+            return;
+          }
+
+          aiCard.style.display = 'none';
+          const loadingCard = document.createElement('div');
+          loadingCard.id = "tempLoadingCard";
+          loadingCard.className = 'response-card';
+          loadingCard.innerHTML = \`
+            <div class="response-header">
+              <span>AI 分析中...</span>
+              <span>\${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="response-body">
+              <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+              正在比對天勳專案對話與 SOP 規章中...
+            </div>
+          \`;
+          messagesContainer.appendChild(loadingCard);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          return new Promise(resolve => {
+            setTimeout(() => {
+              if (loadingCard) loadingCard.remove();
+              aiCard.style.display = 'block';
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              resolve();
+            }, 1000);
+          });
+        }
+      },
+      {
+        title: "步驟 7：NotebookLM 與 Agent 專用 MD 一鍵打包導出",
+        desc: "系統點擊綠色的『匯出 MD 給 Agent 分析』按鈕，一鍵打包去敏感化的對話日誌，生成結構化且去敏感化的 Markdown 分析包（無扣點，扣減 0 點）。",
+        action: (skipDelay) => {
+          document.getElementById('inputArea').classList.remove('highlight-ring');
+          document.getElementById('btnExportAgentMD').classList.add('highlight-ring');
+          
+          if (skipDelay) {
+            document.getElementById('btnExportAgentMD').classList.remove('highlight-ring');
+            return;
+          }
+          
+          return new Promise(resolve => {
+            setTimeout(() => {
+              alert("已為您打包所勾選的對話與 KM 參考！\\\\n已開始下載：Attn_IM_Agent_Source.md\\\\n您可將此 Markdown 檔案直接拖曳上傳至 NotebookLM 或外部 Agent 進行深度分析。 (扣減 0 點)");
+              document.getElementById('btnExportAgentMD').classList.remove('highlight-ring');
+              resolve();
+            }, 1500);
+          });
+        }
+      },
+      {
+        title: "步驟 8：點擊歷史對話記錄進行彈窗預覽",
+        desc: "系統點選剛生成/匯出的對話日誌，跳出黑色終端機風格的 Markdown 文字彈窗，完全還原 NotebookLM 專用結構化對話紀錄格式！",
+        action: () => {
+          previewPartitionFile('2026-06-30-log');
+        }
+      }
+    ];
+
+    const tourSteps = selectedTier === 'advanced' ? tourStepsAdvanced : tourStepsStandard;
+
+    function resetTourStateOnly() {
+      closePreviewModal();
+      document.getElementById('cbGroupDemo').checked = false;
+      document.getElementById('cbKM1').checked = false;
+      document.getElementById('startDate').value = "";
+      document.getElementById('endDate').value = "";
+      document.getElementById('promptInput').value = "";
+      document.getElementById('welcomeMsg').style.display = 'block';
+      
+      const cards = messagesContainer.querySelectorAll('.response-card');
+      cards.forEach(c => c.remove());
+      
+      document.querySelectorAll('.highlight-ring').forEach(el => el.classList.remove('highlight-ring'));
+      document.querySelectorAll('.timeline-node').forEach(n => n.classList.remove('active'));
+      
+      // Reset partition files list to original 2 files
+      document.getElementById('partitionFileList').innerHTML = \`
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+          <a href="javascript:void(0)" onclick="previewPartitionFile('2026-06-30-log')" class="text-decoration-none fw-bold" style="color: var(--ink); font-size: 12px;">📄 2026-06-30-log.md</a>
+          <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <a href="javascript:void(0)" onclick="previewPartitionFile('2026-06-29-log')" class="text-decoration-none fw-bold" style="color: var(--ink); font-size: 12px;">📄 2026-06-29-log.md</a>
+          <span class="text-success small fw-bold" style="cursor:pointer;" onclick="alert('已下載該單日日誌檔！')">下載</span>
+        </div>
+      \`;
+    }
+
+    let isAutoPlaying = false;
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      const btn = document.getElementById('autoTourBtn');
+      if (btn) {
+        btn.innerText = "自動播放";
+        btn.classList.remove('btn-danger');
+      }
+    }
+
+    function toggleAutoPlay() {
+      const btn = document.getElementById('autoTourBtn');
+      if (isAutoPlaying) {
+        stopAutoPlay();
+      } else {
+        isAutoPlaying = true;
+        btn.innerText = "停止播放";
+        btn.classList.add('btn-danger');
+        runAutoPlayLoop();
+      }
+    }
+
+    async function runAutoPlayLoop() {
+      if (!isAutoPlaying) return;
+      if (currentStep >= tourSteps.length) {
+        stopAutoPlay();
+        document.getElementById('autoTourBtn').classList.add('d-none');
+        // Let playStep handle completion rendering
+        playStep();
+        return;
+      }
+
+      const step = tourSteps[currentStep];
+      document.getElementById('tourStepTitle').innerText = step.title;
+      document.getElementById('tourStepDesc').innerText = step.desc;
+
+      document.getElementById('nextTourBtn').disabled = true;
+      document.getElementById('prevTourBtn').disabled = true;
+
+      const res = step.action();
+      if (res instanceof Promise) {
+        await res;
+      }
+
+      // Add a 4.0 second pause between steps for comfortable reading speed
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
+      if (isAutoPlaying) {
+        currentStep++;
+        document.getElementById('nextTourBtn').disabled = false;
+        document.getElementById('prevTourBtn').disabled = false;
+        runAutoPlayLoop();
+      } else {
+        document.getElementById('nextTourBtn').disabled = false;
+        document.getElementById('prevTourBtn').disabled = false;
+      }
+    }
+
+    async function startTour() {
+      document.getElementById('startTourBtn').classList.add('d-none');
+      document.getElementById('nextTourBtn').classList.remove('d-none');
+      document.getElementById('prevTourBtn').classList.remove('d-none');
+      document.getElementById('autoTourBtn').classList.remove('d-none');
+      stopAutoPlay();
+      currentStep = 0;
+      playStep();
+    }
+
+    async function playStep() {
+      const prevBtn = document.getElementById('prevTourBtn');
+      if (currentStep > 0) {
+        prevBtn.disabled = false;
+        prevBtn.style.opacity = "1";
+      } else {
+        prevBtn.disabled = true;
+        prevBtn.style.opacity = "0.5";
+      }
+
+      if (currentStep >= tourSteps.length) {
+        document.getElementById('nextTourBtn').classList.add('d-none');
+        document.getElementById('prevTourBtn').classList.add('d-none');
+        document.getElementById('autoTourBtn').classList.add('d-none');
+        document.getElementById('restartTourBtn').classList.remove('d-none');
+        document.getElementById('tourStepTitle').innerText = "🎉 全系統 POC 導覽演示完成！";
+        document.getElementById('tourStepDesc').innerText = "天勳 LINE AI 系統成功展示了：方案規格、資料源複選、歷史時程事件軸、一鍵 Prompt 分析、PDF列印以及 NotebookLM 分割檔預覽等豐富功能。";
+        closePreviewModal();
+        return;
+      }
+
+      const step = tourSteps[currentStep];
+      document.getElementById('tourStepTitle').innerText = step.title;
+      document.getElementById('tourStepDesc').innerText = step.desc;
+
+      const res = step.action();
+      if (res instanceof Promise) {
+        document.getElementById('nextTourBtn').disabled = true;
+        prevBtn.disabled = true;
+        await res;
+        document.getElementById('nextTourBtn').disabled = false;
+        if (currentStep > 0) {
+          prevBtn.disabled = false;
+        }
+      }
+    }
+
+    function nextStep() {
+      stopAutoPlay();
+      currentStep++;
+      playStep();
+    }
+
+    async function prevStep() {
+      stopAutoPlay();
+      if (currentStep > 0) {
+        currentStep--;
+        resetTourStateOnly();
+        
+        // Fast-forward previous steps instantly
+        for (let idx = 0; idx < currentStep; idx++) {
+          tourSteps[idx].action(true);
+        }
+        
+        playStep();
+      }
+    }
+
+    function restartTour() {
+      document.getElementById('restartTourBtn').classList.add('d-none');
+      document.getElementById('nextTourBtn').classList.remove('d-none');
+      document.getElementById('prevTourBtn').classList.remove('d-none');
+      document.getElementById('autoTourBtn').classList.remove('d-none');
+      resetTourStateOnly();
+      stopAutoPlay();
+      currentStep = 0;
+      playStep();
+    }
+  </script>
+  <!-- Attn x Force Cheng 2026/7/3 -->
+  <div class="no-print" style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: rgba(15, 23, 42, 0.04); pointer-events: none; z-index: 9999; font-weight: bold; font-family: monospace;">Attn x Force Cheng 2026/7/3</div>
+</body>
+</html>
+`;
+const POC_V2_HTML = `<!-- Attn x Force Cheng 2026/7/3 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  
+  <!-- SEO & GEO (Generative Engine Optimization) for AI Crawlers -->
+  <meta name="author" content="Attn x Force Cheng 2026/7/3">
+  <meta name="copyright" content="Attn x Force Cheng 2026/7/3">
+  <meta name="generator" content="Attn x Force Cheng 2026/7/3">
+  <meta name="ai-agent" content="Attn x Force Cheng 2026/7/3">
+  <meta name="geo.placename" content="Attn x Force Cheng 2026/7/3">
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Falo IM v2.x 智慧助理主程式",
+    "author": {
+      "@type": "Person",
+      "name": "Attn x Force Cheng 2026/7/3"
+    },
+    "dateCreated": "2026-07-03",
+    "description": "天勳資訊與 Force Cheng 共同開發之 LINE AI 資訊管理系統，專為商業服務業提供自動化對話分析、語意備份與 AI 戰情室解決方案。"
+  }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Falo IM v2.x 智慧助理主程式</title>
+  
+  <!-- CSS: Bootstrap 5, Icons, Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Marked Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --green: #06c755;
+      --green-hover: #05b04b;
+      --primary-color: #0f766e;
+      --primary-hover: #115e59;
+      --accent-soft: #ccfbf1;
+      --ink: #0f172a;
+      --muted: #475569;
+      --border: #cbd5e1;
+      --bg: #f1f5f9;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--ink);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Page view tabs */
+    .view-tab {
+      background: rgba(255,255,255,0.1);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .view-tab.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    .view-tab:hover:not(.active) {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    /* Guided Tour Controller Banner */
+    .tour-banner {
+      background: #0f766e;
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+    
+    .tour-btn {
+      background: white;
+      color: #0f766e;
+      border: none;
+      padding: 4px 12px;
+      font-weight: 700;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tour-btn:hover {
+      background: #ccfbf1;
+    }
+
+    /* View Content Areas */
+    .view-content {
+      flex: 1;
+      overflow: hidden;
+      display: none;
+      min-height: 0;
+    }
+    .view-content.active {
+      display: flex;
+    }
+
+    /* Main Console Workspace Grid Layout */
+    .console-main {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: #f8fafc;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .sidebar-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-section h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .checkbox-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .checkbox-card:hover {
+      background: #f8fafc;
+    }
+    .checkbox-card input {
+      margin-top: 4px;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: #fafafb;
+    }
+
+    .response-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* Markdown styling inside response */
+    .response-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+    .response-body th, .response-body td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .response-body th { background: #f8fafc; font-weight: bold; }
+    .response-body code {
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    .chat-input-area {
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      flex-shrink: 0;
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+
+    textarea {
+      flex: 1;
+      height: 60px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+    }
+
+    .btn-send {
+      background-color: var(--green);
+      color: white;
+      border: none;
+      width: 120px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+    .btn-send:hover {
+      background-color: var(--green-hover);
+    }
+
+    /* Visual Timeline styling */
+    .timeline-container {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 14px;
+    }
+    .timeline-track {
+      position: relative;
+      height: 4px;
+      background: var(--border);
+      margin: 20px 10px 10px 10px;
+      border-radius: 2px;
+    }
+    .timeline-node {
+      position: absolute;
+      top: -6px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border: 3px solid var(--primary-color);
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translateX(-50%);
+      transition: all 0.2s ease;
+    }
+    .timeline-node:hover, .timeline-node.active {
+      background: var(--primary-color);
+      transform: translateX(-50%) scale(1.3);
+    }
+    .timeline-label {
+      position: absolute;
+      top: -24px;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--primary-color);
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+
+    /* Highlight ring class for guided steps */
+    .highlight-ring {
+      outline: 3px solid #f59e0b !important;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4) !important;
+    }
+
+    /* Modal / Popup for file previews */
+    .preview-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      max-width: 90%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      z-index: 2000;
+      display: none;
+    }
+    .preview-modal-header {
+      background: #f8fafc;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .preview-modal-body {
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 1999;
+      display: none;
+    }
+
+    /* Product Page Specific CSS */
+    .product-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    .product-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f766e;
+      border-left: 4px solid #0f766e;
+      padding-left: 10px;
+      margin-top: 30px;
+      margin-bottom: 16px;
+    }
+    .section-title:first-of-type { margin-top: 0; }
+
+    /* Print styles */
+    @media print {
+      body { background: white !important; height: auto !important; overflow: visible !important; }
+      header, .tour-banner, .sidebar, .chat-input-area, .no-print, .response-card:not(.printing-target), .preview-modal, .overlay {
+        display: none !important;
+      }
+      main { display: block !important; height: auto !important; }
+      .chat-container { width: 100% !important; display: block !important; }
+      .chat-messages { padding: 0 !important; background: white !important; }
+      .response-card.printing-target {
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1><i class="bi bi-robot"></i> 天勳 LINE AI 資訊管理系統 - POC 互動演示</h1>
+    <div class="d-flex align-items-center gap-3">
+      <span id="pointsDisplayHeader" class="badge bg-secondary py-2 px-3" style="font-size: 12px; display: none; background: #334155 !important;">AI 點數餘額：<strong>50,000 點 / 50,000 點</strong></span>
+      <div class="d-flex gap-2">
+        <button class="view-tab active" id="tabProduct" onclick="switchPage('product')">📄 1. 雙版本方案介紹</button>
+        <button class="view-tab" id="tabConsoleStandard" onclick="switchPage('standard')">💻 2. 10萬標準版工作台</button>
+        <button class="view-tab" id="tabConsoleAdvanced" onclick="switchPage('advanced')">🚀 3. 20萬進階版工作台</button>
+      </div>
+      <span class="badge bg-success">地端同步中</span>
+    </div>
+  </header>
+
+  <!-- Guided Tour Controller Banner -->
+  <div class="tour-banner" id="tourBanner">
+    <div>
+      <strong id="tourStepTitle">💡 歡迎進行「天勳 LINE AI」提案送審展示：</strong>
+      <span id="tourStepDesc" class="ms-2">點擊右側開始進行互動演示，系統將自動導引播放所有功能。</span>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="tour-btn" id="startTourBtn" onclick="startTour()">開始自動展示</button>
+      <button class="tour-btn d-none" id="prevTourBtn" onclick="prevStep()">上一步</button>
+      <button class="tour-btn d-none" id="autoTourBtn" onclick="toggleAutoPlay()">自動播放</button>
+      <button class="tour-btn d-none" id="nextTourBtn" onclick="nextStep()">下一步</button>
+      <button class="tour-btn d-none" id="restartTourBtn" onclick="restartTour()">重新播放</button>
+    </div>
+  </div>
+
+  <!-- Page 1 View: Product Intro -->
+  <div class="view-content active" id="pageProduct" style="overflow-y: auto;">
+    <div class="product-container">
+      <div class="product-box">
+        <!-- Title Block -->
+        <div class="d-flex justify-content-between align-items-start mb-4 border-bottom pb-3">
+          <div>
+            <h2 class="fw-bold" style="font-size: 28px; color: var(--ink);">Attn LINE AI 資訊管理系統 企業進階版</h2>
+            <div class="d-flex gap-2 mt-2">
+              <span class="badge bg-teal" style="background: #0f766e;">AI對話分析與專案智慧</span>
+              <span class="badge bg-secondary">G 批發及零售業</span>
+              <span class="badge bg-secondary">I 住宿及餐飲業</span>
+              <span class="badge bg-secondary">M 專業、科學及技術服務業</span>
+            </div>
+          </div>
+          <div class="text-end" style="background: #f8fafc; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="text-muted small">115年方案價格</div>
+            <div class="fw-bold fs-4" style="color: #0f766e;">$200,000</div>
+            <div class="small text-secondary">(期程 12 個月)</div>
+          </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section-title">AI 元件模型架構</div>
+        <div class="text-center p-2 border rounded mb-4 bg-light" id="productArchitectureImg">
+          <img src="ChatGPT_Image.png" alt="天勳 LINE AI 元件模型架構" class="img-fluid rounded" style="max-height: 480px;">
+        </div>
+
+        <!-- Solution Intro -->
+        <div class="section-title">方案介紹</div>
+        <p class="fw-bold text-success mb-2" style="font-size: 15px;">💡 對知識工程＋繁體中文最友善強大的 AI 服務方案</p>
+        <p>
+          Attn LINE AI 資訊管理系統是一套專為企業打造的智能化對話歸檔與戰情分析方案。本系統由**天勳資訊有限公司**維護，無縫整合 LINE 官方帳號 (LINE Bot)、地端同步事件歸檔器與生成式 AI (Gemini) 推理大模型，協助業者將雜亂的客戶諮詢、群組討論及檔案轉化為具備商業洞察的專案智慧。透過彈性時間區間、Prompt 小幫手與知識庫 (KM) 交叉比對，企業可一鍵產出日誌摘要、待辦事項、趨勢分析與風險提醒，大幅降低人工文書整理負擔。
+        </p>
+
+        <!-- Solution Specs -->
+        <div class="section-title">方案規格說明</div>
+        <p><strong>本服務針對企業轉型提供以下兩款版本配置，可依專案規模彈性選用：</strong></p>
+        <h5 class="fw-bold mt-2" style="color: #0f766e; font-size: 14px;">💎 企業標準版 ($100,000 / 6個月)</h5>
+        <ul style="font-size: 13px;">
+          <li><strong>AI 運作點數</strong>：方案預設提供 **20,000 點 AI 運作點數**。採「輸入 + 輸出雙軌字數計量扣點」，折合可分析高達 **4,000 萬字** 的對話輸入，或產生約 **1,000 萬字** 的生成式 AI 戰情報告（預設選用 Gemini 輕量高效模型）。每次標準 analysis 扣除 10~25 點。</li>
+          <li><strong>續用加值機制</strong>：點數扣減完畢後，客戶可向天勳資訊加購點數包繼續使用（不支援自備 API 金鑰或地端離線模型）。</li>
+          <li><strong>對話資料存檔</strong>：支援即時 LINE 官方助手對話紀錄、多模態圖片檔案與附件自動儲存。</li>
+        </ul>
+        <h5 class="fw-bold mt-2" style="color: #0d9488; font-size: 14px;">💎 企業進階版 ($200,000 / 6個月) —— 🌟 推薦自控與高資安首選</h5>
+        <ul style="font-size: 13px;">
+          <li><strong>AI 運作點數</strong>：方案預設提供 **50,000 點 AI 運作點數**。折合可分析高達 **1 億字** 的對話輸入，或產生約 **2,500 萬字** 的生成式 AI 戰情報告。</li>
+          <li><strong>「三大進階解鎖」自主控管機制</strong>：
+            <ol>
+              <li><strong>自備金鑰 (Own API Key) 續用</strong>：預設點數扣減完畢後，客戶可無縫於前台面板填入自己申請之 Gemini API Key 進行無限次 analysis，系統不中斷，免加購點數。</li>
+              <li><strong>地端開源大模型 (Ollama) 對接</strong>：支援地端離線部署之開源大模型（如 Meta Llama 3、Google Gemma 等），資料 100% 留在企業內網，符合最高規格資安。</li>
+              <li><strong>Agent 協作與專用 MD / Prompt 導出</strong>：解鎖「匯出 MD 給 Agent 分析」功能，一鍵打包去敏感化的結構化對話與 KM 知識日誌 (.md)，可完美導入並對接 **NotebookLM** 及 **主流通用 AI Agent (如 ChatGPT, Gemini, Claude, Perplexity 等)** 進行深度二次分析、智慧問答與資料探勘（扣減 0 點）。</li>
+            </ol>
+          </li>
+        </ul>
+        <h5 class="fw-bold mt-2" style="color: #0f766e; font-size: 14px;">➕ 系統工作流整合加值包 (選購, +$100,000 / 6個月)</h5>
+        <ul style="font-size: 13px;">
+          <li><strong>加碼運作點數</strong>：加購即額外贈送 **50,000 點 AI 額度 (合購後標準版達 70,000 點，進階版達 100,000 點額度！)**。</li>
+          <li><strong>自動化與橋接功能</strong>：解鎖 Telegram 訊息橋接、群組內 AI 即時指令（如 \`/summary\` 與 \`/todo\`）以及智慧 KM 企業知識庫自動問答開關。</li>
+        </ul>
+
+        <!-- Provider details -->
+        <div class="section-title">服務提供者資訊</div>
+        <p class="mb-1">公司名稱：天勳資訊有限公司 | 統一編號：12781944</p>
+        <p class="mb-1">聯絡電話：06-2980272 | 地址：臺南市官田區二鎮里工業路21號1樓</p>
+        <p class="mb-0">電子郵件：<a href="mailto:service@tianxun.com.tw" style="color: #0f766e;">service@tianxun.com.tw</a></p>
+        <p class="mb-0 text-muted mt-3" style="font-size: 11px; font-family: monospace;">
+          備註與隱藏浮水印：Attn x Force Cheng 2026/7/3
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 View: Interactive Workspace Console -->
+  <div class="view-content" id="pageConsole">
+    <div class="console-main">
+      
+      <!-- Sidebar -->
+      <div class="sidebar">
+        
         <!-- Database Gateway Connection Explorer -->
         <div class="sidebar-section" id="sectionConnection">
           <h2>大腦資料庫探索 (GAS Explorer)</h2>
@@ -4320,6 +5882,9 @@ export default {
     }
     if (path === "/poc-demo" || path === "/poc-demo.html") {
       return htmlResponse(POC_DEMO_HTML);
+    }
+    if (path === "/poc-v2" || path === "/poc-v2.html") {
+      return htmlResponse(POC_V2_HTML);
     }
     if (path === "/product-intro" || path === "/product-intro.html") {
       return htmlResponse(PRODUCT_INTRO_HTML);
