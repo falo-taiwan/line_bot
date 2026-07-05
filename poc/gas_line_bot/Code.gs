@@ -71,6 +71,12 @@ function doGet(e) {
     return jsonResponse({ ok: true, message: 'Media worker run completed.' });
   }
 
+  // Secure endpoint to test enqueue logic directly from URL
+  if (action === 'test_enqueue') {
+    testEnqueue();
+    return jsonResponse({ ok: true, message: 'testEnqueue run completed.' });
+  }
+
   var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
   ensureSetup(ss);
 
@@ -1093,4 +1099,18 @@ function isLineVerifyPayload_(payload) {
     return true;
   }
   return false;
+}
+
+function testEnqueue() {
+  var botAlias = 'standard';
+  var chatId = 'U184e1758bd653e1b21319e803af1a445';
+  var userId = 'U184e1758bd653e1b21319e803af1a445';
+  var messageId = 'test_msg_id_99999';
+  var messageType = 'image';
+  var timestamp = Date.now();
+  var rawJson = '{}';
+  
+  Logger.log('Running testEnqueue...');
+  enqueueMediaIfNeeded_(botAlias, chatId, userId, messageId, messageType, timestamp, rawJson);
+  Logger.log('testEnqueue finished.');
 }
