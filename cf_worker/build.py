@@ -10,6 +10,7 @@ OUTPUT_PATH = os.path.join(WORKER_DIR, "src", "index.js")
 # Map of placeholder to filename in ROOT_DIR
 HTML_MAPPING = {
     "__INDEX_HTML__": "index.html",
+    "__NAV_PORTAL_20260706_HTML__": "20260706.html",
     "__POC_DEMO_HTML__": "poc-demo.html",
     "__MVP_HTML__": "mvp.html",
     "__MOBILE_HTML__": "mobile.html",

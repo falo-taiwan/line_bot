@@ -1,4 +1,5 @@
 const INDEX_HTML = `__INDEX_HTML__`;
+const NAV_PORTAL_20260706_HTML = `__NAV_PORTAL_20260706_HTML__`;
 const POC_DEMO_HTML = `__POC_DEMO_HTML__`;
 const MVP_HTML = `__MVP_HTML__`;
 const MOBILE_HTML = `__MOBILE_HTML__`;
@@ -86,6 +87,9 @@ export default {
     }
     if (path === "/mobile/preview" || path === "/mobile/preview.html") {
       return htmlResponse(MOBILE_PREVIEW_HTML);
+    }
+    if (path === "/20260706" || path === "/20260706.html") {
+      return htmlResponse(NAV_PORTAL_20260706_HTML);
     }
 
     // 2. API Proxy Routes
